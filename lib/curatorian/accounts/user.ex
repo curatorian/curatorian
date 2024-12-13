@@ -2,12 +2,22 @@ defmodule Curatorian.Accounts.User do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @primary_key {:id, :binary_id, autogenerate: true}
+  @derive {Phoenix.Param, key: :id}
   schema "users" do
     field :email, :string
+    field :username, :string
+    field :fullname, :string
+    field :user_type, :string
+    field :user_image, :string
+    field :social_media, {:map, :string}
+    field :groups, {:array, :string}
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :current_password, :string, virtual: true, redact: true
     field :confirmed_at, :utc_datetime
+    field :last_login, :utc_datetime
+    field :last_login_ip, :string
 
     timestamps(type: :utc_datetime)
   end
@@ -37,9 +47,10 @@ defmodule Curatorian.Accounts.User do
   """
   def registration_changeset(user, attrs, opts \\ []) do
     user
-    |> cast(attrs, [:email, :password])
+    |> cast(attrs, [:email, :username, :password])
     |> validate_email(opts)
     |> validate_password(opts)
+    |> unique_constraint([:email, :username])
   end
 
   defp validate_email(changeset, opts) do
