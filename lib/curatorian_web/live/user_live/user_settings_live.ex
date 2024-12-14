@@ -12,6 +12,11 @@ defmodule CuratorianWeb.UserSettingsLive do
 
     <div class="space-y-12 divide-y">
       <div>
+        <%!-- <div>
+          <.simple_form for={@update_profile_form}>
+            <.input field={} />
+          </.simple_form>
+        </div> --%>
         <.simple_form
           for={@email_form}
           id="email_form"
@@ -33,6 +38,7 @@ defmodule CuratorianWeb.UserSettingsLive do
           </:actions>
         </.simple_form>
       </div>
+      
       <div>
         <.simple_form
           for={@password_form}
@@ -90,6 +96,7 @@ defmodule CuratorianWeb.UserSettingsLive do
     user = socket.assigns.current_user
     email_changeset = Accounts.change_user_email(user)
     password_changeset = Accounts.change_user_password(user)
+    profile_changeset = Accounts.change_user_profile(user)
 
     socket =
       socket
@@ -98,6 +105,7 @@ defmodule CuratorianWeb.UserSettingsLive do
       |> assign(:current_email, user.email)
       |> assign(:email_form, to_form(email_changeset))
       |> assign(:password_form, to_form(password_changeset))
+      |> assign(:update_profile_form, to_form(profile_changeset))
       |> assign(:trigger_submit, false)
 
     {:ok, socket}
@@ -163,5 +171,11 @@ defmodule CuratorianWeb.UserSettingsLive do
       {:error, changeset} ->
         {:noreply, assign(socket, password_form: to_form(changeset))}
     end
+  end
+
+  def handle_event("update_profile_form", params, socket) do
+    user = socket.assigns.current_user
+
+    Accounts.update_user_profile(user, params)
   end
 end

@@ -132,6 +132,14 @@ defmodule Curatorian.Accounts.User do
   end
 
   @doc """
+  A user changeset for changing the user profile
+  """
+  def profile_changeset(user, attrs, opts \\ []) do
+    user
+    |> cast(attrs, [:fullname, :user_image, :social_media])
+  end
+
+  @doc """
   Confirms the account by setting `confirmed_at`.
   """
   def confirm_changeset(user) do

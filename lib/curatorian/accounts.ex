@@ -350,4 +350,18 @@ defmodule Curatorian.Accounts do
       {:error, :user, changeset, _} -> {:error, changeset}
     end
   end
+
+  @doc """
+  Update User Profile.
+
+  ## Examples
+  """
+  def update_user_profile(user, attrs) do
+    dbg(user)
+    dbg(attrs)
+  end
+
+  def change_user_profile(%User{} = user, attrs \\ %{}) do
+    User.profile_changeset(user, attrs)
+  end
 end
