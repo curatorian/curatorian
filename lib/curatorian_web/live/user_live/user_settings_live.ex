@@ -12,11 +12,21 @@ defmodule CuratorianWeb.UserSettingsLive do
 
     <div class="space-y-12 divide-y">
       <div>
-        <%!-- <div>
+        <div>
           <.simple_form for={@update_profile_form}>
-            <.input field={} />
+            <.input
+              field={@update_profile_form[:fullname]}
+              name="fullname"
+              label="Full Name"
+              type="text"
+              id="fullname"
+            />
+            <:actions>
+              <.button>Update Profile</.button>
+            </:actions>
           </.simple_form>
-        </div> --%>
+        </div>
+        
         <.simple_form
           for={@email_form}
           id="email_form"

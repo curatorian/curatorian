@@ -8,6 +8,7 @@ defmodule Curatorian.Accounts.User do
     field :email, :string
     field :username, :string
     field :fullname, :string
+    field :bio, :string
     field :user_type, :string
     field :user_image, :string
     field :social_media, {:map, :string}
@@ -134,7 +135,7 @@ defmodule Curatorian.Accounts.User do
   @doc """
   A user changeset for changing the user profile
   """
-  def profile_changeset(user, attrs, opts \\ []) do
+  def profile_changeset(user, attrs, _opts \\ []) do
     user
     |> cast(attrs, [:fullname, :user_image, :social_media])
   end

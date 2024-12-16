@@ -9,6 +9,7 @@ defmodule Curatorian.Repo.Migrations.CreateUsersAuthTables do
       add :email, :citext, null: false
       add :username, :citext, null: false
       add :fullname, :string
+      add :bio, :string
       add :user_type, :string
       add :user_image, :string
       add :social_media, :jsonb
