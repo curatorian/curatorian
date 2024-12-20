@@ -7,18 +7,15 @@ defmodule Curatorian.Accounts.User do
   schema "users" do
     field :email, :string
     field :username, :string
-    field :fullname, :string
-    field :bio, :string
     field :user_type, :string
-    field :user_image, :string
-    field :social_media, {:map, :string}
-    field :groups, {:array, :string}
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :current_password, :string, virtual: true, redact: true
     field :confirmed_at, :utc_datetime
     field :last_login, :utc_datetime
     field :last_login_ip, :string
+
+    has_one :profile, Curatorian.Accounts.UserProfile
 
     timestamps(type: :utc_datetime)
   end
