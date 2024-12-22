@@ -382,21 +382,20 @@ defmodule Curatorian.Accounts do
   end
 
   @doc """
-  Update User Profile.
+  Changeset for User Profile
+  """
+  def change_user_profile(user_profile, attrs \\ %{}) do
+    UserProfile.changeset(user_profile, attrs)
+  end
 
-  ## Examples
+  @doc """
+  Update User Profile.
   """
   def update_user_profile(user, attrs) do
-    case Repo.get_by(UserProfile, user_id: user.id) do
-      nil ->
-        {:error, :not_found}
+    user_profile = get_user_profile_by_user_id(user.id)
 
-      user_profile ->
-        user_profile
-        |> UserProfile.changeset(attrs)
-        |> Repo.update()
-
-        {:ok, user_profile}
-    end
+    user_profile
+    |> UserProfile.changeset(attrs)
+    |> Repo.update()
   end
 end

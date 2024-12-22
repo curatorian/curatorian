@@ -3,3 +3,14 @@
 @import "tailwindcss/utilities";
 
 /* This file is for your main application CSS */
+.tabs {
+  @apply flex cursor-pointer;
+}
+
+.tabs button {
+  @apply px-4 py-2 border-none bg-gray-200 mr-2;
+}
+
+.tabs button.active {
+  @apply bg-gray-700 text-white;
+}
