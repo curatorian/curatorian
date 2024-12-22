@@ -12,15 +12,16 @@ defmodule Curatorian.Accounts.UserProfile do
     field :educations, :map, type: :jsonb
     field :groups, {:array, :string}
 
-    belongs_to :user, Curatorian.Accounts.User
+    belongs_to :user, Curatorian.Accounts.User, type: :binary_id
 
     timestamps(type: :utc_datetime)
   end
 
-  def changeset(profile, attrs) do
-    profile
-    |> cast(attrs, [:fullname, :bio, :user_image, :social_media, :educations, :groups])
-    |> validate_required([:fullname])
+  def changeset(user_profile, attrs) do
+    user_profile
+    |> cast(attrs, [:user_id, :fullname, :bio, :user_image, :social_media, :educations, :groups])
+    |> validate_required([:user_id])
     |> foreign_key_constraint(:user_id)
+    |> cast_assoc(:user)
   end
 end

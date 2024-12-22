@@ -6,7 +6,7 @@ defmodule Curatorian.Accounts do
   import Ecto.Query, warn: false
   alias Curatorian.Repo
 
-  alias Curatorian.Accounts.{User, UserToken, UserNotifier}
+  alias Curatorian.Accounts.{User, UserProfile, UserToken, UserNotifier}
 
   ## Database getters
 
@@ -60,6 +60,19 @@ defmodule Curatorian.Accounts do
   """
   def get_user!(id), do: Repo.get!(User, id)
 
+  @doc """
+  Gets a user profile by user_id.
+  ## Examples
+      iex> get_user_profile_by_user_id(123)
+      %UserProfile{}
+
+      iex> get_user_profile_by_user_id(456)
+      ** (Ecto.NoResultsError)
+  """
+  def get_user_profile_by_user_id(user_id) do
+    Repo.get_by!(UserProfile, user_id: user_id)
+  end
+
   ## User registration
 
   @doc """
@@ -75,9 +88,26 @@ defmodule Curatorian.Accounts do
 
   """
   def register_user(attrs) do
-    %User{}
-    |> User.registration_changeset(attrs)
-    |> Repo.insert()
+    Ecto.Multi.new()
+    |> Ecto.Multi.insert(:user, User.registration_changeset(%User{}, attrs))
+    |> Ecto.Multi.insert(:user_profile, fn %{user: user} ->
+      # Ensure user_id is set
+      UserProfile.changeset(%UserProfile{}, %{user_id: user.id})
+    end)
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{user: user, user_profile: user_profile}} ->
+        # Return both user and user_profile if needed
+        {:ok, user, user_profile}
+
+      {:error, :user, changeset, _} ->
+        # Return the user changeset in case of user insertion error
+        {:error, :user, changeset}
+
+      {:error, :user_profile, changeset, _} ->
+        # Return the user profile changeset in case of user profile insertion error
+        {:error, :user_profile, changeset}
+    end
   end
 
   @doc """
@@ -357,11 +387,16 @@ defmodule Curatorian.Accounts do
   ## Examples
   """
   def update_user_profile(user, attrs) do
-    dbg(user)
-    dbg(attrs)
-  end
+    case Repo.get_by(UserProfile, user_id: user.id) do
+      nil ->
+        {:error, :not_found}
 
-  def change_user_profile(%User{} = user, attrs \\ %{}) do
-    User.profile_changeset(user, attrs)
+      user_profile ->
+        user_profile
+        |> UserProfile.changeset(attrs)
+        |> Repo.update()
+
+        {:ok, user_profile}
+    end
   end
 end

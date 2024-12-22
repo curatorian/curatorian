@@ -1,4 +1,5 @@
 defmodule CuratorianWeb.UserSettingsLive do
+  alias Curatorian.Accounts.UserProfile
   use CuratorianWeb, :live_view
 
   alias Curatorian.Accounts
@@ -20,6 +21,13 @@ defmodule CuratorianWeb.UserSettingsLive do
               label="Full Name"
               type="text"
               id="fullname"
+            />
+            <.input
+              field={@update_profile_form[:bio]}
+              name="bio"
+              label="Bio"
+              type="textarea"
+              id="bio"
             />
             <:actions>
               <.button>Update Profile</.button>
@@ -104,9 +112,12 @@ defmodule CuratorianWeb.UserSettingsLive do
 
   def mount(_params, _session, socket) do
     user = socket.assigns.current_user
+    user_profile = Accounts.get_user_profile_by_user_id(user.id)
     email_changeset = Accounts.change_user_email(user)
     password_changeset = Accounts.change_user_password(user)
-    profile_changeset = Accounts.change_user_profile(user)
+    profile_changeset = UserProfile.changeset(user_profile, %{})
+
+    dbg(Accounts.get_user_profile_by_user_id(user.id))
 
     socket =
       socket
@@ -183,9 +194,21 @@ defmodule CuratorianWeb.UserSettingsLive do
     end
   end
 
-  def handle_event("update_profile_form", params, socket) do
+  def handle_event("update_profile", params, socket) do
     user = socket.assigns.current_user
+    profile_changeset = %UserProfile{} |> UserProfile.changeset(params)
 
-    Accounts.update_user_profile(user, params)
+    case Accounts.update_user_profile(user, profile_changeset) do
+      {:ok, _profile} ->
+        info = "A link to confirm your email change has been sent to the new address."
+
+        {:noreply,
+         socket
+         |> put_flash(:info, info)
+         |> assign(socket, update_profile_form: to_form(profile_changeset))}
+
+      {:error, changeset} ->
+        {:noreply, assign(socket, update_profile_form: to_form(changeset))}
+    end
   end
 end

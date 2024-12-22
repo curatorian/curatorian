@@ -15,7 +15,7 @@ defmodule Curatorian.AccountsFixtures do
   end
 
   def user_fixture(attrs \\ %{}) do
-    {:ok, user} =
+    {:ok, user, _user_profile} =
       attrs
       |> valid_user_attributes()
       |> Curatorian.Accounts.register_user()

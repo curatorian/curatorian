@@ -3,14 +3,14 @@ defmodule Curatorian.Repo.Migrations.CreateBlogs do
 
   def change do
     create table(:blogs, primary_key: false) do
-      add :id, :uuid, primary_key: true, null: false
+      add :id, :binary_id, primary_key: true, null: false
       add :title, :string
       add :slug, :string
       add :content, :text
       add :summary, :string
       add :image_url, :string
       add :status, :string
-      add :user_id, references(:users, type: :uuid, on_delete: :nothing)
+      add :user_id, references(:users, type: :binary_id, on_delete: :nothing)
 
       timestamps(type: :utc_datetime)
     end

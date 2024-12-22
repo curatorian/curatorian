@@ -11,7 +11,7 @@ defmodule Curatorian.Blogs.Blog do
     field :content, :string
     field :summary, :string
     field :image_url, :string
-    belongs_to :user, Curatorian.Accounts.User
+    belongs_to :user, Curatorian.Accounts.User, type: :binary_id
 
     timestamps(type: :utc_datetime)
   end

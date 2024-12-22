@@ -54,7 +54,7 @@ defmodule CuratorianWeb.UserRegistrationLive do
 
   def handle_event("save", %{"user" => user_params}, socket) do
     case Accounts.register_user(user_params) do
-      {:ok, user} ->
+      {:ok, user, _user_profile} ->
         {:ok, _} =
           Accounts.deliver_user_confirmation_instructions(
             user,
@@ -64,7 +64,12 @@ defmodule CuratorianWeb.UserRegistrationLive do
         changeset = Accounts.change_user_registration(user)
         {:noreply, socket |> assign(trigger_submit: true) |> assign_form(changeset)}
 
-      {:error, %Ecto.Changeset{} = changeset} ->
+      {:error, :user, %Ecto.Changeset{} = changeset} ->
+        # Handle user changeset error with additional data
+        {:noreply, socket |> assign(check_errors: true) |> assign_form(changeset)}
+
+      {:error, :user_profile, %Ecto.Changeset{} = changeset} ->
+        # Handle user changeset error with additional data
         {:noreply, socket |> assign(check_errors: true) |> assign_form(changeset)}
     end
   end

@@ -5,7 +5,7 @@ defmodule Curatorian.Repo.Migrations.CreateUsersAuthTables do
     execute "CREATE EXTENSION IF NOT EXISTS citext", ""
 
     create table(:users, primary_key: false) do
-      add :id, :uuid, primary_key: true, null: false
+      add :id, :binary_id, primary_key: true, null: false
       add :email, :citext, null: false
       add :username, :citext, null: false
       add :user_type, :string
@@ -18,8 +18,8 @@ defmodule Curatorian.Repo.Migrations.CreateUsersAuthTables do
     end
 
     create table(:user_profiles, primary_key: false) do
-      add :id, :uuid, primary_key: true, null: false
-      add :user_id, references(:users, type: :uuid, on_delete: :delete_all)
+      add :id, :binary_id, primary_key: true, null: false
+      add :user_id, references(:users, type: :binary_id, on_delete: :delete_all)
       add :fullname, :string
       add :bio, :string
       add :user_image, :string
@@ -29,8 +29,6 @@ defmodule Curatorian.Repo.Migrations.CreateUsersAuthTables do
 
       timestamps(type: :utc_datetime)
     end
-
-    create unique_index(:users, [:email, :username])
 
     create table(:users_tokens) do
       add :user_id, references(:users, type: :uuid, on_delete: :delete_all), null: false
@@ -42,6 +40,7 @@ defmodule Curatorian.Repo.Migrations.CreateUsersAuthTables do
     end
 
     create index(:users_tokens, [:user_id])
+    create unique_index(:users, [:email, :username])
     create unique_index(:users_tokens, [:context, :token])
   end
 end

@@ -13,12 +13,12 @@ defmodule Curatorian.Repo.Migrations.AddBlogsMetadata do
     end
 
     create table(:blogs_tags, primary_key: false) do
-      add :blog_id, references(:blogs, type: :uuid)
+      add :blog_id, references(:blogs, type: :binary_id)
       add :tag_id, references(:tags)
     end
 
     create table(:blogs_categories, primary_key: false) do
-      add :blog_id, references(:blogs, type: :uuid)
+      add :blog_id, references(:blogs, type: :binary_id)
       add :category_id, references(:categories)
     end
 

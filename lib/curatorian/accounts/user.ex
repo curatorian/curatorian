@@ -46,9 +46,9 @@ defmodule Curatorian.Accounts.User do
   def registration_changeset(user, attrs, opts \\ []) do
     user
     |> cast(attrs, [:email, :username, :password])
+    |> validate_username(opts)
     |> validate_email(opts)
     |> validate_password(opts)
-    |> unique_constraint([:email, :username])
   end
 
   defp validate_email(changeset, opts) do
@@ -57,6 +57,13 @@ defmodule Curatorian.Accounts.User do
     |> validate_format(:email, ~r/^[^\s]+@[^\s]+$/, message: "must have the @ sign and no spaces")
     |> validate_length(:email, max: 160)
     |> maybe_validate_unique_email(opts)
+  end
+
+  defp validate_username(changeset, opts) do
+    changeset
+    |> validate_required([:username])
+    |> validate_length(:username, min: 3, max: 30)
+    |> maybe_validate_username_unique(opts)
   end
 
   defp validate_password(changeset, opts) do
@@ -88,8 +95,18 @@ defmodule Curatorian.Accounts.User do
   defp maybe_validate_unique_email(changeset, opts) do
     if Keyword.get(opts, :validate_email, true) do
       changeset
-      |> unsafe_validate_unique(:email, Curatorian.Repo)
+      |> unsafe_validate_unique(:email, Curatorian.Repo, message: "Email sudah digunakan!")
       |> unique_constraint(:email)
+    else
+      changeset
+    end
+  end
+
+  defp maybe_validate_username_unique(changeset, opts) do
+    if Keyword.get(opts, :validate_username, true) do
+      changeset
+      |> unsafe_validate_unique(:username, Curatorian.Repo, message: "Username sudah digunakan!")
+      |> unique_constraint(:username)
     else
       changeset
     end
@@ -127,14 +144,6 @@ defmodule Curatorian.Accounts.User do
     |> cast(attrs, [:password])
     |> validate_confirmation(:password, message: "does not match password")
     |> validate_password(opts)
-  end
-
-  @doc """
-  A user changeset for changing the user profile
-  """
-  def profile_changeset(user, attrs, _opts \\ []) do
-    user
-    |> cast(attrs, [:fullname, :user_image, :social_media])
   end
 
   @doc """
