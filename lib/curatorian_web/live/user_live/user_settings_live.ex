@@ -3,6 +3,7 @@ defmodule CuratorianWeb.UserSettingsLive do
 
   alias Curatorian.Accounts
 
+  @impl Phoenix.LiveView
   def render(assigns) do
     ~H"""
     <.header class="text-center">
@@ -11,54 +12,17 @@ defmodule CuratorianWeb.UserSettingsLive do
     </.header>
 
     <div class="space-y-12">
-      <div>
-        <div>
-          <%= if @current_user_profile.user_image do %>
-            <img
-              src={@current_user_profile.user_image}
-              class="w-24 h-24 cursor-pointer"
-              alt="User Image"
-            />
-          <% else %>
-            <img src={~p"/images/default.png"} class="w-24 h-24 cursor-pointer" alt="User Image" />
-          <% end %>
-        </div>
-        
-        <div class="container" phx-drop-target={@uploads.avatar.ref}>
-          <form id="upload-form" phx-submit="upload_image" phx-change="validate">
-            <.live_file_input upload={@uploads.avatar} />
-            <button class="bg-blue-500 py-2 px-4 text-white rounded" type="submit">Upload</button>
-          </form>
-        </div>
-        
-        <div phx-drop-target={@uploads.avatar.ref}>
-          <%!-- render each avatar entry --%>
-          <article :for={entry <- @uploads.avatar.entries} class="upload-entry">
-            <figure>
-              <.live_img_preview entry={entry} />
-              <figcaption>{entry.client_name}</figcaption>
-            </figure>
-             <%!-- entry.progress will update automatically for in-flight entries --%>
-            <progress value={entry.progress} max="100">{entry.progress}%</progress>
-            <%!-- a regular click event whose handler will invoke Phoenix.LiveView.cancel_upload/3 --%>
-            <button
-              type="button"
-              phx-click="cancel-upload"
-              phx-value-ref={entry.ref}
-              aria-label="cancel"
-            >
-              &times;
-            </button>
-             <%!-- Phoenix.Component.upload_errors/2 returns a list of error atoms --%>
-            <p :for={err <- upload_errors(@uploads.avatar, entry)} class="alert alert-danger">
-              {error_to_string(err)}
-            </p>
-          </article>
-           <%!-- Phoenix.Component.upload_errors/1 returns a list of error atoms --%>
-          <p :for={err <- upload_errors(@uploads.avatar)} class="alert alert-danger">
-            {error_to_string(err)}
-          </p>
-        </div>
+      <div id="user-image">
+        <%= if @current_user_profile.user_image do %>
+          <img
+            phx-track-static
+            src={@current_user_profile.user_image}
+            class="profile-pic"
+            alt="User Image"
+          />
+        <% else %>
+          <img phx-track-static src={~p"/images/default.png"} class="profile-pic" alt="User Image" />
+        <% end %>
       </div>
       
       <div class="tabs">
@@ -90,6 +54,65 @@ defmodule CuratorianWeb.UserSettingsLive do
       <%= case @current_tab do %>
         <% :tab1 -> %>
           <div>
+            <div phx-drop-target={@uploads.avatar.ref}>
+              <div class="container" phx-drop-target={@uploads.avatar.ref}>
+                <form id="upload-form" phx-submit="upload_image" phx-change="validate" class="hidden">
+                  <.live_file_input upload={@uploads.avatar} />
+                  <.button type="submit" id="submit-image">Upload</.button>
+                </form>
+              </div>
+              
+              <div>
+                <%= if length(@uploads.avatar.entries) === 0 do %>
+                  <div>
+                    <.button
+                      type="click"
+                      phx-click={JS.dispatch("click", to: "##{@uploads.avatar.ref}")}
+                    >
+                      Ganti Foto
+                    </.button>
+                  </div>
+                <% end %>
+                 <%!-- render each avatar entry --%>
+                <article :for={entry <- @uploads.avatar.entries} class="upload-entry">
+                  <figure>
+                    <.live_img_preview entry={entry} class="profile-pic" />
+                    <figcaption>{entry.client_name}</figcaption>
+                  </figure>
+                   <%!-- entry.progress will update automatically for in-flight entries --%>
+                  <progress value={entry.progress} max="100">{entry.progress}%</progress>
+                  <%!-- a regular click event whose handler will invoke Phoenix.LiveView.cancel_upload/3 --%>
+                  <div>
+                    <.button
+                      type="button"
+                      phx-click="cancel-upload"
+                      phx-value-ref={entry.ref}
+                      aria-label="cancel"
+                      class="bg-red-500 hover:bg-red-600"
+                    >
+                      Batal
+                    </.button>
+                    
+                    <.button
+                      type="button"
+                      phx-click="upload_image"
+                      class="bg-green-500 hover:bg-green-600"
+                    >
+                      Upload
+                    </.button>
+                  </div>
+                   <%!-- Phoenix.Component.upload_errors/2 returns a list of error atoms --%>
+                  <p :for={err <- upload_errors(@uploads.avatar, entry)} class="alert alert-danger">
+                    {error_to_string(err)}
+                  </p>
+                </article>
+                 <%!-- Phoenix.Component.upload_errors/1 returns a list of error atoms --%>
+                <p :for={err <- upload_errors(@uploads.avatar)} class="alert alert-danger">
+                  {error_to_string(err)}
+                </p>
+              </div>
+            </div>
+            
             <.simple_form for={@update_profile_form} phx-submit="update_profile">
               <.input
                 field={@update_profile_form[:fullname]}
@@ -177,6 +200,7 @@ defmodule CuratorianWeb.UserSettingsLive do
     """
   end
 
+  @impl Phoenix.LiveView
   def mount(%{"token" => token}, _session, socket) do
     socket =
       case Accounts.update_user_email(socket.assigns.current_user, token) do
@@ -190,6 +214,7 @@ defmodule CuratorianWeb.UserSettingsLive do
     {:ok, push_navigate(socket, to: ~p"/users/settings")}
   end
 
+  @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
     user = socket.assigns.current_user
     user_profile = Accounts.get_user_profile_by_user_id(user.id)
@@ -209,35 +234,66 @@ defmodule CuratorianWeb.UserSettingsLive do
       |> assign(:update_profile_form, to_form(profile_changeset))
       |> assign(:trigger_submit, false)
       |> assign(:uploaded_files, [])
-      |> allow_upload(:avatar, accept: ~w(.jpg .jpeg), max_entries: 2)
+      |> allow_upload(:avatar,
+        accept: ~w(.jpg .jpeg),
+        max_file_size: 3_000_000,
+        max_entries: 1,
+        auto_upload: true
+      )
 
     {:ok, socket}
   end
 
+  @impl Phoenix.LiveView
   def handle_event("change_tab", %{"tab" => tab}, socket) do
     {:noreply, assign(socket, current_tab: String.to_existing_atom(tab))}
   end
 
+  @impl Phoenix.LiveView
   def handle_event("validate", _params, socket) do
     {:noreply, socket}
   end
 
-  def handle_event("upload_image", %{"avatar" => _upload}, socket) do
+  @impl Phoenix.LiveView
+  def handle_event("upload_image", _params, socket) do
+    user = socket.assigns.current_user
+
     uploaded_files =
       consume_uploaded_entries(socket, :avatar, fn %{path: path}, _entry ->
         dest =
           Path.join(
-            Application.app_dir(:my_app, "priv/static/uploads/user_image"),
-            Path.basename(path)
+            Application.app_dir(:curatorian, "priv/static/uploads/user_image"),
+            user.id
           )
 
+        image_path = "/uploads/user_image/#{Path.basename(dest)}"
+
         File.cp!(path, dest)
-        {:ok, ~p"/uploads/user_image/#{Path.basename(dest)}"}
+
+        case Accounts.update_user_profile(user, %{user_image: image_path}) do
+          {:ok, _} ->
+            {:ok, socket}
+
+          {:error, _} ->
+            {:error, socket}
+        end
       end)
 
-    {:noreply, update(socket, :uploaded_files, &(&1 ++ uploaded_files))}
+    socket =
+      socket
+      |> put_flash(:info, "Image uploaded successfully")
+      |> update(:uploaded_files, &(&1 ++ uploaded_files))
+      |> redirect(to: ~p"/users/settings")
+
+    {:noreply, socket}
   end
 
+  @impl Phoenix.LiveView
+  def handle_event("cancel-upload", %{"ref" => ref}, socket) do
+    {:noreply, cancel_upload(socket, :avatar, ref)}
+  end
+
+  @impl Phoenix.LiveView
   def handle_event("validate_email", params, socket) do
     %{"current_password" => password, "user" => user_params} = params
 
@@ -250,6 +306,7 @@ defmodule CuratorianWeb.UserSettingsLive do
     {:noreply, assign(socket, email_form: email_form, email_form_current_password: password)}
   end
 
+  @impl Phoenix.LiveView
   def handle_event("update_email", params, socket) do
     %{"current_password" => password, "user" => user_params} = params
     user = socket.assigns.current_user
@@ -270,6 +327,7 @@ defmodule CuratorianWeb.UserSettingsLive do
     end
   end
 
+  @impl Phoenix.LiveView
   def handle_event("validate_password", params, socket) do
     %{"current_password" => password, "user" => user_params} = params
 
@@ -282,6 +340,7 @@ defmodule CuratorianWeb.UserSettingsLive do
     {:noreply, assign(socket, password_form: password_form, current_password: password)}
   end
 
+  @impl Phoenix.LiveView
   def handle_event("update_password", params, socket) do
     %{"current_password" => password, "user" => user_params} = params
     user = socket.assigns.current_user
@@ -300,6 +359,7 @@ defmodule CuratorianWeb.UserSettingsLive do
     end
   end
 
+  @impl Phoenix.LiveView
   def handle_event("update_profile", params, socket) do
     user = socket.assigns.current_user
 

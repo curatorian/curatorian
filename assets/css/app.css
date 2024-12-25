@@ -14,3 +14,7 @@
 .tabs button.active {
   @apply bg-gray-700 text-white;
 }
+
+.profile-pic {
+  @apply rounded-2xl w-48 h-48 object-cover cursor-pointer;
+}

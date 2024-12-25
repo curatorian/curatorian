@@ -89,4 +89,11 @@ defmodule CuratorianWeb.Router do
       live "/users/confirm", UserConfirmationInstructionsLive, :new
     end
   end
+
+  scope "/auth/google", CuratorianWeb do
+    pipe_through [:browser]
+
+    get "/", GoogleAuthController, :request
+    get "/callback", GoogleAuthController, :callback
+  end
 end

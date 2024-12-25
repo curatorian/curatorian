@@ -10,6 +10,18 @@ config :curatorian, Curatorian.Repo,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
 
+config :assent,
+  google: [
+    client_id: System.get_env("GOOGLE_CLIENT_ID"),
+    client_secret: System.get_env("GOOGLE_CLIENT_SECRET"),
+    redirect_uri: "http://localhost:4000/auth/google/callback",
+    authorization_params: [
+      access_type: "offline",
+      scope:
+        "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile"
+    ]
+  ]
+
 # For development, we disable any cache and enable
 # debugging and code reloading.
 #
