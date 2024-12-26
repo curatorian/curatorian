@@ -73,7 +73,21 @@ defmodule Curatorian.Accounts do
     Repo.get_by!(UserProfile, user_id: user_id)
   end
 
-  ## User registration
+  @doc """
+  Get User by Email or Register it if it does not exist.
+  """
+  def get_user_by_email_or_register(email) when is_binary(email) do
+    case Repo.get_by(User, email: email) do
+      nil ->
+        # user needs some password, lets generate it and not tell them.
+        pw = :rand.bytes(30) |> Base.encode64(padding: false)
+        user = register_user(%{email: email, password: pw})
+        {:ok, user}
+
+      user ->
+        {:ok, user}
+    end
+  end
 
   @doc """
   Registers a user.

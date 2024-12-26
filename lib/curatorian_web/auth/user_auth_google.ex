@@ -2,7 +2,7 @@ defmodule CuratorianWeb.UserAuthGoogle do
   import Plug.Conn
 
   alias Assent.{Config, Strategy.Google}
-  # alias Curatorian.Accounts.User
+  alias Curatorian.Accounts.User
 
   # http://localhost:4000/auth/google
   def request(conn) do
@@ -64,5 +64,25 @@ defmodule CuratorianWeb.UserAuthGoogle do
         |> put_resp_content_type("text/plain")
         |> send_resp(500, inspect(error, pretty: true))
     end
+  end
+
+  def fetch_google_user(conn, _opts) do
+    with user when is_map(user) <- get_session(conn, :google_user) do
+      assign(conn, :current_user, %User{email: user["email"]})
+    else
+      _ -> conn
+    end
+  end
+
+  def on_mount(:mount_current_user, _params, session, socket) do
+    {:cont, mount_current_user(session, socket)}
+  end
+
+  defp mount_current_user(socket, session) do
+    Phoenix.Component.assign_new(socket, :current_user, fn ->
+      if user = session["google_user"] do
+        %User{email: user["email"]}
+      end
+    end)
   end
 end

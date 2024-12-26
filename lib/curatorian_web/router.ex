@@ -2,6 +2,7 @@ defmodule CuratorianWeb.Router do
   use CuratorianWeb, :router
 
   import CuratorianWeb.UserAuth
+  import CuratorianWeb.UserAuthGoogle, only: [fetch_google_user: 2]
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -11,6 +12,7 @@ defmodule CuratorianWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :fetch_current_user
+    plug :fetch_google_user
   end
 
   pipeline :api do
