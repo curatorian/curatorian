@@ -1,2 +1,6 @@
 <.flash_group flash={@flash} />
-<h1>Hello Curatorian!</h1>
+<%= if @current_user do %>
+  <h1>Halo, {@current_user.email}!</h1>
+<% else %>
+  <h1>Halo, tamu!</h1>
+<% end %>

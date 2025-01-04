@@ -11,192 +11,206 @@ defmodule CuratorianWeb.UserSettingsLive do
       <:subtitle>Manage your account email address and password settings</:subtitle>
     </.header>
 
-    <div class="space-y-12">
-      <div id="user-image">
-        <%= if @current_user_profile.user_image do %>
-          <img
-            phx-track-static
-            src={@current_user_profile.user_image}
-            class="profile-pic"
-            alt="User Image"
-          />
-        <% else %>
-          <img phx-track-static src={~p"/images/default.png"} class="profile-pic" alt="User Image" />
-        <% end %>
+    <section class="flex flex-col gap-5 lg:flex-row min-h-screen h-full">
+      <div class="bg-violet-100 p-10 rounded">
+        <div id="user-image">
+          <%= if @current_user_profile.user_image do %>
+            <img
+              phx-track-static
+              src={@current_user_profile.user_image}
+              class="profile-pic"
+              alt="User Image"
+            />
+          <% else %>
+            <img phx-track-static src={~p"/images/default.png"} class="profile-pic" alt="User Image" />
+          <% end %>
+        </div>
       </div>
       
-      <div class="tabs">
-        <button
-          phx-click="change_tab"
-          phx-value-tab="tab1"
-          class={if @current_tab == :tab1, do: "active", else: ""}
-        >
-          Profile
-        </button>
+      <div class="space-y-12">
+        <div class="tabs">
+          <button
+            phx-click="change_tab"
+            phx-value-tab="tab1"
+            class={if @current_tab == :tab1, do: "active", else: ""}
+          >
+            Profile
+          </button>
+          
+          <button
+            phx-click="change_tab"
+            phx-value-tab="tab2"
+            class={if @current_tab == :tab2, do: "active", else: ""}
+          >
+            Change Email
+          </button>
+          
+          <button
+            phx-click="change_tab"
+            phx-value-tab="tab3"
+            class={if @current_tab == :tab3, do: "active", else: ""}
+          >
+            Update Password
+          </button>
+        </div>
         
-        <button
-          phx-click="change_tab"
-          phx-value-tab="tab2"
-          class={if @current_tab == :tab2, do: "active", else: ""}
-        >
-          Change Email
-        </button>
-        
-        <button
-          phx-click="change_tab"
-          phx-value-tab="tab3"
-          class={if @current_tab == :tab3, do: "active", else: ""}
-        >
-          Update Password
-        </button>
-      </div>
-      
-      <%= case @current_tab do %>
-        <% :tab1 -> %>
-          <div>
-            <div phx-drop-target={@uploads.avatar.ref}>
-              <div class="container" phx-drop-target={@uploads.avatar.ref}>
-                <form id="upload-form" phx-submit="upload_image" phx-change="validate" class="hidden">
-                  <.live_file_input upload={@uploads.avatar} />
-                  <.button type="submit" id="submit-image">Upload</.button>
-                </form>
-              </div>
-              
-              <div>
-                <%= if length(@uploads.avatar.entries) === 0 do %>
-                  <div>
-                    <.button
-                      type="click"
-                      phx-click={JS.dispatch("click", to: "##{@uploads.avatar.ref}")}
-                    >
-                      Ganti Foto
-                    </.button>
-                  </div>
-                <% end %>
-                 <%!-- render each avatar entry --%>
-                <article :for={entry <- @uploads.avatar.entries} class="upload-entry">
-                  <figure>
-                    <.live_img_preview entry={entry} class="profile-pic" />
-                    <figcaption>{entry.client_name}</figcaption>
-                  </figure>
-                   <%!-- entry.progress will update automatically for in-flight entries --%>
-                  <progress value={entry.progress} max="100">{entry.progress}%</progress>
-                  <%!-- a regular click event whose handler will invoke Phoenix.LiveView.cancel_upload/3 --%>
-                  <div>
-                    <.button
-                      type="button"
-                      phx-click="cancel-upload"
-                      phx-value-ref={entry.ref}
-                      aria-label="cancel"
-                      class="bg-red-500 hover:bg-red-600"
-                    >
-                      Batal
-                    </.button>
-                    
-                    <.button
-                      type="button"
-                      phx-click="upload_image"
-                      class="bg-green-500 hover:bg-green-600"
-                    >
-                      Upload
-                    </.button>
-                  </div>
-                   <%!-- Phoenix.Component.upload_errors/2 returns a list of error atoms --%>
-                  <p :for={err <- upload_errors(@uploads.avatar, entry)} class="alert alert-danger">
+        <%= case @current_tab do %>
+          <% :tab1 -> %>
+            <div>
+              <div phx-drop-target={@uploads.avatar.ref}>
+                <div class="container" phx-drop-target={@uploads.avatar.ref}>
+                  <form
+                    id="upload-form"
+                    phx-submit="upload_image"
+                    phx-change="validate"
+                    class="hidden"
+                  >
+                    <.live_file_input upload={@uploads.avatar} />
+                    <.button type="submit" id="submit-image">Upload</.button>
+                  </form>
+                </div>
+                
+                <div>
+                  <%= if length(@uploads.avatar.entries) === 0 do %>
+                    <div>
+                      <.button
+                        type="click"
+                        phx-click={JS.dispatch("click", to: "##{@uploads.avatar.ref}")}
+                      >
+                        Ganti Foto
+                      </.button>
+                    </div>
+                  <% end %>
+                   <%!-- render each avatar entry --%>
+                  <article :for={entry <- @uploads.avatar.entries} class="upload-entry">
+                    <figure>
+                      <.live_img_preview entry={entry} class="profile-pic" />
+                      <figcaption>{entry.client_name}</figcaption>
+                    </figure>
+                     <%!-- entry.progress will update automatically for in-flight entries --%>
+                    <progress value={entry.progress} max="100">{entry.progress}%</progress>
+                    <%!-- a regular click event whose handler will invoke Phoenix.LiveView.cancel_upload/3 --%>
+                    <div>
+                      <.button
+                        type="button"
+                        phx-click="cancel-upload"
+                        phx-value-ref={entry.ref}
+                        aria-label="cancel"
+                        class="bg-red-500 hover:bg-red-600"
+                      >
+                        Batal
+                      </.button>
+                      
+                      <.button
+                        type="button"
+                        phx-click="upload_image"
+                        class="bg-green-500 hover:bg-green-600"
+                      >
+                        Upload
+                      </.button>
+                    </div>
+                     <%!-- Phoenix.Component.upload_errors/2 returns a list of error atoms --%>
+                    <p :for={err <- upload_errors(@uploads.avatar, entry)} class="alert alert-danger">
+                      {error_to_string(err)}
+                    </p>
+                  </article>
+                   <%!-- Phoenix.Component.upload_errors/1 returns a list of error atoms --%>
+                  <p :for={err <- upload_errors(@uploads.avatar)} class="alert alert-danger">
                     {error_to_string(err)}
                   </p>
-                </article>
-                 <%!-- Phoenix.Component.upload_errors/1 returns a list of error atoms --%>
-                <p :for={err <- upload_errors(@uploads.avatar)} class="alert alert-danger">
-                  {error_to_string(err)}
-                </p>
+                </div>
               </div>
+              
+              <.simple_form for={@update_profile_form} phx-submit="update_profile">
+                <.input
+                  field={@update_profile_form[:fullname]}
+                  value={@current_user_profile.fullname}
+                  name="fullname"
+                  label="Full Name"
+                  type="text"
+                  id="fullname"
+                />
+                <.input
+                  field={@update_profile_form[:bio]}
+                  value={@current_user_profile.bio}
+                  name="bio"
+                  label="Bio"
+                  type="textarea"
+                  id="bio"
+                />
+                <:actions>
+                  <.button>Update Profile</.button>
+                </:actions>
+              </.simple_form>
             </div>
-            
-            <.simple_form for={@update_profile_form} phx-submit="update_profile">
-              <.input
-                field={@update_profile_form[:fullname]}
-                value={@current_user_profile.fullname}
-                name="fullname"
-                label="Full Name"
-                type="text"
-                id="fullname"
-              />
-              <.input
-                field={@update_profile_form[:bio]}
-                value={@current_user_profile.bio}
-                name="bio"
-                label="Bio"
-                type="textarea"
-                id="bio"
-              />
-              <:actions>
-                <.button>Update Profile</.button>
-              </:actions>
-            </.simple_form>
-          </div>
-        <% :tab2 -> %>
-          <div>
-            <.simple_form
-              for={@email_form}
-              id="email_form"
-              phx-submit="update_email"
-              phx-change="validate_email"
-            >
-              <.input field={@email_form[:email]} type="email" label="Email" required />
-              <.input
-                field={@email_form[:current_password]}
-                name="current_password"
-                id="current_password_for_email"
-                type="password"
-                label="Current password"
-                value={@email_form_current_password}
-                required
-              />
-              <:actions>
-                <.button phx-disable-with="Changing...">Change Email</.button>
-              </:actions>
-            </.simple_form>
-          </div>
-        <% :tab3 -> %>
-          <div>
-            <.simple_form
-              for={@password_form}
-              id="password_form"
-              action={~p"/users/log_in?_action=password_updated"}
-              method="post"
-              phx-change="validate_password"
-              phx-submit="update_password"
-              phx-trigger-action={@trigger_submit}
-            >
-              <input
-                name={@password_form[:email].name}
-                type="hidden"
-                id="hidden_user_email"
-                value={@current_email}
-              />
-              <.input field={@password_form[:password]} type="password" label="New password" required />
-              <.input
-                field={@password_form[:password_confirmation]}
-                type="password"
-                label="Confirm new password"
-              />
-              <.input
-                field={@password_form[:current_password]}
-                name="current_password"
-                type="password"
-                label="Current password"
-                id="current_password_for_password"
-                value={@current_password}
-                required
-              />
-              <:actions>
-                <.button phx-disable-with="Changing...">Change Password</.button>
-              </:actions>
-            </.simple_form>
-          </div>
-      <% end %>
-    </div>
+          <% :tab2 -> %>
+            <div>
+              <.simple_form
+                for={@email_form}
+                id="email_form"
+                phx-submit="update_email"
+                phx-change="validate_email"
+              >
+                <.input field={@email_form[:email]} type="email" label="Email" required />
+                <.input
+                  field={@email_form[:current_password]}
+                  name="current_password"
+                  id="current_password_for_email"
+                  type="password"
+                  label="Current password"
+                  value={@email_form_current_password}
+                  required
+                />
+                <:actions>
+                  <.button phx-disable-with="Changing...">Change Email</.button>
+                </:actions>
+              </.simple_form>
+            </div>
+          <% :tab3 -> %>
+            <div>
+              <.simple_form
+                for={@password_form}
+                id="password_form"
+                action={~p"/users/log_in?_action=password_updated"}
+                method="post"
+                phx-change="validate_password"
+                phx-submit="update_password"
+                phx-trigger-action={@trigger_submit}
+              >
+                <input
+                  name={@password_form[:email].name}
+                  type="hidden"
+                  id="hidden_user_email"
+                  value={@current_email}
+                />
+                <.input
+                  field={@password_form[:password]}
+                  type="password"
+                  label="New password"
+                  required
+                />
+                <.input
+                  field={@password_form[:password_confirmation]}
+                  type="password"
+                  label="Confirm new password"
+                />
+                <.input
+                  field={@password_form[:current_password]}
+                  name="current_password"
+                  type="password"
+                  label="Current password"
+                  id="current_password_for_password"
+                  value={@current_password}
+                  required
+                />
+                <:actions>
+                  <.button phx-disable-with="Changing...">Change Password</.button>
+                </:actions>
+              </.simple_form>
+            </div>
+        <% end %>
+      </div>
+    </section>
     """
   end
 

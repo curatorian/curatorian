@@ -55,6 +55,7 @@ defmodule CuratorianWeb.Router do
 
     live_session :redirect_if_user_is_authenticated,
       on_mount: [{CuratorianWeb.UserAuth, :redirect_if_user_is_authenticated}] do
+      live "/login", MemberLoginLive, :new
       live "/users/register", UserRegistrationLive, :new
       live "/users/log_in", UserLoginLive, :new
       live "/users/reset_password", UserForgotPasswordLive, :new
