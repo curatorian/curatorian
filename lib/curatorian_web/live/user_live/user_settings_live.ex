@@ -11,24 +11,131 @@ defmodule CuratorianWeb.UserSettingsLive do
       <:subtitle>Manage your account email address and password settings</:subtitle>
     </.header>
 
-    <section class="flex flex-col gap-5 lg:flex-row min-h-screen h-full">
-      <div class="bg-violet-100 p-10 rounded">
-        <div id="user-image">
-          <%= if @current_user_profile.user_image do %>
-            <img
-              phx-track-static
-              src={@current_user_profile.user_image}
-              class="profile-pic"
-              alt="User Image"
-            />
-          <% else %>
-            <img phx-track-static src={~p"/images/default.png"} class="profile-pic" alt="User Image" />
-          <% end %>
+    <section class="flex flex-col gap-5 lg:flex-row items-center lg:items-start justify-center min-h-screen h-full">
+      <div class="bg-violet-100 p-10 rounded w-full sm:max-w-80">
+        <%= if length(@uploads.avatar.entries) === 0 do %>
+          <div id="user-image">
+            <%= if @current_user_profile.user_image do %>
+              <img
+                phx-track-static
+                src={@current_user_profile.user_image}
+                class="profile-pic"
+                alt="User Image"
+              />
+            <% else %>
+              <img
+                phx-track-static
+                src={~p"/images/default.png"}
+                class="profile-pic"
+                alt="User Image"
+              />
+            <% end %>
+          </div>
+        <% end %>
+        
+        <div phx-drop-target={@uploads.avatar.ref}>
+          <div class="container" phx-drop-target={@uploads.avatar.ref}>
+            <form id="upload-form" phx-submit="upload_image" phx-change="validate" class="hidden">
+              <.live_file_input upload={@uploads.avatar} />
+              <.button type="submit" id="submit-image">Upload</.button>
+            </form>
+          </div>
+          
+          <div>
+            <%= if length(@uploads.avatar.entries) === 0 do %>
+              <div class="mt-3">
+                <.button
+                  type="click"
+                  class="w-full btn"
+                  phx-click={JS.dispatch("click", to: "##{@uploads.avatar.ref}")}
+                >
+                  Ganti Foto
+                </.button>
+              </div>
+            <% end %>
+             <%!-- render each avatar entry --%>
+            <article :for={entry <- @uploads.avatar.entries} class="upload-entry">
+              <figure>
+                <.live_img_preview entry={entry} class="profile-pic" />
+              </figure>
+              
+              <%!-- a regular click event whose handler will invoke Phoenix.LiveView.cancel_upload/3 --%>
+              <div class="w-full flex gap-2 mt-3">
+                <.button
+                  type="button"
+                  phx-click="cancel-upload"
+                  phx-value-ref={entry.ref}
+                  aria-label="cancel"
+                  class="w-full cancel-btn"
+                >
+                  Batal
+                </.button>
+                
+                <.button type="button" phx-click="upload_image" class="w-full confirm-btn">
+                  Simpan
+                </.button>
+              </div>
+               <%!-- entry.progress will update automatically for in-flight entries --%>
+              <%!-- <progress value={entry.progress} max="100">{entry.progress}%</progress> --%>
+              <%!-- Phoenix.Component.upload_errors/2 returns a list of error atoms --%>
+              <p :for={err <- upload_errors(@uploads.avatar, entry)} class="alert alert-danger">
+                {error_to_string(err)}
+              </p>
+            </article>
+             <%!-- Phoenix.Component.upload_errors/1 returns a list of error atoms --%>
+            <p :for={err <- upload_errors(@uploads.avatar)} class="alert alert-danger">
+              {error_to_string(err)}
+            </p>
+             <hr class="border-t-1 border-violet-500 my-8" />
+            <div class="my-5">
+              <div class="w-full bg-violet-600 text-center text-white p-0 mb-2 rounded">
+                <h5>Profil</h5>
+              </div>
+              
+              <div class="flex items-center w-full gap-2 py-2">
+                <.icon name="hero-user-solid" class="w-6 h-6 max-w-8" />
+                <p class="max-w-48">
+                  {@current_user.profile.fullname}
+                </p>
+              </div>
+              
+              <div class="flex items-center w-full gap-2 py-2">
+                <.icon name="hero-at-symbol-solid" class="w-6 h-6 max-w-8" />
+                <p class="max-w-48">
+                  {@current_user.email}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       
-      <div class="space-y-12">
-        <div class="tabs">
+      <div class="w-full">
+        <.simple_form for={@update_profile_form} phx-submit="update_profile">
+          <.input
+            field={@update_profile_form[:fullname]}
+            value={@current_user_profile.fullname}
+            name="fullname"
+            label="Full Name"
+            type="text"
+            id="fullname"
+          />
+          <.input
+            field={@update_profile_form[:bio]}
+            value={@current_user_profile.bio}
+            name="bio"
+            label="Bio"
+            type="textarea"
+            id="bio"
+          />
+          <:actions>
+            <.button class="default-btn">Update Profile</.button>
+          </:actions>
+        </.simple_form>
+      </div>
+      
+      <div>
+        <%!-- <div class="tabs">
           <button
             phx-click="change_tab"
             phx-value-tab="tab1"
@@ -36,7 +143,7 @@ defmodule CuratorianWeb.UserSettingsLive do
           >
             Profile
           </button>
-          
+
           <button
             phx-click="change_tab"
             phx-value-tab="tab2"
@@ -44,7 +151,7 @@ defmodule CuratorianWeb.UserSettingsLive do
           >
             Change Email
           </button>
-          
+
           <button
             phx-click="change_tab"
             phx-value-tab="tab3"
@@ -52,99 +159,12 @@ defmodule CuratorianWeb.UserSettingsLive do
           >
             Update Password
           </button>
-        </div>
-        
+        </div> --%>
         <%= case @current_tab do %>
           <% :tab1 -> %>
-            <div>
-              <div phx-drop-target={@uploads.avatar.ref}>
-                <div class="container" phx-drop-target={@uploads.avatar.ref}>
-                  <form
-                    id="upload-form"
-                    phx-submit="upload_image"
-                    phx-change="validate"
-                    class="hidden"
-                  >
-                    <.live_file_input upload={@uploads.avatar} />
-                    <.button type="submit" id="submit-image">Upload</.button>
-                  </form>
-                </div>
-                
-                <div>
-                  <%= if length(@uploads.avatar.entries) === 0 do %>
-                    <div>
-                      <.button
-                        type="click"
-                        phx-click={JS.dispatch("click", to: "##{@uploads.avatar.ref}")}
-                      >
-                        Ganti Foto
-                      </.button>
-                    </div>
-                  <% end %>
-                   <%!-- render each avatar entry --%>
-                  <article :for={entry <- @uploads.avatar.entries} class="upload-entry">
-                    <figure>
-                      <.live_img_preview entry={entry} class="profile-pic" />
-                      <figcaption>{entry.client_name}</figcaption>
-                    </figure>
-                     <%!-- entry.progress will update automatically for in-flight entries --%>
-                    <progress value={entry.progress} max="100">{entry.progress}%</progress>
-                    <%!-- a regular click event whose handler will invoke Phoenix.LiveView.cancel_upload/3 --%>
-                    <div>
-                      <.button
-                        type="button"
-                        phx-click="cancel-upload"
-                        phx-value-ref={entry.ref}
-                        aria-label="cancel"
-                        class="bg-red-500 hover:bg-red-600"
-                      >
-                        Batal
-                      </.button>
-                      
-                      <.button
-                        type="button"
-                        phx-click="upload_image"
-                        class="bg-green-500 hover:bg-green-600"
-                      >
-                        Upload
-                      </.button>
-                    </div>
-                     <%!-- Phoenix.Component.upload_errors/2 returns a list of error atoms --%>
-                    <p :for={err <- upload_errors(@uploads.avatar, entry)} class="alert alert-danger">
-                      {error_to_string(err)}
-                    </p>
-                  </article>
-                   <%!-- Phoenix.Component.upload_errors/1 returns a list of error atoms --%>
-                  <p :for={err <- upload_errors(@uploads.avatar)} class="alert alert-danger">
-                    {error_to_string(err)}
-                  </p>
-                </div>
-              </div>
-              
-              <.simple_form for={@update_profile_form} phx-submit="update_profile">
-                <.input
-                  field={@update_profile_form[:fullname]}
-                  value={@current_user_profile.fullname}
-                  name="fullname"
-                  label="Full Name"
-                  type="text"
-                  id="fullname"
-                />
-                <.input
-                  field={@update_profile_form[:bio]}
-                  value={@current_user_profile.bio}
-                  name="bio"
-                  label="Bio"
-                  type="textarea"
-                  id="bio"
-                />
-                <:actions>
-                  <.button>Update Profile</.button>
-                </:actions>
-              </.simple_form>
-            </div>
+            <div />
           <% :tab2 -> %>
-            <div>
+            <%!-- <div>
               <.simple_form
                 for={@email_form}
                 id="email_form"
@@ -165,9 +185,9 @@ defmodule CuratorianWeb.UserSettingsLive do
                   <.button phx-disable-with="Changing...">Change Email</.button>
                 </:actions>
               </.simple_form>
-            </div>
+            </div> --%>
           <% :tab3 -> %>
-            <div>
+            <%!-- <div>
               <.simple_form
                 for={@password_form}
                 id="password_form"
@@ -207,7 +227,7 @@ defmodule CuratorianWeb.UserSettingsLive do
                   <.button phx-disable-with="Changing...">Change Password</.button>
                 </:actions>
               </.simple_form>
-            </div>
+            </div> --%>
         <% end %>
       </div>
     </section>
@@ -254,6 +274,8 @@ defmodule CuratorianWeb.UserSettingsLive do
         max_entries: 1,
         auto_upload: true
       )
+
+    dbg(socket.assigns.current_user)
 
     {:ok, socket}
   end

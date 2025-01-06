@@ -2,7 +2,34 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
+:root {
+  --main-color: #1e1e1e;
+  --hover-color: #2e2e2e;
+  --secondary-color: #ff7a59;
+  --secondary-hover-color: #ff9a76;
+}
+
 /* This file is for your main application CSS */
+.btn {
+  @apply bg-violet-500 text-white hover:bg-violet-600;
+}
+
+.secondary-btn {
+  @apply bg-violet-100 text-violet-600 hover:bg-violet-200;
+}
+
+.confirm-btn {
+  @apply bg-green-500 text-white hover:bg-green-600;
+}
+
+.cancel-btn {
+  @apply bg-red-500 text-white hover:bg-red-600;
+}
+
+.default-btn {
+  @apply bg-[--main-color] text-white hover:bg-[--hover-color];
+}
+
 .tabs {
   @apply flex cursor-pointer;
 }
@@ -16,5 +43,5 @@
 }
 
 .profile-pic {
-  @apply rounded-2xl w-48 h-48 object-cover cursor-pointer;
+  @apply rounded-2xl w-full h-56 object-cover;
 }

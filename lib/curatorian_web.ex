@@ -86,6 +86,7 @@ defmodule CuratorianWeb do
       import Phoenix.HTML
       # Core UI components and translation
       import CuratorianWeb.CoreComponents
+      import CuratorianWeb.LayoutComponents
       use Gettext, backend: CuratorianWeb.Gettext
 
       # Shortcut for generating JS commands
