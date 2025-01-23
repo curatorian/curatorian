@@ -3,15 +3,15 @@ defmodule CuratorianWeb.MemberLoginLive do
 
   def render(assigns) do
     ~H"""
-    <div>
+    <div class="mt-10 text-center">
       <.header>
-        Register or Login with Google
+        Masuk atau Daftar ke Curatorian
       </.header>
     </div>
 
-    <div>
-      <.button phx-click="google_auth" class="w-full">
-        Register or Login with Google
+    <div class="flex items-center justify-center mt-5">
+      <.button phx-click="google_auth" class="bg-violet-100">
+        Login with Google
       </.button>
     </div>
     """
