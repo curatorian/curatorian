@@ -1,0 +1,48 @@
+<main>
+  <.flash_group flash={@flash} />
+  <section class="flex">
+    <div class="bg-white w-full min-h-screen max-w-56 p-5">
+      <div class="flex flex-col items-center justify-center mb-10">
+        <.link href="/dashboard" class="no-underline">
+          <h5>Curatorian</h5>
+        </.link>
+        
+        <div class="flex flex-col items-center my-2">
+          <img src={@user.profile.user_image} class="w-16 h-16 object-cover rounded-xl" />
+          <p class="text-xs text-violet-500">{@user.username}</p>
+          
+          <div class="mt-2 flex flex-row lg:flex-col gap-1">
+            <.link class="bg-violet-500 py-1 px-2 rounded-lg text-white text-xs no-underline">
+              <.icon name="hero-pencil" class="h-3 w-3" /> <span>Settings</span>
+            </.link>
+            
+            <.link class="bg-red-500 py-1 px-2 rounded-lg text-white text-xs no-underline">
+              <.icon name="hero-x-mark" class="h-3 w-3" /> <span>Logout</span>
+            </.link>
+          </div>
+        </div>
+      </div>
+      
+      <div>
+        <.link
+          class="btn no-underline text-xs flex items-center justify-center gap-1"
+          href="/dashboard#"
+        >
+          <.icon name="hero-plus" class="h-4 w-4" /> <span>New Post</span>
+        </.link>
+      </div>
+      
+      <div class="flex flex-col gap-3 my-5">
+        <%= for num <- 1..10 do %>
+          <.link class="no-underline">
+            <.icon name="hero-user" class="h-4 w-4" /> <span>Menu {num}</span>
+          </.link>
+        <% end %>
+      </div>
+    </div>
+    
+    <div class="p-5 bg-gray-100 w-full">
+      {@inner_content}
+    </div>
+  </section>
+</main>

@@ -1,6 +1,30 @@
 <.flash_group flash={@flash} />
+<section class="">
+  <div class="relative w-full h-full max-h-screen">
+    <img src="/images/lib.webp" alt="hero img" class="w-full h-screen object-cover" />
+    <div class="absolute top-0 bg-black/80 w-full h-screen"></div>
+  </div>
+  <div class="absolute w-full h-screen inset-0 flex items-center max-w-7xl ma">
+    <div class="flex flex-col w-full text-white items-center justify-center">
+      <h1 class="text-5xl md:text-6xl lg:text-7xl">Curatorian</h1>
+      <h6 class="text-sm md:text-base lg:text-lg italic text-center">
+        Curating connections, collections, and cognitions
+      </h6>
+      <div class="bg-white border-2 border-violet-500 text-center text-violet-500 rounded-lg p-5 mt-10">
+        <h4>Coming Soon</h4>
+        <h2 class="text-5xl">Q2 2025</h2>
+      </div>
+      <div class="mt-5">
+        <a href="https://www.figma.com/design/zuTAgw55YphtJ5F8QzHmt3/Curatorian" target="_blank">
+          <button class="btn bg-violet-5 text-white">Roadmap &rightarrow;</button>
+        </a>
+      </div>
+    </div>
+  </div>
+  <div class="absolute bottom-0 w-full h-24 bg-gradient-to-t from-white to-transparent"></div>
+</section>
 <%= if @current_user do %>
-  <h1>Halo, {@current_user.email}!</h1>
+  <h3>Halo, {@current_user.email}!</h3>
 <% else %>
-  <h1>Halo, tamu!</h1>
+  <h3>Halo, tamu!</h3>
 <% end %>

@@ -56,9 +56,9 @@ defmodule CuratorianWeb.Router do
     live_session :redirect_if_user_is_authenticated,
       on_mount: [{CuratorianWeb.UserAuth, :redirect_if_user_is_authenticated}] do
       live "/login", MemberLoginLive, :new
-      live "/users/register", UserRegistrationLive, :new
-      live "/users/log_in", UserLoginLive, :new
-      live "/users/reset_password", UserForgotPasswordLive, :new
+      # live "/users/register", UserRegistrationLive, :new
+      # live "/users/log_in", UserLoginLive, :new
+      # live "/users/reset_password", UserForgotPasswordLive, :new
       live "/users/reset_password/:token", UserResetPasswordLive, :edit
       live "/comments", CommentLive.Index, :index
 
@@ -73,6 +73,8 @@ defmodule CuratorianWeb.Router do
 
     live_session :require_authenticated_user,
       on_mount: [{CuratorianWeb.UserAuth, :ensure_authenticated}] do
+      live "/dashboard", DashboardLive, :show
+
       live "/users/settings", UserSettingsLive, :edit
       live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email
 

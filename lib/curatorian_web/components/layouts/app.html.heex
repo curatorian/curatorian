@@ -1,8 +1,6 @@
 <.navigation_header current_user={@current_user} />
-<main class="px-4 py-20 sm:px-6 lg:px-8">
-  <div class="max-w-7xl mx-auto min-h-screen">
-    <.flash_group flash={@flash} />
-    {@inner_content}
-  </div>
+<main>
+  <.flash_group flash={@flash} />
+  {@inner_content}
 </main>
 <.footer_layout />

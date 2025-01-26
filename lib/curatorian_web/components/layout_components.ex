@@ -9,11 +9,11 @@ defmodule CuratorianWeb.LayoutComponents do
 
   def navigation_header(assigns) do
     ~H"""
-    <header class="fixed w-full p-0 md:p-4 z-100">
+    <header class="fixed w-full z-40">
       <nav class="p-0 md:p-5">
-        <div class="bg-white/90 shadow-xl w-full rounded-xl p-5 flex justify-between items-center transition-all-500">
+        <div class="bg-white/90 shadow-xl w-full md:rounded-xl p-5 flex justify-between items-center transition-all-500">
           <div>
-            <p class="font-bold text-2xl">Curatorian</p>
+            <.link class="font-bold text-2xl no-underline" href="/">Curatorian</.link>
           </div>
           
           <div class="hidden lg:block">
@@ -52,13 +52,18 @@ defmodule CuratorianWeb.LayoutComponents do
           
           <%= if @current_user do %>
             <div class="hidden lg:block">
-              <p class="text-[0.8125rem] leading-6 text-zinc-900">
+              <%!-- <p class="text-[0.8125rem] leading-6 text-zinc-900 text-center">
                 Halo, {@current_user.username}!
-              </p>
-              
-              <.link class="no-underline" href="/users/log_out">
-                Keluar
-              </.link>
+              </p> --%>
+              <div class="flex items-center space-x-2">
+                <.link href="/users/settings" class="btn no-underline text-xs">
+                  Settings
+                </.link>
+                
+                <.link href="/users/log_out" method="delete" class="no-underline cancel-btn text-xs">
+                  Log out
+                </.link>
+              </div>
             </div>
           <% else %>
             <div class="hidden lg:block">
