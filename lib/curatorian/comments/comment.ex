@@ -2,6 +2,7 @@ defmodule Curatorian.Comments.Comment do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @primary_key {:id, :binary_id, autogenerate: true}
   schema "comments" do
     field :content, :string
     belongs_to :blog, Curatorian.Blogs.Blog, type: :binary_id

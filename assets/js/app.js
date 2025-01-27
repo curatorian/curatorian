@@ -25,6 +25,55 @@ import topbar from "../vendor/topbar";
 // Handle image upload
 let Hooks = {};
 
+Hooks.NavbarScroll = {
+  mounted() {
+    const navbar = this.el;
+    const navLink = navbar.querySelectorAll(".nav-link");
+
+    // Throttle scroll handler for performance
+    const throttle = (fn, wait) => {
+      let time = Date.now();
+      return () => {
+        if (time + wait - Date.now() < 0) {
+          fn();
+          time = Date.now();
+        }
+      };
+    };
+
+    const handleScroll = () => {
+      if (window.scrollY > 10) {
+        navbar.classList.add("bg-white/90", "backdrop-blur-sm");
+        navbar.classList.remove("bg-transparent");
+
+        for (let nav of navLink) {
+          nav.classList.add("text-violet-500");
+          nav.classList.remove("text-white");
+        }
+      } else if (window.scrollY <= 10) {
+        navbar.classList.remove("bg-white/90", "backdrop-blur-sm");
+        navbar.classList.add("bg-transparent");
+
+        for (let nav of navLink) {
+          nav.classList.remove("text-violet-500");
+          nav.classList.add("text-white");
+        }
+      }
+    };
+
+    // Initial check
+    handleScroll();
+
+    // Add scroll listener with throttling
+    window.addEventListener("scroll", throttle(handleScroll, 100));
+
+    // Cleanup
+    this.handleEvent = () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  },
+};
+
 let csrfToken = document
   .querySelector("meta[name='csrf-token']")
   .getAttribute("content");

@@ -59,10 +59,6 @@ defmodule CuratorianWeb.Router do
       # live "/users/register", UserRegistrationLive, :new
       # live "/users/log_in", UserLoginLive, :new
       # live "/users/reset_password", UserForgotPasswordLive, :new
-      live "/users/reset_password/:token", UserResetPasswordLive, :edit
-      live "/comments", CommentLive.Index, :index
-
-      live "/comments/:id", CommentLive.Show, :show
     end
 
     post "/users/log_in", UserSessionController, :create
@@ -73,12 +69,20 @@ defmodule CuratorianWeb.Router do
 
     live_session :require_authenticated_user,
       on_mount: [{CuratorianWeb.UserAuth, :ensure_authenticated}] do
-      live "/dashboard", DashboardLive, :show
+      scope "/dashboard" do
+        live "/", DashboardLive, :show
+        live "/blog", DashboardLive.Blogs.BlogIndexLive, :index
+        live "/blog/new", DashboardLive.Blogs.BlogNewLive, :new
+      end
 
       live "/users/settings", UserSettingsLive, :edit
       live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email
 
+      live "/users/reset_password/:token", UserResetPasswordLive, :edit
+
+      live "/comments", CommentLive.Index, :index
       live "/comments/new", CommentLive.Index, :new
+      live "/comments/:id", CommentLive.Show, :show
       live "/comments/:id/edit", CommentLive.Show, :edit
     end
   end

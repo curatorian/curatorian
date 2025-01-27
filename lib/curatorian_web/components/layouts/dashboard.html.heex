@@ -8,16 +8,23 @@
         </.link>
         
         <div class="flex flex-col items-center my-2">
-          <img src={@user.profile.user_image} class="w-16 h-16 object-cover rounded-xl" />
-          <p class="text-xs text-violet-500">{@user.username}</p>
+          <img src={@current_user.profile.user_image} class="w-16 h-16 object-cover rounded-xl" />
+          <p class="text-xs text-violet-500">{@current_user.username}</p>
           
-          <div class="mt-2 flex flex-row lg:flex-col gap-1">
-            <.link class="bg-violet-500 py-1 px-2 rounded-lg text-white text-xs no-underline">
-              <.icon name="hero-pencil" class="h-3 w-3" /> <span>Settings</span>
+          <div class="mt-2 grid grid-cols-1 lg:grid-cols-2 gap-1 w-full">
+            <.link
+              href="/users/settings"
+              class="btn flex items-center justify-center gap-1 text-[10px] no-underline"
+            >
+              <.icon name="hero-cog-6-tooth" class="h-4 w-4" /> <span>Setting</span>
             </.link>
             
-            <.link class="bg-red-500 py-1 px-2 rounded-lg text-white text-xs no-underline">
-              <.icon name="hero-x-mark" class="h-3 w-3" /> <span>Logout</span>
+            <.link
+              href="/users/log_out"
+              method="delete"
+              class="btn-cancel flex items-center justify-center gap-1 text-[10px] no-underline"
+            >
+              <.icon name="hero-x-mark" class="h-4 w-4" /> <span>Logout</span>
             </.link>
           </div>
         </div>
@@ -28,16 +35,29 @@
           class="btn no-underline text-xs flex items-center justify-center gap-1"
           href="/dashboard#"
         >
-          <.icon name="hero-plus" class="h-4 w-4" /> <span>New Post</span>
+          <.icon name="hero-plus" class="h-4 w-4" /> <span>Buat Post Baru</span>
         </.link>
       </div>
       
-      <div class="flex flex-col gap-3 my-5">
-        <%= for num <- 1..10 do %>
+      <div class="flex flex-col gap-3 my-5 text-black">
+        <.link class="no-underline" href="/dashboard/blog">
+          <.icon name="hero-user" class="h-4 w-4" /> <span>Blog Saya</span>
+        </.link>
+        
+        <%= for num <- 1..5 do %>
           <.link class="no-underline">
             <.icon name="hero-user" class="h-4 w-4" /> <span>Menu {num}</span>
           </.link>
         <% end %>
+      </div>
+      
+      <div>
+        <.link class="no-underline" href="/">
+          <.icon name="hero-home" class="h-4 w-4" />
+          <span>
+            Kembali ke Beranda
+          </span>
+        </.link>
       </div>
     </div>
     
@@ -45,4 +65,8 @@
       {@inner_content}
     </div>
   </section>
+  
+  <footer>
+    <.footer_layout />
+  </footer>
 </main>

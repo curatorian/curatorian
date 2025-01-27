@@ -11,39 +11,43 @@ defmodule CuratorianWeb.LayoutComponents do
     ~H"""
     <header class="fixed w-full z-40">
       <nav class="p-0 md:p-5">
-        <div class="bg-white/90 shadow-xl w-full md:rounded-xl p-5 flex justify-between items-center transition-all-500">
+        <div
+          class="bg-white/90 shadow-xl w-full md:rounded-xl p-5 flex justify-between items-center transition-all-500"
+          id="navbar"
+          phx-hook="NavbarScroll"
+        >
           <div>
-            <.link class="font-bold text-2xl no-underline" href="/">Curatorian</.link>
+            <.link class="nav-link font-bold text-2xl" href="/">Curatorian</.link>
           </div>
           
           <div class="hidden lg:block">
             <ul class="flex space-x-6 font-semibold">
               <li>
-                <.link class="no-underline" href="/">
+                <.link class="nav-link" href="/">
                   Beranda
                 </.link>
               </li>
               
               <li>
-                <.link class="no-underline cursor-not-allowed" href="/#">
+                <.link class="nav-link" href="/#">
                   Tentang
                 </.link>
               </li>
               
               <li>
-                <.link class="no-underline cursor-not-allowed" href="/#">
+                <.link class="nav-link" href="/#">
                   Kurator
                 </.link>
               </li>
               
               <li>
-                <.link class="no-underline cursor-not-allowed" href="/#">
+                <.link class="nav-link" href="/#">
                   Events
                 </.link>
               </li>
               
               <li>
-                <.link class="no-underline cursor-not-allowed" href="/#">
+                <.link class="nav-link" href="/#">
                   Forum
                 </.link>
               </li>
@@ -56,11 +60,11 @@ defmodule CuratorianWeb.LayoutComponents do
                 Halo, {@current_user.username}!
               </p> --%>
               <div class="flex items-center space-x-2">
-                <.link href="/users/settings" class="btn no-underline text-xs">
-                  Settings
+                <.link href="/dashboard" class="btn no-underline text-xs">
+                  Dashboard
                 </.link>
                 
-                <.link href="/users/log_out" method="delete" class="no-underline cancel-btn text-xs">
+                <.link href="/users/log_out" method="delete" class="no-underline btn-cancel text-xs">
                   Log out
                 </.link>
               </div>
@@ -118,7 +122,9 @@ defmodule CuratorianWeb.LayoutComponents do
         
         <p>
           Lead Developer
-          <a href="https://github.com/chrisnaadhi" class="text-violet-3">Chrisna Adhi</a>
+          <a href="https://github.com/chrisnaadhi" class="text-violet-3" target="_blank">
+            Chrisna Adhi
+          </a>
         </p>
       </div>
     </footer>

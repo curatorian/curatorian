@@ -1,5 +1,5 @@
 defmodule CuratorianWeb.UserSettingsLive do
-  use CuratorianWeb, :live_view
+  use CuratorianWeb, :live_view_dashboard
 
   alias Curatorian.Accounts
 
@@ -7,7 +7,7 @@ defmodule CuratorianWeb.UserSettingsLive do
   def render(assigns) do
     ~H"""
     <div class="container mx-auto px-5">
-      <.header class="text-center pt-32">
+      <.header class="text-center mb-5">
         Account Settings
         <:subtitle>Manage your account email address and password settings</:subtitle>
       </.header>
@@ -67,12 +67,12 @@ defmodule CuratorianWeb.UserSettingsLive do
                     phx-click="cancel-upload"
                     phx-value-ref={entry.ref}
                     aria-label="cancel"
-                    class="w-full cancel-btn"
+                    class="w-full btn-cancel"
                   >
                     Batal
                   </.button>
                   
-                  <.button type="button" phx-click="upload_image" class="w-full confirm-btn">
+                  <.button type="button" phx-click="upload_image" class="w-full btn-confirm">
                     Simpan
                   </.button>
                 </div>
@@ -130,7 +130,7 @@ defmodule CuratorianWeb.UserSettingsLive do
               id="bio"
             />
             <:actions>
-              <.button class="default-btn">Update Profile</.button>
+              <.button class="btn-default">Update Profile</.button>
             </:actions>
           </.simple_form>
         </div>
@@ -260,6 +260,7 @@ defmodule CuratorianWeb.UserSettingsLive do
 
     socket =
       socket
+      |> assign(:user, user)
       |> assign(:current_email, user.email)
       |> assign(:current_password, nil)
       |> assign(:current_tab, :tab1)
@@ -276,8 +277,6 @@ defmodule CuratorianWeb.UserSettingsLive do
         max_entries: 1,
         auto_upload: true
       )
-
-    dbg(socket.assigns.current_user)
 
     {:ok, socket}
   end

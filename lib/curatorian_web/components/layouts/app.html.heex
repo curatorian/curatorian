@@ -1,6 +1,18 @@
 <.navigation_header current_user={@current_user} />
 <main>
   <.flash_group flash={@flash} />
-  {@inner_content}
+  <div class="absolute top-0 w-full">
+    <img src="/images/lib.webp" alt="hero img" class="relative w-full h-28 object-cover" />
+    <div class="absolute top-0 bg-black/80 w-full h-28"></div>
+  </div>
+  <%= if @conn.request_path === "/" do %>
+    <section>
+      {@inner_content}
+    </section>
+  <% else %>
+    <section class="container mx-auto pt-32">
+      {@inner_content}
+    </section>
+  <% end %>
 </main>
 <.footer_layout />

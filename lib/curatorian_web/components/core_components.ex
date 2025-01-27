@@ -202,7 +202,7 @@ defmodule CuratorianWeb.CoreComponents do
   def simple_form(assigns) do
     ~H"""
     <.form :let={f} for={@for} as={@as} {@rest}>
-      <div class="mt-10 space-y-8 bg-white">
+      <div class="my-5 space-y-8">
         {render_slot(@inner_block, f)}
         <div :for={action <- @actions} class="mt-2 flex items-center justify-between gap-6">
           {render_slot(action, f)}
@@ -231,7 +231,7 @@ defmodule CuratorianWeb.CoreComponents do
     <button
       type={@type}
       class={[
-        "phx-submit-loading:opacity-75 rounded-lg py-2 px-3",
+        "phx-submit-loading:opacity-75 btn",
         "text-sm font-semibold leading-6",
         @class
       ]}
@@ -561,7 +561,7 @@ defmodule CuratorianWeb.CoreComponents do
     <div class="mt-16">
       <.link
         navigate={@navigate}
-        class="text-sm font-semibold leading-6 text-zinc-900 hover:text-zinc-700"
+        class="text-sm font-semibold leading-6 text-zinc-900 hover:text-zinc-700 no-underline"
       >
         <.icon name="hero-arrow-left-solid" class="h-3 w-3" />
         {render_slot(@inner_block)}
