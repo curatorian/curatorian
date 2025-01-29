@@ -21,6 +21,10 @@ defmodule Curatorian.Blogs do
     Repo.all(Blog)
   end
 
+  def list_blogs_by_user(user_id) do
+    Repo.all(from(b in Blog, where: b.user_id == ^user_id))
+  end
+
   @doc """
   Gets a single blog.
 
@@ -36,6 +40,8 @@ defmodule Curatorian.Blogs do
 
   """
   def get_blog!(id), do: Repo.get!(Blog, id)
+
+  def get_blog_by_slug(slug), do: Repo.get_by(Blog, slug: slug)
 
   @doc """
   Creates a blog.

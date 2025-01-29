@@ -71,8 +71,9 @@ defmodule CuratorianWeb.Router do
       on_mount: [{CuratorianWeb.UserAuth, :ensure_authenticated}] do
       scope "/dashboard" do
         live "/", DashboardLive, :show
-        live "/blog", DashboardLive.Blogs.BlogIndexLive, :index
-        live "/blog/new", DashboardLive.Blogs.BlogNewLive, :new
+        live "/blog", DashboardLive.BlogsLive.Index, :index
+        live "/blog/new", DashboardLive.BlogsLive.New, :new
+        live "/blog/:slug", DashboardLive.BlogsLive.Show, :show
       end
 
       live "/users/settings", UserSettingsLive, :edit

@@ -19,8 +19,8 @@ defmodule Curatorian.Blogs.Blog do
   @doc false
   def changeset(blog, attrs) do
     blog
-    |> cast(attrs, [:title, :slug, :content, :summary, :image_url, :status])
-    |> validate_required([:title, :slug, :content, :summary, :image_url, :status])
+    |> cast(attrs, [:title, :slug, :content, :summary, :image_url, :status, :user_id])
+    |> validate_required([:title, :slug, :content, :summary, :image_url, :status, :user_id])
     |> unique_constraint(:slug)
   end
 end

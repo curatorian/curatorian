@@ -2,15 +2,22 @@
 <main>
   <.flash_group flash={@flash} />
   <div class="absolute top-0 w-full">
-    <img src="/images/lib.webp" alt="hero img" class="relative w-full h-28 object-cover" />
-    <div class="absolute top-0 bg-black/80 w-full h-28"></div>
+    <img src="/images/lib.webp" alt="hero img" class="relative w-full h-40 object-cover" />
+    <div class="absolute top-0 bg-black/80 w-full h-40"></div>
+    <div class="absolute bottom-0 w-full h-12 bg-gradient-to-t from-white to-transparent"></div>
   </div>
-  <%= if @conn.request_path === "/" do %>
-    <section>
-      {@inner_content}
-    </section>
+  <%= if @conn do %>
+    <%= if @conn.request_path === "/" do %>
+      <section>
+        {@inner_content}
+      </section>
+    <% else %>
+      <section class="pt-48 px-5">
+        {@inner_content}
+      </section>
+    <% end %>
   <% else %>
-    <section class="container mx-auto pt-32">
+    <section class="pt-48">
       {@inner_content}
     </section>
   <% end %>
