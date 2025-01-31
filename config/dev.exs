@@ -14,7 +14,7 @@ config :assent,
   google: [
     client_id: System.get_env("GOOGLE_CLIENT_ID"),
     client_secret: System.get_env("GOOGLE_CLIENT_SECRET"),
-    redirect_uri: "http://localhost:4000/auth/google/callback",
+    redirect_uri: System.get_env("REDIRECT_URI"),
     authorization_params: [
       access_type: "offline",
       scope:

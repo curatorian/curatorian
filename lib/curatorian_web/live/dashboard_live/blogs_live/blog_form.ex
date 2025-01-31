@@ -16,9 +16,14 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
       >
         <.input field={@form[:title]} type="text" label="Title" />
         <.input field={@form[:slug]} type="text" label="Slug" />
-        <.input field={@form[:content]} type="text" label="Content" />
         <.input field={@form[:summary]} type="text" label="Summary" />
-        <.input field={@form[:image_url]} type="text" label="Image url" />
+        <%!-- <.input field={@form[:content]} type="text" label="Content" /> --%>
+        <div class="editor-container">
+          <.label for="editor">Content</.label>
+          
+          <div id="editor" phx-hook="TiptapEditor" data-content={@content} phx-update="ignore"></div>
+        </div>
+         <.input field={@form[:image_url]} type="text" label="Image url" />
         <.input field={@form[:status]} type="text" label="Status" />
         <:actions>
           <.button phx-disable-with="Saving...">Save Blog</.button>
@@ -33,6 +38,7 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
     {:ok,
      socket
      |> assign(assigns)
+     |> assign(:content, blog.content || "")
      |> assign_new(:form, fn ->
        to_form(Blogs.change_blog(blog))
      end)}
@@ -50,7 +56,11 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
 
   defp save_blog(socket, :edit, blog_params) do
     user_id = socket.assigns.user_id
-    blog_params = Map.put(blog_params, "user_id", user_id)
+
+    blog_params =
+      blog_params
+      |> Map.put("user_id", user_id)
+      |> sanitize_html()
 
     case Blogs.update_blog(socket.assigns.blog, blog_params) do
       {:ok, blog} ->
@@ -68,7 +78,11 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
 
   defp save_blog(socket, :new, blog_params) do
     user_id = socket.assigns.user_id
-    blog_params = Map.put(blog_params, "user_id", user_id)
+
+    blog_params =
+      blog_params
+      |> Map.put("user_id", user_id)
+      |> sanitize_html()
 
     case Blogs.create_blog(blog_params) do
       {:ok, blog} ->
@@ -85,4 +99,10 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
   end
 
   defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
+
+  defp sanitize_html(attrs) do
+    html = Map.get(attrs, "content", "")
+    safe_html = HtmlSanitizeEx.basic_html(html)
+    Map.put(attrs, "content", safe_html)
+  end
 end

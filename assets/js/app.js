@@ -20,6 +20,7 @@ import "phoenix_html";
 // Establish Phoenix Socket and LiveView configuration.
 import { Socket } from "phoenix";
 import { LiveSocket } from "phoenix_live_view";
+
 import topbar from "../vendor/topbar";
 
 // Handle image upload
@@ -71,6 +72,28 @@ Hooks.NavbarScroll = {
     this.handleEvent = () => {
       window.removeEventListener("scroll", handleScroll);
     };
+  },
+};
+
+Hooks.TiptapEditor = {
+  mounted() {
+    // Get initial content from LiveView assigns
+    const initialContent = this.el.dataset.content || "<p></p>";
+
+    // Initialize Tiptap
+    this.editor = new window.Tiptap.Editor({
+      element: this.el,
+      extensions: [window.Tiptap.StarterKit, window.Tiptap.Bold],
+      content: initialContent,
+      onUpdate: ({ editor }) => {
+        // Push editor content to LiveView on change
+        this.pushEvent("editor-updated", { content: editor.getHTML() });
+      },
+    });
+  },
+  destroyed() {
+    // Cleanup editor when the component is removed
+    this.editor.destroy();
   },
 };
 

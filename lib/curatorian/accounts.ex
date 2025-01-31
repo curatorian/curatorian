@@ -76,13 +76,22 @@ defmodule Curatorian.Accounts do
   @doc """
   Get User by Email or Register it if it does not exist.
   """
-  def get_user_by_email_or_register(email) when is_binary(email) do
+  def get_user_by_email_or_register(
+        %{"email" => email, "name" => name, "picture" => picture} = user
+      )
+      when is_map(user) do
     case Repo.get_by(User, email: email) do
       nil ->
         # user needs some password, lets generate it and not tell them.
         pw = :rand.bytes(30) |> Base.encode64(padding: false)
         username = String.split(email, "@") |> hd
-        {:ok, user, _} = register_user(%{email: email, username: username, password: pw})
+
+        {:ok, user, _} =
+          register_user(%{email: email, username: username, password: pw}, %{
+            fullname: name,
+            user_image: picture
+          })
+
         user
 
       user ->
@@ -102,12 +111,18 @@ defmodule Curatorian.Accounts do
       {:error, %Ecto.Changeset{}}
 
   """
-  def register_user(attrs) do
+  def register_user(user_attrs, profile_attrs) do
     Ecto.Multi.new()
-    |> Ecto.Multi.insert(:user, User.registration_changeset(%User{}, attrs))
+    |> Ecto.Multi.insert(:user, User.registration_changeset(%User{}, user_attrs))
     |> Ecto.Multi.insert(:user_profile, fn %{user: user} ->
-      # Ensure user_id is set
-      UserProfile.changeset(%UserProfile{}, %{user_id: user.id})
+      # Ensure user_id is set and add more metadata from the google profile
+      %{fullname: fullname, user_image: user_image} = profile_attrs
+
+      UserProfile.changeset(%UserProfile{}, %{
+        user_id: user.id,
+        fullname: fullname,
+        user_image: user_image
+      })
     end)
     |> Repo.transaction()
     |> case do

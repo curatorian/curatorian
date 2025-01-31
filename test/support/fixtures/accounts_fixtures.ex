@@ -18,7 +18,7 @@ defmodule Curatorian.AccountsFixtures do
     {:ok, user, _user_profile} =
       attrs
       |> valid_user_attributes()
-      |> Curatorian.Accounts.register_user()
+      |> Curatorian.Accounts.register_user(attrs)
 
     user
   end

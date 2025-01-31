@@ -9,7 +9,6 @@ defmodule CuratorianWeb.DashboardLive do
       </.header>
       
       <div>
-        <img src={@user.profile.user_image} class="w-24 h-24 object-cover rounded-xl" />
         <p>
           Halo, {@user.username}
         </p>
@@ -20,8 +19,6 @@ defmodule CuratorianWeb.DashboardLive do
 
   def mount(_params, _session, socket) do
     user = socket.assigns.current_user
-
-    dbg(user)
 
     socket =
       socket

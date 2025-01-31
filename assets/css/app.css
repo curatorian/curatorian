@@ -105,3 +105,11 @@ a {
 .profile-pic {
   @apply rounded-2xl w-full h-56 object-cover;
 }
+
+.tiptap p {
+  @apply text-green-700;
+}
+
+#editor > div {
+  @apply border border-gray-300 bg-white rounded-lg text-zinc-900 focus:ring-0 p-2;
+}

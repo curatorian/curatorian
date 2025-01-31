@@ -51,7 +51,7 @@ defmodule CuratorianWeb.UserAuthGoogle do
         # Authorization succesful
         IO.inspect({user, token}, label: "user and token")
 
-        user_record = Curatorian.Accounts.get_user_by_email_or_register(user["email"])
+        user_record = Curatorian.Accounts.get_user_by_email_or_register(user)
 
         conn
         |> CuratorianWeb.UserAuth.log_in_user(user_record)
