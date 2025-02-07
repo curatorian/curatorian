@@ -18,7 +18,7 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Show do
       <p>By: {@user_profile.fullname}</p>
       
       <div>
-        <p>{@blog.content}</p>
+        <p>{raw(@blog.content)}</p>
       </div>
     </article>
     """

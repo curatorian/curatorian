@@ -45,12 +45,8 @@ defmodule CuratorianWeb.UserAuthGoogle do
     # Session params should be added to the config so the strategy can use them
     |> Config.put(:session_params, session_params)
     |> Google.callback(params)
-    |> IO.inspect(label: "callback params")
     |> case do
       {:ok, %{user: user, token: token}} ->
-        # Authorization succesful
-        IO.inspect({user, token}, label: "user and token")
-
         user_record = Curatorian.Accounts.get_user_by_email_or_register(user)
 
         conn

@@ -83,12 +83,44 @@ Hooks.TiptapEditor = {
     // Initialize Tiptap
     this.editor = new window.Tiptap.Editor({
       element: this.el,
-      extensions: [window.Tiptap.StarterKit, window.Tiptap.Bold],
+      extensions: [
+        window.Tiptap.StarterKit,
+        window.Tiptap.BubbleMenu.configure({
+          element: document.querySelector("#bubble-menu"),
+          tippyOptions: { duration: 100 },
+          shouldShow: ({ editor, state }) => {
+            return editor.view.hasFocus() && !editor.state.selection.empty;
+          },
+        }),
+      ],
       content: initialContent,
       onUpdate: ({ editor }) => {
         // Push editor content to LiveView on change
-        this.pushEvent("editor-updated", { content: editor.getHTML() });
+        const target = this.el.getAttribute("phx-target");
+        if (target) {
+          this.pushEventTo(target, "editor-updated", {
+            content: editor.getHTML(),
+          });
+        } else {
+          this.pushEvent("editor-updated", { content: editor.getHTML() });
+        }
       },
+    });
+
+    this.el.querySelectorAll("#bubble-menu button").forEach((button) => {
+      button.addEventListener("click", (event) => {
+        event.preventDefault(); // Prevents form submission
+
+        let command = event.target.dataset.command;
+
+        if (command === "bold") {
+          this.editor.chain().focus().toggleBold().run();
+        } else if (command === "italic") {
+          this.editor.chain().focus().toggleItalic().run();
+        } else if (command === "strike") {
+          this.editor.chain().focus().toggleStrike().run();
+        }
+      });
     });
   },
   destroyed() {

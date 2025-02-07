@@ -12,9 +12,9 @@ config :curatorian, Curatorian.Repo,
 
 config :assent,
   google: [
-    client_id: System.get_env("GOOGLE_CLIENT_ID"),
-    client_secret: System.get_env("GOOGLE_CLIENT_SECRET"),
-    redirect_uri: System.get_env("REDIRECT_URI"),
+    client_id: System.get_env("CURATORIAN_GOOGLE_CLIENT_ID"),
+    client_secret: System.get_env("CURATORIAN_GOOGLE_CLIENT_SECRET"),
+    redirect_uri: System.get_env("CURATORIAN_REDIRECT_URI"),
     authorization_params: [
       access_type: "offline",
       scope:

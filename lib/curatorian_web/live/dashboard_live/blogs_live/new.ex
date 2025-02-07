@@ -33,12 +33,7 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.New do
       |> assign(:changeset, changeset)
       |> assign(:blog, %Blog{})
       |> assign(:user_id, user_id)
-      |> assign(:content, "")
 
     {:ok, socket}
-  end
-
-  def handle_event("editor-updated", %{"content" => content}, socket) do
-    {:noreply, assign(socket, content: content)}
   end
 end

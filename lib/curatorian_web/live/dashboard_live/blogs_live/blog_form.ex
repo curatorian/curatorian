@@ -10,9 +10,9 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
       <.simple_form
         for={@form}
         id="blog-form"
-        phx-target={@myself}
         phx-change="validate"
         phx-submit="save"
+        phx-target={@myself}
       >
         <.input field={@form[:title]} type="text" label="Title" />
         <.input field={@form[:slug]} type="text" label="Slug" />
@@ -21,12 +21,31 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
         <div class="editor-container">
           <.label for="editor">Content</.label>
           
-          <div id="editor" phx-hook="TiptapEditor" data-content={@content} phx-update="ignore"></div>
+          <div
+            id="editor"
+            phx-hook="TiptapEditor"
+            phx-target={@myself}
+            phx-update="ignore"
+            data-content={@form[:content].value}
+          >
+          </div>
+          
+          <div id="bubble-menu" class="bubble-menu hidden" phx-update="ignore">
+            <button type="button" data-command="bold">Bold</button>
+            <button type="button" data-command="italic">Italic</button>
+            <button type="button" data-command="strike">Strike</button>
+          </div>
+          
+          <%= if @form.errors[:content] do %>
+            <p class="text-red-500 text-sm">
+              Mohon isi Konten!
+            </p>
+          <% end %>
         </div>
          <.input field={@form[:image_url]} type="text" label="Image url" />
         <.input field={@form[:status]} type="text" label="Status" />
         <:actions>
-          <.button phx-disable-with="Saving...">Save Blog</.button>
+          <.button type="submit" phx-disable-with="Saving...">Save Blog</.button>
         </:actions>
       </.simple_form>
     </div>
@@ -38,7 +57,7 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
     {:ok,
      socket
      |> assign(assigns)
-     |> assign(:content, blog.content || "")
+     |> assign(:content, blog.content)
      |> assign_new(:form, fn ->
        to_form(Blogs.change_blog(blog))
      end)}
@@ -46,8 +65,26 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
 
   @impl true
   def handle_event("validate", %{"blog" => blog_params}, socket) do
-    changeset = Blogs.change_blog(socket.assigns.blog, blog_params)
+    content = socket.assigns.content || ""
+
+    changeset =
+      socket.assigns.blog
+      |> Blogs.change_blog(blog_params)
+      |> Map.put(:action, :validate)
+
+    # Add content validation manually
+    changeset =
+      if String.trim(content) == "" do
+        Ecto.Changeset.add_error(changeset, :content, "Content can't be blank")
+      else
+        changeset
+      end
+
     {:noreply, assign(socket, form: to_form(changeset, action: :validate))}
+  end
+
+  def handle_event("editor-updated", %{"content" => content}, socket) do
+    {:noreply, assign(socket, :content, content)}
   end
 
   def handle_event("save", %{"blog" => blog_params}, socket) do
@@ -59,6 +96,7 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
 
     blog_params =
       blog_params
+      |> Map.put("content", socket.assigns.content)
       |> Map.put("user_id", user_id)
       |> sanitize_html()
 
@@ -82,6 +120,7 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
     blog_params =
       blog_params
       |> Map.put("user_id", user_id)
+      |> Map.put("content", socket.assigns.content)
       |> sanitize_html()
 
     case Blogs.create_blog(blog_params) do

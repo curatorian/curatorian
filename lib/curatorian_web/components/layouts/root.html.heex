@@ -12,9 +12,10 @@
     <script type="module">
       import { Editor } from "https://esm.sh/@tiptap/core";
       import { Bold } from "https://esm.sh/@tiptap/extension-bold";
+      import BubbleMenu from 'https://esm.sh/@tiptap/extension-bubble-menu'
       import StarterKit from "https://esm.sh/@tiptap/starter-kit";
 
-      window.Tiptap = { Editor, Bold, StarterKit };
+      window.Tiptap = { Editor, Bold, StarterKit, BubbleMenu };
     </script>
     <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
     </script>
