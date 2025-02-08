@@ -9,13 +9,8 @@
     </.live_title>
     <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
     <link rel="shortcut icon" type="image/x-icon" href={~p"/images/icon.png"} />
-    <script type="module">
-      import { Editor } from "https://esm.sh/@tiptap/core";
-      import { Bold } from "https://esm.sh/@tiptap/extension-bold";
-      import BubbleMenu from 'https://esm.sh/@tiptap/extension-bubble-menu'
-      import StarterKit from "https://esm.sh/@tiptap/starter-kit";
-
-      window.Tiptap = { Editor, Bold, StarterKit, BubbleMenu };
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/trix@2.0.8/dist/trix.css" />
+    <script type="text/javascript" src="https://unpkg.com/trix@2.0.8/dist/trix.umd.min.js">
     </script>
     <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
     </script>

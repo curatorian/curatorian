@@ -59,7 +59,7 @@ defmodule CuratorianWeb.LayoutComponents do
               <div class="flex items-center space-x-2">
                 <img
                   src={@current_user.profile.user_image}
-                  class="w-8 h-8 object-cover rounded-xl"
+                  class="w-8 h-8 object-cover rounded-full"
                   referrerPolicy="no-referrer"
                   alt={@current_user.username}
                 />

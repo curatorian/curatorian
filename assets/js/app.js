@@ -22,6 +22,7 @@ import { Socket } from "phoenix";
 import { LiveSocket } from "phoenix_live_view";
 
 import topbar from "../vendor/topbar";
+import Trix from "./trix";
 
 // Handle image upload
 let Hooks = {};
@@ -107,11 +108,16 @@ Hooks.TiptapEditor = {
       },
     });
 
-    this.el.querySelectorAll("#bubble-menu button").forEach((button) => {
-      button.addEventListener("click", (event) => {
-        event.preventDefault(); // Prevents form submission
+    const buttons = this.el.querySelectorAll("#bubble-menu");
+    console.log("Buttons found:", buttons.length);
+    console.log("Editor commands:", this.editor.commands);
 
-        let command = event.target.dataset.command;
+    buttons.forEach((button) => {
+      const command = button.getAttribute("data-command");
+      console.log("Adding event listener for command:", command);
+      button.addEventListener("click", (event) => {
+        event.preventDefault();
+        console.log("Button clicked:", command);
 
         if (command === "bold") {
           this.editor.chain().focus().toggleBold().run();
@@ -128,6 +134,8 @@ Hooks.TiptapEditor = {
     this.editor.destroy();
   },
 };
+
+Hooks.Trix = Trix;
 
 let csrfToken = document
   .querySelector("meta[name='csrf-token']")

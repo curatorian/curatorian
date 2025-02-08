@@ -33,6 +33,8 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Index do
   def mount(_params, _session, socket) do
     blogs = Blogs.list_blogs_by_user(socket.assigns.current_user.id)
 
+    dbg(blogs)
+
     socket =
       socket
       |> assign(:blogs, blogs)

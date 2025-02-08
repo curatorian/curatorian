@@ -7,15 +7,25 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Show do
   def render(assigns) do
     ~H"""
     <.header>
-      Blog {@blog.slug}
+      <div class="flex items-center justify-between">
+        <div>
+          Blog {@blog.slug}
+        </div>
+        
+        <div>
+          <.link href={~p"/dashboard/blog/#{@blog.slug}/edit"}>
+            <.button>Edit</.button>
+          </.link>
+        </div>
+      </div>
     </.header>
 
     <.back navigate="/dashboard/blog">Kembali</.back>
 
-    <article>
+    <article class="my-10">
       <h1>{@blog.title}</h1>
       
-      <p>By: {@user_profile.fullname}</p>
+      <p class="my-5">By: {@user_profile.fullname}</p>
       
       <div>
         <p>{raw(@blog.content)}</p>

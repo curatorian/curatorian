@@ -74,6 +74,7 @@ defmodule CuratorianWeb.Router do
         live "/blog", DashboardLive.BlogsLive.Index, :index
         live "/blog/new", DashboardLive.BlogsLive.New, :new
         live "/blog/:slug", DashboardLive.BlogsLive.Show, :show
+        live "/blog/:slug/edit", DashboardLive.BlogsLive.Edit, :edit
       end
 
       live "/users/settings", UserSettingsLive, :edit

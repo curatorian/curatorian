@@ -22,7 +22,12 @@ defmodule Curatorian.Blogs do
   end
 
   def list_blogs_by_user(user_id) do
-    Repo.all(from(b in Blog, where: b.user_id == ^user_id))
+    Repo.all(
+      from(b in Blog,
+        where: b.user_id == ^user_id,
+        preload: [user: :profile]
+      )
+    )
   end
 
   @doc """

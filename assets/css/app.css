@@ -106,119 +106,41 @@ a {
   @apply rounded-2xl w-full h-56 object-cover;
 }
 
-.tiptap p {
-  @apply text-green-700;
+ul {
+  @apply list-disc;
+}
+
+ol {
+  @apply list-decimal;
+}
+
+ol,
+ul {
+  @apply ml-4;
 }
 
 #editor > div {
   @apply border border-gray-300 bg-white rounded-lg text-zinc-900 min-h-64 focus:ring-0 p-2;
 }
 
-.tiptap {
-  :first-child {
-    margin-top: 0;
+@layer base {
+  /* Adds style to unordered list */
+  trix-editor > ul {
+    @apply list-disc;
   }
 
-  /* List styles */
-  ul,
-  ol {
-    padding: 0 1rem;
-    margin: 1.25rem 1rem 1.25rem 0.4rem;
-
-    li p {
-      margin-top: 0.25em;
-      margin-bottom: 0.25em;
-    }
+  /* Add style to ordered list */
+  trix-editor > ol {
+    @apply list-decimal;
   }
 
-  /* Heading styles */
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    line-height: 1.1;
-    margin-top: 2.5rem;
-    text-wrap: pretty;
+  trix-editor > ol,
+  trix-editor > ul {
+    @apply ml-4;
   }
 
-  h1,
-  h2 {
-    margin-top: 3.5rem;
-    margin-bottom: 1.5rem;
+  /* Add style to links added within the editor */
+  trix-editor > div > a {
+    @apply text-blue-700 underline decoration-blue-700 italic;
   }
-
-  h1 {
-    font-size: 1.4rem;
-  }
-
-  h2 {
-    font-size: 1.2rem;
-  }
-
-  h3 {
-    font-size: 1.1rem;
-  }
-
-  h4,
-  h5,
-  h6 {
-    font-size: 1rem;
-  }
-
-  /* Code and preformatted text styles */
-  code {
-    background-color: var(--purple-light);
-    border-radius: 0.4rem;
-    color: var(--black);
-    font-size: 0.85rem;
-    padding: 0.25em 0.3em;
-  }
-
-  pre {
-    background: var(--black);
-    border-radius: 0.5rem;
-    color: var(--white);
-    font-family: "JetBrainsMono", monospace;
-    margin: 1.5rem 0;
-    padding: 0.75rem 1rem;
-
-    code {
-      background: none;
-      color: inherit;
-      font-size: 0.8rem;
-      padding: 0;
-    }
-  }
-
-  blockquote {
-    border-left: 3px solid var(--gray-3);
-    margin: 1.5rem 0;
-    padding-left: 1rem;
-  }
-
-  hr {
-    border: none;
-    border-top: 1px solid var(--gray-2);
-    margin: 2rem 0;
-  }
-}
-
-/* Bubble menu */
-.bubble-menu {
-  position: absolute;
-  background: white;
-  border: 1px solid #ddd;
-  padding: 5px;
-  box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
-  border-radius: 5px;
-  display: flex;
-  gap: 5px;
-}
-.bubble-menu button {
-  background: transparent;
-  border: none;
-  padding: 5px;
-  cursor: pointer;
 }

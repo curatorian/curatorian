@@ -18,29 +18,19 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
         <.input field={@form[:slug]} type="text" label="Slug" />
         <.input field={@form[:summary]} type="text" label="Summary" />
         <%!-- <.input field={@form[:content]} type="text" label="Content" /> --%>
-        <div class="editor-container">
-          <.label for="editor">Content</.label>
+        <div>
+          <.label>Trix</.label>
           
-          <div
-            id="editor"
-            phx-hook="TiptapEditor"
-            phx-target={@myself}
-            phx-update="ignore"
-            data-content={@form[:content].value}
-          >
+          <.input
+            field={@form[:content]}
+            id="article-content"
+            type="hidden"
+            phx-hook="Trix"
+            phx-debounce="blur"
+          />
+          <div id="trix-editor-container" phx-update="ignore">
+            <trix-editor input="article-content"></trix-editor>
           </div>
-          
-          <div id="bubble-menu" class="bubble-menu hidden" phx-update="ignore">
-            <button type="button" data-command="bold">Bold</button>
-            <button type="button" data-command="italic">Italic</button>
-            <button type="button" data-command="strike">Strike</button>
-          </div>
-          
-          <%= if @form.errors[:content] do %>
-            <p class="text-red-500 text-sm">
-              Mohon isi Konten!
-            </p>
-          <% end %>
         </div>
          <.input field={@form[:image_url]} type="text" label="Image url" />
         <.input field={@form[:status]} type="text" label="Status" />
@@ -65,25 +55,15 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
 
   @impl true
   def handle_event("validate", %{"blog" => blog_params}, socket) do
-    content = socket.assigns.content || ""
-
     changeset =
       socket.assigns.blog
       |> Blogs.change_blog(blog_params)
       |> Map.put(:action, :validate)
 
-    # Add content validation manually
-    changeset =
-      if String.trim(content) == "" do
-        Ecto.Changeset.add_error(changeset, :content, "Content can't be blank")
-      else
-        changeset
-      end
-
     {:noreply, assign(socket, form: to_form(changeset, action: :validate))}
   end
 
-  def handle_event("editor-updated", %{"content" => content}, socket) do
+  def handle_event("trix-change", %{"content" => content}, socket) do
     {:noreply, assign(socket, :content, content)}
   end
 
@@ -96,7 +76,7 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
 
     blog_params =
       blog_params
-      |> Map.put("content", socket.assigns.content)
+      # |> Map.put("content", socket.assigns.content)
       |> Map.put("user_id", user_id)
       |> sanitize_html()
 
@@ -120,7 +100,7 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
     blog_params =
       blog_params
       |> Map.put("user_id", user_id)
-      |> Map.put("content", socket.assigns.content)
+      # |> Map.put("content", socket.assigns.content)
       |> sanitize_html()
 
     case Blogs.create_blog(blog_params) do
