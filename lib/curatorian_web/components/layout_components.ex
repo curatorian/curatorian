@@ -21,37 +21,27 @@ defmodule CuratorianWeb.LayoutComponents do
           </div>
           
           <div class="hidden lg:block">
-            <ul class="flex space-x-6 font-semibold">
-              <li>
-                <.link class="nav-link" href="/">
-                  Beranda
-                </.link>
-              </li>
+            <div class="flex space-x-6 font-semibold">
+              <.link class="nav-link" href="/">
+                Beranda
+              </.link>
               
-              <li>
-                <.link class="nav-link" href="/#">
-                  Tentang
-                </.link>
-              </li>
+              <.link class="nav-link" href="/#">
+                Tentang
+              </.link>
               
-              <li>
-                <.link class="nav-link" href="/#">
-                  Kurator
-                </.link>
-              </li>
+              <.link class="nav-link" href="/#">
+                Kurator
+              </.link>
               
-              <li>
-                <.link class="nav-link" href="/#">
-                  Events
-                </.link>
-              </li>
+              <.link class="nav-link" href="/#">
+                Events
+              </.link>
               
-              <li>
-                <.link class="nav-link" href="/#">
-                  Forum
-                </.link>
-              </li>
-            </ul>
+              <.link class="nav-link" href="/#">
+                Forum
+              </.link>
+            </div>
           </div>
           
           <%= if @current_user do %>

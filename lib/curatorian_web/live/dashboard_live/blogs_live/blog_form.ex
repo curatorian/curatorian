@@ -32,8 +32,40 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
             <trix-editor input="article-content"></trix-editor>
           </div>
         </div>
-         <.input field={@form[:image_url]} type="text" label="Image url" />
-        <.input field={@form[:status]} type="text" label="Status" />
+        
+        <div>
+          <.input field={@form[:image_url]} type="hidden" label="Thumbnail" />
+          <section phx-drop-target={@uploads.thumbnail.ref}>
+            <%!-- render each thumbnail entry --%>
+            <article :for={entry <- @uploads.thumbnail.entries} class="upload-entry">
+              <figure>
+                <.live_img_preview entry={entry} />
+                <figcaption>{entry.client_name}</figcaption>
+              </figure>
+               <%!-- entry.progress will update automatically for in-flight entries --%>
+              <progress value={entry.progress} max="100">{entry.progress}%</progress>
+              <%!-- a regular click event whose handler will invoke Phoenix.LiveView.cancel_upload/3 --%>
+              <button
+                type="button"
+                phx-click="cancel-upload"
+                phx-value-ref={entry.ref}
+                aria-label="cancel"
+              >
+                &times;
+              </button>
+               <%!-- Phoenix.Component.upload_errors/2 returns a list of error atoms --%>
+              <p :for={err <- upload_errors(@uploads.thumbnail, entry)} class="alert alert-danger">
+                {error_to_string(err)}
+              </p>
+            </article>
+             <%!-- Phoenix.Component.upload_errors/1 returns a list of error atoms --%>
+            <p :for={err <- upload_errors(@uploads.thumbnail)} class="alert alert-danger">
+              {error_to_string(err)}
+            </p>
+          </section>
+           <.live_file_input upload={@uploads.thumbnail} />
+        </div>
+         <.input field={@form[:status]} type="text" label="Status" />
         <:actions>
           <.button type="submit" phx-disable-with="Saving...">Save Blog</.button>
         </:actions>
@@ -50,7 +82,14 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
      |> assign(:content, blog.content)
      |> assign_new(:form, fn ->
        to_form(Blogs.change_blog(blog))
-     end)}
+     end)
+     |> assign(:uploaded_files, [])
+     |> allow_upload(:thumbnail,
+       accept: ~w(.jpg .jpeg .png),
+       max_files: 1,
+       max_file_size: 3_000_000,
+       auto_upload: true
+     )}
   end
 
   @impl true
@@ -67,7 +106,37 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
     {:noreply, assign(socket, :content, content)}
   end
 
+  def handle_event("cancel-upload", %{"ref" => ref}, socket) do
+    {:noreply, cancel_upload(socket, :avatar, ref)}
+  end
+
   def handle_event("save", %{"blog" => blog_params}, socket) do
+    uploaded_files =
+      consume_uploaded_entries(socket, :thumbnail, fn %{path: path}, _entry ->
+        dest_dir = Application.app_dir(:curatorian, "priv/static/uploads/thumbnail")
+
+        dest =
+          Path.join(
+            dest_dir,
+            Path.basename(path)
+          )
+
+        File.mkdir_p!(dest_dir)
+
+        File.cp!(path, dest)
+
+        image_path = "/uploads/thumbnail/#{Path.basename(path)}"
+        {:ok, image_path}
+      end)
+
+    dbg(uploaded_files)
+
+    blog_params = blog_params |> Map.put("image_url", hd(uploaded_files))
+
+    socket =
+      socket
+      |> update(:uploaded_files, &(&1 ++ uploaded_files))
+
     save_blog(socket, socket.assigns.action, blog_params)
   end
 
@@ -124,4 +193,8 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
     safe_html = HtmlSanitizeEx.basic_html(html)
     Map.put(attrs, "content", safe_html)
   end
+
+  defp error_to_string(:too_large), do: "Too large"
+  defp error_to_string(:not_accepted), do: "You have selected an unacceptable file type"
+  defp error_to_string(:too_many_files), do: "You have selected too many files"
 end

@@ -14,7 +14,7 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Index do
       </:actions>
     </.header>
 
-    <section class="grid grid-cols-3 gap-4">
+    <section class="grid grid-cols-3 gap-4 my-5">
       <%= for blog <- @blogs do %>
         <div class="bg-violet-100 p-4 rounded-xl flex flex-col items-center justify-between text-center gap-4">
           <h5>{blog.title}</h5>
@@ -32,8 +32,6 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Index do
 
   def mount(_params, _session, socket) do
     blogs = Blogs.list_blogs_by_user(socket.assigns.current_user.id)
-
-    dbg(blogs)
 
     socket =
       socket

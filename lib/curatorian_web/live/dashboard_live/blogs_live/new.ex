@@ -4,6 +4,7 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.New do
   alias Curatorian.Blogs
   alias Curatorian.Blogs.Blog
 
+  @impl Phoenix.LiveView
   def render(assigns) do
     ~H"""
     <.header>
@@ -24,6 +25,7 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.New do
     """
   end
 
+  @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
     changeset = Blogs.change_blog(%Blog{})
     user_id = socket.assigns.current_user.id
@@ -33,6 +35,13 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.New do
       |> assign(:changeset, changeset)
       |> assign(:blog, %Blog{})
       |> assign(:user_id, user_id)
+      |> assign(:uploaded_files, [])
+      |> allow_upload(:thumbnail,
+        accept: ~w(.jpg .jpeg .png),
+        max_files: 1,
+        max_file_size: 3_000_000,
+        auto_upload: true
+      )
 
     {:ok, socket}
   end

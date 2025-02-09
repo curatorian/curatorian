@@ -23,11 +23,12 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Show do
     <.back navigate="/dashboard/blog">Kembali</.back>
 
     <article class="my-10">
-      <h1>{@blog.title}</h1>
+      <h2>{@blog.title}</h2>
       
       <p class="my-5">By: {@user_profile.fullname}</p>
       
       <div>
+        <img src={@blog.image_url} />
         <p>{raw(@blog.content)}</p>
       </div>
     </article>
