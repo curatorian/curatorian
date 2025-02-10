@@ -16,146 +16,27 @@
 //
 
 // Include phoenix_html to handle method=PUT/DELETE in forms and buttons.
-import "phoenix_html";
+import "phoenix_html"
 // Establish Phoenix Socket and LiveView configuration.
-import { Socket } from "phoenix";
-import { LiveSocket } from "phoenix_live_view";
+import {Socket} from "phoenix"
+import {LiveSocket} from "phoenix_live_view"
+import topbar from "../vendor/topbar"
+import {getHooks} from "live_svelte"
+import * as Components from "../svelte/**/*.svelte"
 
-import topbar from "../vendor/topbar";
-import Trix from "./trix";
-
-// Handle image upload
-let Hooks = {};
-
-Hooks.NavbarScroll = {
-  mounted() {
-    const navbar = this.el;
-    const navLink = navbar.querySelectorAll(".nav-link");
-
-    // Throttle scroll handler for performance
-    const throttle = (fn, wait) => {
-      let time = Date.now();
-      return () => {
-        if (time + wait - Date.now() < 0) {
-          fn();
-          time = Date.now();
-        }
-      };
-    };
-
-    const handleScroll = () => {
-      if (window.scrollY > 10) {
-        navbar.classList.add("bg-white/90", "backdrop-blur-sm");
-        navbar.classList.remove("bg-transparent");
-
-        for (let nav of navLink) {
-          nav.classList.add("text-violet-500");
-          nav.classList.remove("text-white");
-        }
-      } else if (window.scrollY <= 10) {
-        navbar.classList.remove("bg-white/90", "backdrop-blur-sm");
-        navbar.classList.add("bg-transparent");
-
-        for (let nav of navLink) {
-          nav.classList.remove("text-violet-500");
-          nav.classList.add("text-white");
-        }
-      }
-    };
-
-    // Initial check
-    handleScroll();
-
-    // Add scroll listener with throttling
-    window.addEventListener("scroll", throttle(handleScroll, 100));
-
-    // Cleanup
-    this.handleEvent = () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  },
-};
-
-Hooks.TiptapEditor = {
-  mounted() {
-    // Get initial content from LiveView assigns
-    const initialContent = this.el.dataset.content || "<p></p>";
-
-    // Initialize Tiptap
-    this.editor = new window.Tiptap.Editor({
-      element: this.el,
-      extensions: [
-        window.Tiptap.StarterKit,
-        window.Tiptap.BubbleMenu.configure({
-          element: document.querySelector("#bubble-menu"),
-          tippyOptions: { duration: 100 },
-          shouldShow: ({ editor, state }) => {
-            return editor.view.hasFocus() && !editor.state.selection.empty;
-          },
-        }),
-      ],
-      content: initialContent,
-      onUpdate: ({ editor }) => {
-        // Push editor content to LiveView on change
-        const target = this.el.getAttribute("phx-target");
-        if (target) {
-          this.pushEventTo(target, "editor-updated", {
-            content: editor.getHTML(),
-          });
-        } else {
-          this.pushEvent("editor-updated", { content: editor.getHTML() });
-        }
-      },
-    });
-
-    const buttons = this.el.querySelectorAll("#bubble-menu");
-    console.log("Buttons found:", buttons.length);
-    console.log("Editor commands:", this.editor.commands);
-
-    buttons.forEach((button) => {
-      const command = button.getAttribute("data-command");
-      console.log("Adding event listener for command:", command);
-      button.addEventListener("click", (event) => {
-        event.preventDefault();
-        console.log("Button clicked:", command);
-
-        if (command === "bold") {
-          this.editor.chain().focus().toggleBold().run();
-        } else if (command === "italic") {
-          this.editor.chain().focus().toggleItalic().run();
-        } else if (command === "strike") {
-          this.editor.chain().focus().toggleStrike().run();
-        }
-      });
-    });
-  },
-  destroyed() {
-    // Cleanup editor when the component is removed
-    this.editor.destroy();
-  },
-};
-
-Hooks.Trix = Trix;
-
-let csrfToken = document
-  .querySelector("meta[name='csrf-token']")
-  .getAttribute("content");
-let liveSocket = new LiveSocket("/live", Socket, {
-  longPollFallbackMs: 2500,
-  params: { _csrf_token: csrfToken },
-  hooks: Hooks,
-});
+let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
+let liveSocket = new LiveSocket("/live", Socket, {hooks: getHooks(Components), params: {_csrf_token: csrfToken}})
 
 // Show progress bar on live navigation and form submits
-topbar.config({ barColors: { 0: "#29d" }, shadowColor: "rgba(0, 0, 0, .3)" });
-window.addEventListener("phx:page-loading-start", (_info) => topbar.show(300));
-window.addEventListener("phx:page-loading-stop", (_info) => topbar.hide());
+topbar.config({barColors: {0: "#29d"}, shadowColor: "rgba(0, 0, 0, .3)"})
+window.addEventListener("phx:page-loading-start", _info => topbar.show(300))
+window.addEventListener("phx:page-loading-stop", _info => topbar.hide())
 
 // connect if there are any LiveViews on the page
-liveSocket.connect();
+liveSocket.connect()
 
 // expose liveSocket on window for web console debug logs and latency simulation:
 // >> liveSocket.enableDebug()
 // >> liveSocket.enableLatencySim(1000)  // enabled for duration of browser session
 // >> liveSocket.disableLatencySim()
-window.liveSocket = liveSocket;
+window.liveSocket = liveSocket

@@ -18,9 +18,9 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Index do
       <%= for blog <- @blogs do %>
         <div class="bg-violet-100 p-4 rounded-xl flex flex-col items-center justify-between text-center gap-4">
           <h5>{blog.title}</h5>
-          
+
           <p class="text-xs">{blog.summary}</p>
-          
+
           <.link href={~p"/dashboard/blog/#{blog.slug}"}>
             <.button>View</.button>
           </.link>

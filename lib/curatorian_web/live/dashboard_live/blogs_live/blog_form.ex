@@ -15,12 +15,12 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
         phx-target={@myself}
       >
         <.input field={@form[:title]} type="text" label="Title" />
-        <.input field={@form[:slug]} type="text" label="Slug" />
+        <.input field={@form[:slug]} type="text" label="Slug" phx-hook="Slugify" id="slug" />
         <.input field={@form[:summary]} type="text" label="Summary" />
         <%!-- <.input field={@form[:content]} type="text" label="Content" /> --%>
         <div>
           <.label>Trix</.label>
-          
+
           <.input
             field={@form[:content]}
             id="article-content"
@@ -32,7 +32,7 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
             <trix-editor input="article-content"></trix-editor>
           </div>
         </div>
-        
+
         <div>
           <.input field={@form[:image_url]} type="hidden" label="Thumbnail" />
           <section phx-drop-target={@uploads.thumbnail.ref}>
@@ -42,7 +42,7 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
                 <.live_img_preview entry={entry} />
                 <figcaption>{entry.client_name}</figcaption>
               </figure>
-               <%!-- entry.progress will update automatically for in-flight entries --%>
+              <%!-- entry.progress will update automatically for in-flight entries --%>
               <progress value={entry.progress} max="100">{entry.progress}%</progress>
               <%!-- a regular click event whose handler will invoke Phoenix.LiveView.cancel_upload/3 --%>
               <button
@@ -53,19 +53,26 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
               >
                 &times;
               </button>
-               <%!-- Phoenix.Component.upload_errors/2 returns a list of error atoms --%>
+              <%!-- Phoenix.Component.upload_errors/2 returns a list of error atoms --%>
               <p :for={err <- upload_errors(@uploads.thumbnail, entry)} class="alert alert-danger">
                 {error_to_string(err)}
               </p>
             </article>
-             <%!-- Phoenix.Component.upload_errors/1 returns a list of error atoms --%>
+            <%!-- Phoenix.Component.upload_errors/1 returns a list of error atoms --%>
             <p :for={err <- upload_errors(@uploads.thumbnail)} class="alert alert-danger">
               {error_to_string(err)}
             </p>
           </section>
-           <.live_file_input upload={@uploads.thumbnail} />
+          <.live_file_input upload={@uploads.thumbnail} />
         </div>
-         <.input field={@form[:status]} type="text" label="Status" />
+
+        <.input
+          field={@form[:status]}
+          type="select"
+          label="Status"
+          prompt="Pilih Status Publikasi"
+          options={@status_input}
+        />
         <:actions>
           <.button type="submit" phx-disable-with="Saving...">Save Blog</.button>
         </:actions>
@@ -80,6 +87,7 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
      socket
      |> assign(assigns)
      |> assign(:content, blog.content)
+     |> assign(:status_input, status_input())
      |> assign_new(:form, fn ->
        to_form(Blogs.change_blog(blog))
      end)
@@ -192,6 +200,14 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
     html = Map.get(attrs, "content", "")
     safe_html = HtmlSanitizeEx.basic_html(html)
     Map.put(attrs, "content", safe_html)
+  end
+
+  defp status_input do
+    [
+      {"Draft", "draft"},
+      {"Published", "published"},
+      {"Archived", "archived"}
+    ]
   end
 
   defp error_to_string(:too_large), do: "Too large"

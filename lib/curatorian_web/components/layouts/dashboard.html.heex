@@ -6,7 +6,7 @@
         <.link href="/dashboard" class="no-underline">
           <h5>Curatorian</h5>
         </.link>
-        
+
         <div class="flex flex-col items-center my-2">
           <img
             src={@current_user.profile.user_image}
@@ -15,7 +15,7 @@
             alt={@current_user.username}
           />
           <p class="text-xs text-violet-500">{@current_user.username}</p>
-          
+
           <div class="mt-2 grid grid-cols-1 lg:grid-cols-2 gap-1 w-full">
             <.link
               href="/users/settings"
@@ -23,7 +23,7 @@
             >
               <.icon name="hero-cog-6-tooth" class="h-4 w-4" /> <span>Setting</span>
             </.link>
-            
+
             <.link
               href="/users/log_out"
               method="delete"
@@ -34,28 +34,28 @@
           </div>
         </div>
       </div>
-      
+
       <div>
         <.link
           class="btn no-underline text-xs flex items-center justify-center gap-1"
-          href="/dashboard#"
+          href="/dashboard/blog/new"
         >
           <.icon name="hero-plus" class="h-4 w-4" /> <span>Buat Post Baru</span>
         </.link>
       </div>
-      
+
       <div class="flex flex-col gap-3 my-5 text-black">
         <.link class="no-underline" href="/dashboard/blog">
           <.icon name="hero-user" class="h-4 w-4" /> <span>Blog Saya</span>
         </.link>
-        
+
         <%= for num <- 1..5 do %>
           <.link class="no-underline">
             <.icon name="hero-user" class="h-4 w-4" /> <span>Menu {num}</span>
           </.link>
         <% end %>
       </div>
-      
+
       <div>
         <.link class="no-underline" href="/">
           <.icon name="hero-home" class="h-4 w-4" />
@@ -65,12 +65,12 @@
         </.link>
       </div>
     </div>
-    
+
     <div class="p-5 bg-gray-100 w-full">
       {@inner_content}
     </div>
   </section>
-  
+
   <footer>
     <.footer_layout />
   </footer>

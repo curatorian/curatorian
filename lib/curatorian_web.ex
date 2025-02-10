@@ -96,6 +96,7 @@ defmodule CuratorianWeb do
       # Core UI components and translation
       import CuratorianWeb.CoreComponents
       import CuratorianWeb.LayoutComponents
+      import LiveSvelte
       use Gettext, backend: CuratorianWeb.Gettext
 
       # Shortcut for generating JS commands

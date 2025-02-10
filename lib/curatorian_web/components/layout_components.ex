@@ -19,31 +19,31 @@ defmodule CuratorianWeb.LayoutComponents do
           <div>
             <.link class="nav-link font-bold text-2xl" href="/">Curatorian</.link>
           </div>
-          
+
           <div class="hidden lg:block">
             <div class="flex space-x-6 font-semibold">
               <.link class="nav-link" href="/">
                 Beranda
               </.link>
-              
+
               <.link class="nav-link" href="/#">
                 Tentang
               </.link>
-              
+
               <.link class="nav-link" href="/#">
                 Kurator
               </.link>
-              
+
               <.link class="nav-link" href="/#">
                 Events
               </.link>
-              
+
               <.link class="nav-link" href="/#">
                 Forum
               </.link>
             </div>
           </div>
-          
+
           <%= if @current_user do %>
             <div class="hidden lg:block">
               <div class="flex items-center space-x-2">
@@ -56,7 +56,7 @@ defmodule CuratorianWeb.LayoutComponents do
                 <.link href="/dashboard" class="btn no-underline text-xs">
                   Dashboard
                 </.link>
-                
+
                 <.link href="/users/log_out" method="delete" class="no-underline btn-cancel text-xs">
                   Log out
                 </.link>
@@ -69,7 +69,7 @@ defmodule CuratorianWeb.LayoutComponents do
               </.link>
             </div>
           <% end %>
-          
+
           <div class="block lg:hidden">
             <button class="btn bg-violet-1 text-violet-6 text-lg font-bold">☰</button>
           </div>
@@ -86,7 +86,7 @@ defmodule CuratorianWeb.LayoutComponents do
     <footer>
       <div class="bg-gray-800 text-white text-center py-10 w-full">
         <p>&copy; {@year} Curatorian ID. All rights reserved.</p>
-        
+
         <p>
           <a
             href="https://www.instagram.com/curatorian_id"
@@ -112,7 +112,7 @@ defmodule CuratorianWeb.LayoutComponents do
             GitHub
           </a>
         </p>
-        
+
         <p>
           Lead Developer
           <a href="https://github.com/chrisnaadhi" class="text-violet-3" target="_blank">

@@ -8,7 +8,14 @@ defmodule Curatorian.BlogsTest do
 
     import Curatorian.BlogsFixtures
 
-    @invalid_attrs %{status: nil, title: nil, slug: nil, content: nil, summary: nil, image_url: nil}
+    @invalid_attrs %{
+      status: nil,
+      title: nil,
+      slug: nil,
+      content: nil,
+      summary: nil,
+      image_url: nil
+    }
 
     test "list_blogs/0 returns all blogs" do
       blog = blog_fixture()
@@ -21,7 +28,14 @@ defmodule Curatorian.BlogsTest do
     end
 
     test "create_blog/1 with valid data creates a blog" do
-      valid_attrs = %{status: "some status", title: "some title", slug: "some slug", content: "some content", summary: "some summary", image_url: "some image_url"}
+      valid_attrs = %{
+        status: "some status",
+        title: "some title",
+        slug: "some slug",
+        content: "some content",
+        summary: "some summary",
+        image_url: "some image_url"
+      }
 
       assert {:ok, %Blog{} = blog} = Blogs.create_blog(valid_attrs)
       assert blog.status == "some status"
@@ -38,7 +52,15 @@ defmodule Curatorian.BlogsTest do
 
     test "update_blog/2 with valid data updates the blog" do
       blog = blog_fixture()
-      update_attrs = %{status: "some updated status", title: "some updated title", slug: "some updated slug", content: "some updated content", summary: "some updated summary", image_url: "some updated image_url"}
+
+      update_attrs = %{
+        status: "some updated status",
+        title: "some updated title",
+        slug: "some updated slug",
+        content: "some updated content",
+        summary: "some updated summary",
+        image_url: "some updated image_url"
+      }
 
       assert {:ok, %Blog{} = blog} = Blogs.update_blog(blog, update_attrs)
       assert blog.status == "some updated status"

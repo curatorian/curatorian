@@ -9,7 +9,8 @@ module.exports = {
   content: [
     "./js/**/*.js",
     "../lib/curatorian_web.ex",
-    "../lib/curatorian_web/**/*.*ex"
+    "../lib/curatorian_web/**/*.*ex",
+    "./svelte/**/*.svelte"
   ],
   theme: {
     extend: {

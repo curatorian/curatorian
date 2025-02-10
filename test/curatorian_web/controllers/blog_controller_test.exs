@@ -3,8 +3,22 @@ defmodule CuratorianWeb.BlogControllerTest do
 
   import Curatorian.BlogsFixtures
 
-  @create_attrs %{status: "some status", title: "some title", slug: "some slug", content: "some content", summary: "some summary", image_url: "some image_url"}
-  @update_attrs %{status: "some updated status", title: "some updated title", slug: "some updated slug", content: "some updated content", summary: "some updated summary", image_url: "some updated image_url"}
+  @create_attrs %{
+    status: "some status",
+    title: "some title",
+    slug: "some slug",
+    content: "some content",
+    summary: "some summary",
+    image_url: "some image_url"
+  }
+  @update_attrs %{
+    status: "some updated status",
+    title: "some updated title",
+    slug: "some updated slug",
+    content: "some updated content",
+    summary: "some updated summary",
+    image_url: "some updated image_url"
+  }
   @invalid_attrs %{status: nil, title: nil, slug: nil, content: nil, summary: nil, image_url: nil}
 
   describe "index" do

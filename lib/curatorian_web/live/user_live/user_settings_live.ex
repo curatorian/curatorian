@@ -11,7 +11,7 @@ defmodule CuratorianWeb.UserSettingsLive do
         Account Settings
         <:subtitle>Manage your account email address and password settings</:subtitle>
       </.header>
-      
+
       <section class="flex flex-col gap-5 lg:flex-row items-center lg:items-start justify-center min-h-screen h-full">
         <div class="bg-violet-100 p-10 rounded w-full sm:max-w-80">
           <%= if length(@uploads.avatar.entries) === 0 do %>
@@ -33,7 +33,7 @@ defmodule CuratorianWeb.UserSettingsLive do
               <% end %>
             </div>
           <% end %>
-          
+
           <div phx-drop-target={@uploads.avatar.ref}>
             <div class="container" phx-drop-target={@uploads.avatar.ref}>
               <form id="upload-form" phx-submit="upload_image" phx-change="validate" class="hidden">
@@ -41,7 +41,7 @@ defmodule CuratorianWeb.UserSettingsLive do
                 <.button type="submit" id="submit-image">Upload</.button>
               </form>
             </div>
-            
+
             <div>
               <%= if length(@uploads.avatar.entries) === 0 do %>
                 <div class="mt-3">
@@ -54,12 +54,12 @@ defmodule CuratorianWeb.UserSettingsLive do
                   </.button>
                 </div>
               <% end %>
-               <%!-- render each avatar entry --%>
+              <%!-- render each avatar entry --%>
               <article :for={entry <- @uploads.avatar.entries} class="upload-entry">
                 <figure>
                   <.live_img_preview entry={entry} class="profile-pic" />
                 </figure>
-                
+
                 <%!-- a regular click event whose handler will invoke Phoenix.LiveView.cancel_upload/3 --%>
                 <div class="w-full flex gap-2 mt-3">
                   <.button
@@ -71,35 +71,35 @@ defmodule CuratorianWeb.UserSettingsLive do
                   >
                     Batal
                   </.button>
-                  
+
                   <.button type="button" phx-click="upload_image" class="w-full btn-confirm">
                     Simpan
                   </.button>
                 </div>
-                 <%!-- entry.progress will update automatically for in-flight entries --%>
+                <%!-- entry.progress will update automatically for in-flight entries --%>
                 <%!-- <progress value={entry.progress} max="100">{entry.progress}%</progress> --%>
                 <%!-- Phoenix.Component.upload_errors/2 returns a list of error atoms --%>
                 <p :for={err <- upload_errors(@uploads.avatar, entry)} class="alert alert-danger">
                   {error_to_string(err)}
                 </p>
               </article>
-               <%!-- Phoenix.Component.upload_errors/1 returns a list of error atoms --%>
+              <%!-- Phoenix.Component.upload_errors/1 returns a list of error atoms --%>
               <p :for={err <- upload_errors(@uploads.avatar)} class="alert alert-danger">
                 {error_to_string(err)}
               </p>
-               <hr class="border-t-1 border-violet-500 my-8" />
+              <hr class="border-t-1 border-violet-500 my-8" />
               <div class="my-5">
                 <div class="w-full bg-violet-600 text-center text-white p-0 mb-2 rounded">
                   <h5>Profil</h5>
                 </div>
-                
+
                 <div class="flex items-center w-full gap-2 py-2">
                   <.icon name="hero-user-solid" class="w-6 h-6 max-w-8" />
                   <p class="max-w-48">
                     {@current_user.profile.fullname}
                   </p>
                 </div>
-                
+
                 <div class="flex items-center w-full gap-2 py-2">
                   <.icon name="hero-at-symbol-solid" class="w-6 h-6 max-w-8" />
                   <p class="max-w-48">
@@ -110,7 +110,7 @@ defmodule CuratorianWeb.UserSettingsLive do
             </div>
           </div>
         </div>
-        
+
         <div class="w-full">
           <.simple_form for={@update_profile_form} phx-submit="update_profile">
             <.input
@@ -134,7 +134,7 @@ defmodule CuratorianWeb.UserSettingsLive do
             </:actions>
           </.simple_form>
         </div>
-        
+
         <div>
           <%!-- <div class="tabs">
             <button

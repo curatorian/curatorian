@@ -119,12 +119,17 @@ ul {
   @apply ml-4;
 }
 
-#editor > div {
-  @apply border border-gray-300 bg-white rounded-lg text-zinc-900 min-h-64 focus:ring-0 p-2;
+blockquote {
+  @apply border-l-4 border-gray-300 bg-gray-100 ml-5 p-2 text-gray-500 italic;
 }
 
 @layer base {
   /* Adds style to unordered list */
+  trix-editor {
+    height: 350px;
+    overflow-y: auto;
+  }
+
   trix-editor > ul {
     @apply list-disc;
   }
@@ -143,4 +148,8 @@ ul {
   trix-editor > div > a {
     @apply text-blue-700 underline decoration-blue-700 italic;
   }
+
+  /* trix-editor > blockquote {
+    @apply border-l-4 border-gray-300 bg-gray-100 p-2 text-gray-500 italic;
+  } */
 }

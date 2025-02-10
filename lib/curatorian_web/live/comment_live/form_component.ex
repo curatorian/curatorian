@@ -8,7 +8,7 @@ defmodule CuratorianWeb.CommentLive.FormComponent do
     ~H"""
     <div>
       <.header>
-        <%= @title %>
+        {@title}
         <:subtitle>Use this form to manage comment records in your database.</:subtitle>
       </.header>
 

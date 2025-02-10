@@ -13,12 +13,14 @@
   row_click={fn {_id, comment} -> JS.navigate(~p"/comments/#{comment}") end}
 >
   <:col :let={{_id, comment}} label="Content">{comment.content}</:col>
+
   <:action :let={{_id, comment}}>
     <div class="sr-only">
       <.link navigate={~p"/comments/#{comment}"}>Show</.link>
     </div>
     <.link patch={~p"/comments/#{comment}/edit"}>Edit</.link>
   </:action>
+
   <:action :let={{id, comment}}>
     <.link
       phx-click={JS.push("delete", value: %{id: comment.id}) |> hide("##{id}")}

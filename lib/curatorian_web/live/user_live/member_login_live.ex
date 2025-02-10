@@ -9,7 +9,7 @@ defmodule CuratorianWeb.MemberLoginLive do
           Masuk atau Daftar ke Curatorian
         </.header>
       </div>
-      
+
       <div class="flex items-center justify-center mt-5">
         <.button phx-click="google_auth" class="bg-violet-100">
           Login with Google

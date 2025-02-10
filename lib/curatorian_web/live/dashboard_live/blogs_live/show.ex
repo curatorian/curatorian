@@ -11,7 +11,7 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Show do
         <div>
           Blog {@blog.slug}
         </div>
-        
+
         <div>
           <.link href={~p"/dashboard/blog/#{@blog.slug}/edit"}>
             <.button>Edit</.button>
@@ -24,11 +24,11 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Show do
 
     <article class="my-10">
       <h2>{@blog.title}</h2>
-      
+
       <p class="my-5">By: {@user_profile.fullname}</p>
-      
+
       <div>
-        <img src={@blog.image_url} />
+        <img class="w-full my-5" src={@blog.image_url} />
         <p>{raw(@blog.content)}</p>
       </div>
     </article>

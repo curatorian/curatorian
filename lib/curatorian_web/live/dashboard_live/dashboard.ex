@@ -7,7 +7,7 @@ defmodule CuratorianWeb.DashboardLive do
       <.header class="text-center">
         Welcome to Curatorian Dashboard
       </.header>
-      
+
       <div>
         <p>
           Halo, {@user.username}

@@ -37,7 +37,8 @@ config :curatorian, CuratorianWeb.Endpoint,
   debug_errors: true,
   secret_key_base: "oB9UlPO/fEn+H0AKJDxopd1iDdDMueynnScbMAkqFLAom2ffK7iz53gh69VCtv3p",
   watchers: [
-    esbuild: {Esbuild, :install_and_run, [:curatorian, ~w(--sourcemap=inline --watch)]},
+    node: ["build.js", "--watch", cd: Path.expand("../assets", __DIR__)],
+    # esbuild: {Esbuild, :install_and_run, [:curatorian, ~w(--sourcemap=inline --watch)]},
     tailwind: {Tailwind, :install_and_run, [:curatorian, ~w(--watch)]}
   ]
 

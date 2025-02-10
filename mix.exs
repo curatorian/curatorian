@@ -33,18 +33,13 @@ defmodule Curatorian.MixProject do
   defp deps do
     [
       {:assent, "~> 0.2.10"},
-      {:pbkdf2_elixir, "~> 2.0"},
-      {:phoenix, "~> 1.7.17"},
-      {:phoenix_ecto, "~> 4.5"},
+      {:bandit, "~> 1.5"},
+      {:dns_cluster, "~> 0.1.1"},
       {:ecto_sql, "~> 3.10"},
-      {:postgrex, ">= 0.0.0"},
-      {:phoenix_html, "~> 4.1"},
-      {:phoenix_live_reload, "~> 1.2", only: :dev},
-      {:phoenix_live_view, "~> 1.0.0"},
+      # {:esbuild, "~> 0.8", runtime: Mix.env() == :dev},
+      {:finch, "~> 0.13"},
       {:floki, ">= 0.30.0", only: :test},
-      {:phoenix_live_dashboard, "~> 0.8.3"},
-      {:esbuild, "~> 0.8", runtime: Mix.env() == :dev},
-      {:tailwind, "~> 0.2", runtime: Mix.env() == :dev},
+      {:gettext, "~> 0.20"},
       {:heroicons,
        github: "tailwindlabs/heroicons",
        tag: "v2.1.1",
@@ -52,15 +47,21 @@ defmodule Curatorian.MixProject do
        app: false,
        compile: false,
        depth: 1},
-      {:swoosh, "~> 1.5"},
-      {:finch, "~> 0.13"},
-      {:telemetry_metrics, "~> 1.0"},
-      {:telemetry_poller, "~> 1.0"},
-      {:gettext, "~> 0.20"},
+      {:html_sanitize_ex, "~> 1.4"},
       {:jason, "~> 1.2"},
-      {:dns_cluster, "~> 0.1.1"},
-      {:bandit, "~> 1.5"},
-      {:html_sanitize_ex, "~> 1.4"}
+      {:live_svelte, "~> 0.15.0"},
+      {:pbkdf2_elixir, "~> 2.0"},
+      {:phoenix, "~> 1.7.17"},
+      {:phoenix_ecto, "~> 4.5"},
+      {:phoenix_html, "~> 4.1"},
+      {:phoenix_live_reload, "~> 1.2", only: :dev},
+      {:phoenix_live_view, "~> 1.0.0"},
+      {:phoenix_live_dashboard, "~> 0.8.3"},
+      {:postgrex, ">= 0.0.0"},
+      {:swoosh, "~> 1.5"},
+      {:tailwind, "~> 0.2", runtime: Mix.env() == :dev},
+      {:telemetry_metrics, "~> 1.0"},
+      {:telemetry_poller, "~> 1.0"}
     ]
   end
 
@@ -72,7 +73,11 @@ defmodule Curatorian.MixProject do
   # See the documentation for `Mix` for more info on aliases.
   defp aliases do
     [
-      setup: ["deps.get", "ecto.setup", "assets.setup", "assets.build"],
+      setup: [
+        "deps.get",
+        "ecto.setup",
+        "cmd --cd assets npm install"
+      ],
       start: ["cmd call env.bat", "phx.server"],
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
@@ -81,7 +86,7 @@ defmodule Curatorian.MixProject do
       "assets.build": ["tailwind curatorian", "esbuild curatorian"],
       "assets.deploy": [
         "tailwind curatorian --minify",
-        "esbuild curatorian --minify",
+        "cmd --cd assets node build.js --deploy",
         "phx.digest"
       ]
     ]
