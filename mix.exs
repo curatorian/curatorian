@@ -36,7 +36,7 @@ defmodule Curatorian.MixProject do
       {:bandit, "~> 1.5"},
       {:dns_cluster, "~> 0.1.1"},
       {:ecto_sql, "~> 3.10"},
-      # {:esbuild, "~> 0.8", runtime: Mix.env() == :dev},
+      {:esbuild, "~> 0.8", runtime: Mix.env() == :dev},
       {:finch, "~> 0.13"},
       {:floki, ">= 0.30.0", only: :test},
       {:gettext, "~> 0.20"},
@@ -49,7 +49,6 @@ defmodule Curatorian.MixProject do
        depth: 1},
       {:html_sanitize_ex, "~> 1.4"},
       {:jason, "~> 1.2"},
-      {:live_svelte, "~> 0.15.0"},
       {:pbkdf2_elixir, "~> 2.0"},
       {:phoenix, "~> 1.7.17"},
       {:phoenix_ecto, "~> 4.5"},
@@ -76,7 +75,8 @@ defmodule Curatorian.MixProject do
       setup: [
         "deps.get",
         "ecto.setup",
-        "cmd --cd assets npm install"
+        "assets.setup",
+        "assets.build"
       ],
       start: ["cmd call env.bat", "phx.server"],
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
@@ -86,7 +86,7 @@ defmodule Curatorian.MixProject do
       "assets.build": ["tailwind curatorian", "esbuild curatorian"],
       "assets.deploy": [
         "tailwind curatorian --minify",
-        "cmd --cd assets node build.js --deploy",
+        "esbuild curatorian --minify",
         "phx.digest"
       ]
     ]

@@ -50,6 +50,7 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
                 phx-click="cancel-upload"
                 phx-value-ref={entry.ref}
                 aria-label="cancel"
+                phx-target={@myself}
               >
                 &times;
               </button>
@@ -110,14 +111,18 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
     {:noreply, assign(socket, form: to_form(changeset, action: :validate))}
   end
 
+  @impl true
   def handle_event("trix-change", %{"content" => content}, socket) do
     {:noreply, assign(socket, :content, content)}
   end
 
+  @impl true
   def handle_event("cancel-upload", %{"ref" => ref}, socket) do
-    {:noreply, cancel_upload(socket, :avatar, ref)}
+    send(self(), {:cancel_upload})
+    {:noreply, cancel_upload(socket, :thumbnail, ref)}
   end
 
+  @impl true
   def handle_event("save", %{"blog" => blog_params}, socket) do
     uploaded_files =
       consume_uploaded_entries(socket, :thumbnail, fn %{path: path}, _entry ->

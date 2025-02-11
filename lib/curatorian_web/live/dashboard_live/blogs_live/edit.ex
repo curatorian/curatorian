@@ -36,13 +36,6 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Edit do
       |> assign(:changeset, changeset)
       |> assign(:blog, blog)
       |> assign(:user_id, user_id)
-      |> assign(:uploaded_files, [])
-      |> allow_upload(:thumbnail,
-        accept: ~w(.jpg .jpeg .png),
-        max_files: 1,
-        max_file_size: 3_000_000,
-        auto_upload: true
-      )
 
     {:ok, socket}
   end

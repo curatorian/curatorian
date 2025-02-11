@@ -6,6 +6,16 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Show do
 
   def render(assigns) do
     ~H"""
+    <.modal id="confirm-delete">
+      <h2>Delete Blog</h2>
+
+      <p class="my-5">Are you sure you want to delete this blog?</p>
+
+      <div class="modal-footer">
+        <.button phx-click="delete-blog" phx-value-id={@blog.id}>Delete</.button>
+        <.button phx-click={hide_modal("confirm-delete")}>Cancel</.button>
+      </div>
+    </.modal>
     <.header>
       <div class="flex items-center justify-between">
         <div>
@@ -16,6 +26,7 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Show do
           <.link href={~p"/dashboard/blog/#{@blog.slug}/edit"}>
             <.button>Edit</.button>
           </.link>
+          <.button phx-click={show_modal("confirm-delete")}>Delete</.button>
         </div>
       </div>
     </.header>
@@ -43,7 +54,20 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Show do
       socket
       |> assign(:blog, blog)
       |> assign(:user_profile, user_profile)
+      |> assign(:show_delete_modal, false)
 
     {:ok, socket}
+  end
+
+  def handle_event("delete-blog", %{"id" => id}, socket) do
+    blog = Blogs.get_blog!(id)
+    {:ok, _blog} = Blogs.delete_blog(blog)
+
+    socket =
+      socket
+      |> put_flash(:info, "Blog deleted successfully.")
+      |> redirect(to: "/dashboard/blog")
+
+    {:noreply, socket}
   end
 end
