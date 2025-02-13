@@ -17,7 +17,7 @@ defmodule Clients.Storage.Local do
     end
   end
 
-  def delete_file(file_url) do
+  def delete(file_url) do
     "priv/static/"
     |> Path.join(file_url)
     |> File.rm()
