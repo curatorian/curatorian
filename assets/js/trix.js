@@ -3,7 +3,9 @@ export default {
     const element = document.querySelector("trix-editor");
 
     function uploadFile(file, progressCallback, successCallback) {
-      const formData = createFormData(file);
+      const formData = new FormData();
+      formData.append("file", file);
+      const xhr = new XMLHttpRequest();
       const csrfToken = document
         .querySelector("meta[name=csrf-token]")
         .getAttribute("content");

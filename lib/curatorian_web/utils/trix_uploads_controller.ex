@@ -15,5 +15,5 @@ defmodule CuratorianWeb.Utils.TrixUploadsController do
     end
   end
 
-  def impl, do: Application.get_env(:curatorian, :uploader)[:adapter]
+  defp impl, do: Application.get_env(:curatorian, :uploader)
 end

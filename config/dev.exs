@@ -97,4 +97,4 @@ config :phoenix_live_view,
 config :swoosh, :api_client, false
 
 # Configure the TrixUploadsController to use the local storage adapter
-config :curatorian, :uploader, Curatorian.Storage.Local
+config :curatorian, :uploader, Clients.Storage.Local

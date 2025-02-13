@@ -3,7 +3,7 @@ defmodule Clients.Storage.Local do
   Storage module to store files locally
   """
 
-  def upload(%{"Content-Type" => content_type, "file" => %Plug.Upload{path: tmp_path}}) do
+  def upload(%{"file" => %Plug.Upload{path: tmp_path, content_type: content_type}}) do
     # Create upload dir if not exists
 
     create_uploads_dir()

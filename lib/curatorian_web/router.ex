@@ -67,6 +67,9 @@ defmodule CuratorianWeb.Router do
   scope "/", CuratorianWeb do
     pipe_through [:browser, :require_authenticated_user]
 
+    post "/trix-uploads", Utils.TrixUploadsController, :create
+    delete "/trix-uploads", Utils.TrixUploadsController, :delete
+
     live_session :require_authenticated_user,
       on_mount: [{CuratorianWeb.UserAuth, :ensure_authenticated}] do
       scope "/dashboard" do
