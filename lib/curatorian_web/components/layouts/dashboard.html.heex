@@ -44,23 +44,50 @@
         </.link>
       </div>
 
-      <div class="flex flex-col gap-3 my-5 text-black">
-        <.link class="no-underline" href="/dashboard/blog">
-          <.icon name="hero-user" class="h-4 w-4" /> <span>Blog Saya</span>
+      <div class="flex flex-col gap-5 my-5 text-black">
+        <.link
+          class={[
+            "no-underline",
+            if(@current_uri == "/dashboard",
+              do: "active-menu-dashboard",
+              else: "inactive-menu-dashboard"
+            )
+          ]}
+          href="/dashboard"
+        >
+          <.icon name="hero-home-solid" class="h-6 w-6 mr-3" /> <span>Beranda</span>
         </.link>
-
-        <%= for num <- 1..5 do %>
-          <.link class="no-underline">
-            <.icon name="hero-user" class="h-4 w-4" /> <span>Menu {num}</span>
-          </.link>
-        <% end %>
+        <.link
+          class={[
+            "no-underline",
+            if(@current_uri == "/users/settings",
+              do: "active-menu-dashboard",
+              else: "inactive-menu-dashboard"
+            )
+          ]}
+          href="/users/settings"
+        >
+          <.icon name="hero-user-solid" class="h-6 w-6 mr-3" /> <span>Profile</span>
+        </.link>
+        <.link
+          class={[
+            "no-underline",
+            if(@current_uri == "/dashboard/blog",
+              do: "active-menu-dashboard",
+              else: "inactive-menu-dashboard"
+            )
+          ]}
+          href="/dashboard/blog"
+        >
+          <.icon name="hero-pencil-square-solid" class="h-6 w-6 mr-3" /> <span>Blog Saya</span>
+        </.link>
       </div>
 
-      <div>
+      <div class="mt-20">
         <.link class="no-underline" href="/">
-          <.icon name="hero-home" class="h-4 w-4" />
+          <.icon name="hero-arrow-left" class="h-6 w-6" />
           <span>
-            Kembali ke Beranda
+            Curatorian
           </span>
         </.link>
       </div>

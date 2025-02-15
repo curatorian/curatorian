@@ -106,6 +106,14 @@ a {
   @apply rounded-2xl w-full h-56 object-cover;
 }
 
+.active-menu-dashboard {
+  @apply text-violet-500 font-bold;
+}
+
+.inactive-menu-dashboard {
+  @apply text-gray-500;
+}
+
 ul {
   @apply list-disc;
 }

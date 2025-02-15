@@ -12,7 +12,12 @@ defmodule CuratorianWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :fetch_current_user
-    # plug :fetch_google_user
+    plug CuratorianWeb.Plugs.GetCurrentPath
+  end
+
+  pipeline :dashboard do
+    plug :browser
+    plug :put_layout, html: {GlammWeb.Layouts, :dashboard}
   end
 
   pipeline :api do
@@ -65,13 +70,16 @@ defmodule CuratorianWeb.Router do
   end
 
   scope "/", CuratorianWeb do
-    pipe_through [:browser, :require_authenticated_user]
+    pipe_through [:dashboard, :require_authenticated_user]
 
     post "/trix-uploads", Utils.TrixUploadsController, :create
     delete "/trix-uploads", Utils.TrixUploadsController, :delete
 
     live_session :require_authenticated_user,
-      on_mount: [{CuratorianWeb.UserAuth, :ensure_authenticated}] do
+      on_mount: [
+        {CuratorianWeb.Utils.SaveRequestUri, :save_request_uri},
+        {CuratorianWeb.UserAuth, :ensure_authenticated}
+      ] do
       scope "/dashboard" do
         live "/", DashboardLive, :show
         live "/blog", DashboardLive.BlogsLive.Index, :index
@@ -98,7 +106,9 @@ defmodule CuratorianWeb.Router do
     delete "/users/log_out", UserSessionController, :delete
 
     live_session :current_user,
-      on_mount: [{CuratorianWeb.UserAuth, :mount_current_user}] do
+      on_mount: [
+        {CuratorianWeb.UserAuth, :mount_current_user}
+      ] do
       live "/users/confirm/:token", UserConfirmationLive, :edit
       live "/users/confirm", UserConfirmationInstructionsLive, :new
     end

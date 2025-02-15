@@ -5,7 +5,6 @@ defmodule Clients.Storage.Local do
 
   def upload(%{"file" => %Plug.Upload{path: tmp_path, content_type: content_type}}) do
     # Create upload dir if not exists
-
     create_uploads_dir()
 
     # Generate a unique filename
@@ -33,5 +32,5 @@ defmodule Clients.Storage.Local do
   end
 
   defp upload_dir(), do: Path.join(["priv", "static", "uploads", "contents"])
-  defp create_uploads_dir, do: File.mkdir_p!(upload_dir())
+  defp create_uploads_dir(), do: File.mkdir_p!(upload_dir())
 end
