@@ -74,6 +74,19 @@ defmodule Curatorian.Accounts do
   end
 
   @doc """
+  Gets a user profile by the username.
+  ## Examples
+      iex> get_user_profile_by_username("username")
+      %UserProfile{}
+
+      iex> get_user_profile_by_username("unknown")
+      nil
+  """
+  def get_user_profile_by_username(username) do
+    Repo.get_by!(User, username: username)
+  end
+
+  @doc """
   Get User by Email or Register it if it does not exist.
   """
   def get_user_by_email_or_register(

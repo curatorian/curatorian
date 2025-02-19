@@ -1,7 +1,7 @@
 defmodule CuratorianWeb.BlogHTML do
   use CuratorianWeb, :html
 
-  embed_templates "blog_html/*"
+  embed_templates "*"
 
   @doc """
   Renders a blog form.

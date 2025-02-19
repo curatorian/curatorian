@@ -47,12 +47,14 @@ defmodule CuratorianWeb.LayoutComponents do
           <%= if @current_user do %>
             <div class="hidden lg:block">
               <div class="flex items-center space-x-2">
-                <img
-                  src={@current_user.profile.user_image}
-                  class="w-8 h-8 object-cover rounded-full"
-                  referrerPolicy="no-referrer"
-                  alt={@current_user.username}
-                />
+                <.link href={"/users/#{@current_user.username}"}>
+                  <img
+                    src={@current_user.profile.user_image}
+                    class="w-8 h-8 object-cover rounded-full"
+                    referrerPolicy="no-referrer"
+                    alt={@current_user.username}
+                  />
+                </.link>
                 <.link href="/dashboard" class="btn no-underline text-xs">
                   Dashboard
                 </.link>

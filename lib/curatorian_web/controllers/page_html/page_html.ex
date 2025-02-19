@@ -6,5 +6,5 @@ defmodule CuratorianWeb.PageHTML do
   """
   use CuratorianWeb, :html
 
-  embed_templates "page_html/*"
+  embed_templates "*"
 end

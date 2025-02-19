@@ -103,6 +103,9 @@ defmodule CuratorianWeb.Router do
   scope "/", CuratorianWeb do
     pipe_through [:browser]
 
+    get "/user", ProfileController, :index
+    get "/:username", ProfileController, :show
+
     delete "/users/log_out", UserSessionController, :delete
 
     live_session :current_user,
