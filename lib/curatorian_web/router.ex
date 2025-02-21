@@ -28,7 +28,6 @@ defmodule CuratorianWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
-    resources "/blogs", BlogController
   end
 
   # Other scopes may use custom stacks.
@@ -103,8 +102,7 @@ defmodule CuratorianWeb.Router do
   scope "/", CuratorianWeb do
     pipe_through [:browser]
 
-    get "/user", ProfileController, :index
-    get "/:username", ProfileController, :show
+    get "/:username", ProfileController, :index
 
     delete "/users/log_out", UserSessionController, :delete
 

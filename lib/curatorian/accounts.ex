@@ -6,7 +6,7 @@ defmodule Curatorian.Accounts do
   import Ecto.Query, warn: false
   alias Curatorian.Repo
 
-  alias Curatorian.Accounts.{User, UserProfile, UserToken, UserNotifier}
+  alias Curatorian.Accounts.{Follow, User, UserProfile, UserToken, UserNotifier}
 
   ## Database getters
 
@@ -83,7 +83,8 @@ defmodule Curatorian.Accounts do
       nil
   """
   def get_user_profile_by_username(username) do
-    Repo.get_by!(User, username: username)
+    Repo.get_by(User, username: username)
+    |> Repo.preload(:profile)
   end
 
   @doc """
@@ -440,5 +441,42 @@ defmodule Curatorian.Accounts do
     user_profile
     |> UserProfile.changeset(attrs)
     |> Repo.update()
+  end
+
+  @doc """
+  Follow a User
+  """
+  def follow_user(follower_id, followed_id) when follower_id != followed_id do
+    %Follow{}
+    |> Follow.changeset(%{follower_id: follower_id, followed_id: followed_id})
+    |> Repo.insert()
+  end
+
+  @doc """
+  Unfollow a User
+  """
+  def unfollow_user(follower_id, followed_id) do
+    case Repo.get(Follow, follower_id: follower_id, followed_id: followed_id) do
+      nil -> {:error, "Not following user"}
+      follow -> Repo.delete(follow)
+    end
+  end
+
+  @doc """
+  Get all following of a user
+  """
+  def list_following(%User{} = user) do
+    user
+    |> Repo.preload(:following)
+    |> Map.get(:following)
+  end
+
+  @doc """
+  Get all followers of a user
+  """
+  def list_followers(%User{} = user) do
+    user
+    |> Repo.preload(:followers)
+    |> Map.get(:followers)
   end
 end

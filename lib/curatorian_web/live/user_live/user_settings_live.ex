@@ -113,6 +113,7 @@ defmodule CuratorianWeb.UserSettingsLive do
 
         <div class="w-full">
           <.simple_form for={@update_profile_form} phx-submit="update_profile">
+            <h6>Biodata</h6>
             <.input
               field={@update_profile_form[:fullname]}
               value={@current_user_profile.fullname}
@@ -129,6 +130,58 @@ defmodule CuratorianWeb.UserSettingsLive do
               type="textarea"
               id="bio"
             />
+            <h6>Pendidikan</h6>
+            <.inputs_for :let={edu} field={@update_profile_form[:educations]}>
+              <.input field={edu[:school]} name="school" label="School" type="text" id="school" />
+              <.input field={edu[:degree]} name="degree" label="Degree" type="text" id="degree" />
+              <.input field={edu[:major]} name="major" label="Major" type="text" id="major" />
+              <.input
+                field={edu[:graduation_year]}
+                name="graduation_year"
+                label="Graduation Year"
+                type="text"
+                id="graduation_year"
+              />
+            </.inputs_for>
+            <h6>Social Media</h6>
+            <div class="grid grid-cols-3 gap-4">
+              <.input
+                field={@update_profile_form[:twitter]}
+                name="twitter"
+                label="Twitter"
+                type="text"
+                id="twitter"
+              />
+              <.input
+                field={@update_profile_form[:facebook]}
+                name="facebook"
+                label="Facebook"
+                type="text"
+                id="facebook"
+              />
+              <.input
+                field={@update_profile_form[:linkedin]}
+                name="linkedin"
+                label="LinkedIn"
+                type="text"
+                id="linkedin"
+              />
+              <.input
+                field={@update_profile_form[:instagram]}
+                name="instagram"
+                label="Instagram"
+                type="text"
+                id="instagram"
+              />
+              <.input
+                field={@update_profile_form[:website]}
+                name="website"
+                label="Website"
+                type="text"
+                id="website"
+              />
+            </div>
+
             <:actions>
               <.button class="btn-default">Update Profile</.button>
             </:actions>

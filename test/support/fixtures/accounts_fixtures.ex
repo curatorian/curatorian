@@ -28,4 +28,22 @@ defmodule Curatorian.AccountsFixtures do
     [_, token | _] = String.split(captured_email.text_body, "[TOKEN]")
     token
   end
+
+  @doc """
+  Generate a follow.
+  """
+  def follow_fixture(attrs \\ %{}) do
+    {:ok, follow} =
+      attrs
+      |> Enum.into(%{
+        follower_id: user_fixture().id,
+        followed_id: user_fixture().id
+      })
+      |> Curatorian.Accounts.follow_user(
+        follower_id: attrs.follower_id,
+        followed_id: attrs.followed_id
+      )
+
+    follow
+  end
 end

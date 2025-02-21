@@ -505,4 +505,56 @@ defmodule Curatorian.AccountsTest do
       refute inspect(%User{password: "123456"}) =~ "password: \"123456\""
     end
   end
+
+  describe "follows" do
+    alias Curatorian.Accounts.Follow
+
+    import Curatorian.AccountsFixtures
+
+    @invalid_attrs %{}
+
+    test "list_follows/0 returns all follows" do
+      follow = follow_fixture()
+      assert Accounts.list_follows() == [follow]
+    end
+
+    test "get_follow!/1 returns the follow with given id" do
+      follow = follow_fixture()
+      assert Accounts.get_follow!(follow.id) == follow
+    end
+
+    test "create_follow/1 with valid data creates a follow" do
+      valid_attrs = %{}
+
+      assert {:ok, %Follow{} = follow} = Accounts.create_follow(valid_attrs)
+    end
+
+    test "create_follow/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Accounts.create_follow(@invalid_attrs)
+    end
+
+    test "update_follow/2 with valid data updates the follow" do
+      follow = follow_fixture()
+      update_attrs = %{}
+
+      assert {:ok, %Follow{} = follow} = Accounts.update_follow(follow, update_attrs)
+    end
+
+    test "update_follow/2 with invalid data returns error changeset" do
+      follow = follow_fixture()
+      assert {:error, %Ecto.Changeset{}} = Accounts.update_follow(follow, @invalid_attrs)
+      assert follow == Accounts.get_follow!(follow.id)
+    end
+
+    test "delete_follow/1 deletes the follow" do
+      follow = follow_fixture()
+      assert {:ok, %Follow{}} = Accounts.delete_follow(follow)
+      assert_raise Ecto.NoResultsError, fn -> Accounts.get_follow!(follow.id) end
+    end
+
+    test "change_follow/1 returns a follow changeset" do
+      follow = follow_fixture()
+      assert %Ecto.Changeset{} = Accounts.change_follow(follow)
+    end
+  end
 end

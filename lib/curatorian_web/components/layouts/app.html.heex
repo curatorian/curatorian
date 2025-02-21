@@ -8,16 +8,16 @@
   </div>
   <%= if @conn do %>
     <%= if @conn.request_path === "/" do %>
-      <section>
+      <section class="min-h-screen h-full">
         {@inner_content}
       </section>
     <% else %>
-      <section class="pt-48 px-5">
+      <section class="pt-48 px-5 min-h-screen h-full">
         {@inner_content}
       </section>
     <% end %>
   <% else %>
-    <section class="pt-48">
+    <section class="pt-48 min-h-screen h-full">
       {@inner_content}
     </section>
   <% end %>

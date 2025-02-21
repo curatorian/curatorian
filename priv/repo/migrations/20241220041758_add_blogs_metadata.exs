@@ -4,12 +4,12 @@ defmodule Curatorian.Repo.Migrations.AddBlogsMetadata do
   def change do
     create table(:tags) do
       add :name, :string
-      timestamps()
+      timestamps(type: :utc_datetime)
     end
 
     create table(:categories) do
       add :name, :string
-      timestamps()
+      timestamps(type: :utc_datetime)
     end
 
     create table(:blogs_tags, primary_key: false) do

@@ -1,11 +1,30 @@
-<section class="h-full h-min-screen">
-  <h2>Profile Information</h2>
-  
-  <p><strong>Email:</strong> {@current_user.email}</p>
-  
-  <p><strong>Joined:</strong> {@current_user.inserted_at}</p>
-</section>
-
-<section>
-  <h2>Default User</h2>
-</section>
+<div class="container mx-auto p-4">
+  <img src={~p"/images/lib.webp"} alt="Background" class="w-full h-64 object-cover rounded-t-lg" />
+  <div class="bg-gray-100 shadow-md rounded-lg p-6">
+    <img
+      src={@user.profile.user_image}
+      alt="Profile Picture"
+      class="w-32 h-32 rounded-full shadow-xl -mt-24"
+      referrerPolicy="no-referrer"
+    />
+    <div class="flex items-center space-x-4">
+      <div>
+        <h2 class="text-xl font-semibold">{@user.profile.fullname}</h2>
+        
+        <p class="text-gray-600">@{@user.username}</p>
+      </div>
+    </div>
+    
+    <div class="my-4">
+      <h3 class="text-lg font-medium">About</h3>
+      
+      <p class="text-gray-700 mt-2">{@user.profile.bio}</p>
+    </div>
+    
+    <div class="my-4">
+      <h3 class="text-lg font-medium">Location</h3>
+      
+      <p class="text-gray-700 mt-2">{@user.username}</p>
+    </div>
+  </div>
+</div>

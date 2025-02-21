@@ -47,7 +47,7 @@ defmodule CuratorianWeb.LayoutComponents do
           <%= if @current_user do %>
             <div class="hidden lg:block">
               <div class="flex items-center space-x-2">
-                <.link href={"/users/#{@current_user.username}"}>
+                <.link href={"/#{@current_user.username}"}>
                   <img
                     src={@current_user.profile.user_image}
                     class="w-8 h-8 object-cover rounded-full"
