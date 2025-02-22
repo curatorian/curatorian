@@ -429,6 +429,11 @@ defmodule Curatorian.Accounts do
   Changeset for User Profile
   """
   def change_user_profile(user_profile, attrs \\ %{}) do
+    attrs =
+      Map.update(attrs, :educations, user_profile.educations || [%{}], fn existing_educations ->
+        existing_educations ++ (attrs[:educations] || [])
+      end)
+
     UserProfile.changeset(user_profile, attrs)
   end
 

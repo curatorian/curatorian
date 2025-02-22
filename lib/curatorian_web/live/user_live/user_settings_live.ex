@@ -103,9 +103,16 @@ defmodule CuratorianWeb.UserSettingsLive do
                 </div>
                 
                 <div class="flex items-center w-full gap-2 py-2">
+                  <.icon name="hero-envelope-solid" class="w-6 h-6 max-w-8" />
+                  <a href={"mailto:#{@current_user.email}"} class="max-w-48">
+                    {@current_user.email}
+                  </a>
+                </div>
+                
+                <div class="flex items-center w-full gap-2 py-2">
                   <.icon name="hero-at-symbol-solid" class="w-6 h-6 max-w-8" />
                   <p class="max-w-48">
-                    {@current_user.email}
+                    {ReadSocmed.create_handler(@current_user_profile.social_media["twitter"])}
                   </p>
                 </div>
               </div>
@@ -136,18 +143,32 @@ defmodule CuratorianWeb.UserSettingsLive do
             <h6>Pendidikan</h6>
             
             <.inputs_for :let={edu} field={@update_profile_form[:educations]}>
-              <.input field={edu[:school]} name="school" label="School" type="text" id="school" />
-              <.input field={edu[:degree]} name="degree" label="Degree" type="text" id="degree" />
-              <.input field={edu[:major]} name="major" label="Major" type="text" id="major" />
-              <.input
-                field={edu[:graduation_year]}
-                name="graduation_year"
-                label="Graduation Year"
-                type="text"
-                id="graduation_year"
-              />
+              <div class="grid grid-cols-2 gap-4">
+                <.input field={edu[:school]} name="school" label="School" type="text" id="school" />
+                <.input
+                  field={edu[:degree]}
+                  name="degree"
+                  label="Degree"
+                  type="select"
+                  id="degree"
+                  options={[
+                    {"Sekolah", "sekolah"},
+                    {"Diploma", "d3"},
+                    {"Sarjana", "s1"},
+                    {"Magister", "s2"},
+                    {"Doktor", "s3"}
+                  ]}
+                /> <.input field={edu[:major]} name="major" label="Major" type="text" id="major" />
+                <.input
+                  field={edu[:graduation_year]}
+                  name="graduation_year"
+                  label="Graduation Year"
+                  type="text"
+                  id="graduation_year"
+                />
+              </div>
             </.inputs_for>
-            
+             <button type="button" class="btn" phx-click="add_education">Add Education</button>
             <h6>Social Media</h6>
             
             <div class="grid grid-cols-3 gap-4">
@@ -348,6 +369,22 @@ defmodule CuratorianWeb.UserSettingsLive do
   @impl Phoenix.LiveView
   def handle_event("change_tab", %{"tab" => tab}, socket) do
     {:noreply, assign(socket, current_tab: String.to_existing_atom(tab))}
+  end
+
+  @impl Phoenix.LiveView
+  def handle_event("add_education", _, socket) do
+    profile = socket.assigns.update_profile_form.data
+
+    # Force a new list reference by appending a new empty education entry
+    new_educations = profile.educations ++ [%Curatorian.Accounts.Education{}]
+
+    # Explicitly create a new profile struct to trigger the change
+    updated_profile = %{profile | educations: new_educations}
+
+    # Generate a new changeset and update the socket
+    changeset = Curatorian.Accounts.UserProfile.changeset(updated_profile, %{})
+
+    {:noreply, assign(socket, update_profile_form: to_form(changeset))}
   end
 
   @impl Phoenix.LiveView
