@@ -2,6 +2,9 @@ defmodule Curatorian.Accounts.UserProfile do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Curatorian.Accounts.User
+  alias Curatorian.Accounts.Education
+
   @primary_key {:id, :binary_id, autogenerate: true}
   @derive {Phoenix.Param, key: :id}
   schema "user_profiles" do
@@ -11,15 +14,17 @@ defmodule Curatorian.Accounts.UserProfile do
     field :social_media, :map, type: :jsonb
     field :groups, {:array, :string}
 
-    belongs_to :user, Curatorian.Accounts.User, type: :binary_id
+    belongs_to :user, User, type: :binary_id
+
+    has_many :educations, Education,
+      foreign_key: :user_profile_id,
+      on_delete: :delete_all
 
     field :twitter, :string, virtual: true
     field :facebook, :string, virtual: true
     field :linkedin, :string, virtual: true
     field :instagram, :string, virtual: true
     field :website, :string, virtual: true
-
-    embeds_many :educations, Curatorian.Accounts.Education, on_replace: :delete
 
     timestamps(type: :utc_datetime)
   end
@@ -38,7 +43,7 @@ defmodule Curatorian.Accounts.UserProfile do
       :website,
       :groups
     ])
-    |> cast_embed(:educations, with: &Curatorian.Accounts.Education.changeset/2)
+    |> cast_assoc(:educations, with: &Curatorian.Accounts.Education.changeset/2, required: false)
     |> validate_required([:user_id])
     |> put_social_media
     |> foreign_key_constraint(:user_id)

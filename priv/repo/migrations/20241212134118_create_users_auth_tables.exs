@@ -24,7 +24,6 @@ defmodule Curatorian.Repo.Migrations.CreateUsersAuthTables do
       add :bio, :string
       add :user_image, :string
       add :social_media, :jsonb
-      add :educations, :jsonb
       add :groups, {:array, :string}
 
       timestamps(type: :utc_datetime)

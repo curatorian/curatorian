@@ -6,7 +6,7 @@ defmodule Curatorian.Accounts do
   import Ecto.Query, warn: false
   alias Curatorian.Repo
 
-  alias Curatorian.Accounts.{Follow, User, UserProfile, UserToken, UserNotifier}
+  alias Curatorian.Accounts.{Education, Follow, User, UserProfile, UserToken, UserNotifier}
 
   ## Database getters
 
@@ -71,6 +71,17 @@ defmodule Curatorian.Accounts do
   """
   def get_user_profile_by_user_id(user_id) do
     Repo.get_by!(UserProfile, user_id: user_id)
+    |> Repo.preload(:educations)
+  end
+
+  @doc """
+  Get user Educations list.
+  Examples
+      iex> get_user_educations(123)
+      [%Education{}]
+  """
+  def get_user_educations(user_id) do
+    Repo.all(from e in Education, where: e.user_profile_id == ^user_id)
   end
 
   @doc """
@@ -429,11 +440,6 @@ defmodule Curatorian.Accounts do
   Changeset for User Profile
   """
   def change_user_profile(user_profile, attrs \\ %{}) do
-    attrs =
-      Map.update(attrs, :educations, user_profile.educations || [%{}], fn existing_educations ->
-        existing_educations ++ (attrs[:educations] || [])
-      end)
-
     UserProfile.changeset(user_profile, attrs)
   end
 
@@ -446,6 +452,13 @@ defmodule Curatorian.Accounts do
     user_profile
     |> UserProfile.changeset(attrs)
     |> Repo.update()
+  end
+
+  @doc """
+  Changeset for Education
+  """
+  def change_education(education, attrs \\ %{}) do
+    Education.changeset(education, attrs)
   end
 
   @doc """

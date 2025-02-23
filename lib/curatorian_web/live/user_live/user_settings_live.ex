@@ -144,10 +144,16 @@ defmodule CuratorianWeb.UserSettingsLive do
             
             <.inputs_for :let={edu} field={@update_profile_form[:educations]}>
               <div class="grid grid-cols-2 gap-4">
-                <.input field={edu[:school]} name="school" label="School" type="text" id="school" />
+                <.input
+                  field={edu[:school]}
+                  name="educations[][school]"
+                  label="School"
+                  type="text"
+                  id="school"
+                />
                 <.input
                   field={edu[:degree]}
-                  name="degree"
+                  name="educations[][degree]"
                   label="Degree"
                   type="select"
                   id="degree"
@@ -158,12 +164,19 @@ defmodule CuratorianWeb.UserSettingsLive do
                     {"Magister", "s2"},
                     {"Doktor", "s3"}
                   ]}
-                /> <.input field={edu[:major]} name="major" label="Major" type="text" id="major" />
+                />
+                <.input
+                  field={edu[:field_of_study]}
+                  name="educations[][field_of_study]"
+                  label="Major"
+                  type="text"
+                  id="major"
+                />
                 <.input
                   field={edu[:graduation_year]}
-                  name="graduation_year"
+                  name="educations[][graduation_year]"
                   label="Graduation Year"
-                  type="text"
+                  type="number"
                   id="graduation_year"
                 />
               </div>
@@ -339,9 +352,14 @@ defmodule CuratorianWeb.UserSettingsLive do
   def mount(_params, _session, socket) do
     user = socket.assigns.current_user
     user_profile = Accounts.get_user_profile_by_user_id(user.id)
+    educations = Accounts.get_user_educations(user.id)
+
     email_changeset = Accounts.change_user_email(user)
     password_changeset = Accounts.change_user_password(user)
     profile_changeset = Accounts.change_user_profile(user_profile)
+    education_changeset = Accounts.change_education(educations)
+
+    dbg(education_changeset)
 
     socket =
       socket
@@ -375,15 +393,24 @@ defmodule CuratorianWeb.UserSettingsLive do
   def handle_event("add_education", _, socket) do
     profile = socket.assigns.update_profile_form.data
 
-    # Force a new list reference by appending a new empty education entry
-    new_educations = profile.educations ++ [%Curatorian.Accounts.Education{}]
+    # Append a new blank education map instead of an Ecto struct
+    new_education = %{
+      "school" => "",
+      "degree" => "",
+      "field_of_study" => "",
+      "graduation_year" => nil
+    }
 
-    # Explicitly create a new profile struct to trigger the change
-    updated_profile = %{profile | educations: new_educations}
+    # Convert existing educations into maps and append the new one
+    existing_educations = Enum.map(profile.educations, &Map.from_struct/1)
+    updated_educations = existing_educations ++ [new_education]
 
-    # Generate a new changeset and update the socket
-    changeset = Curatorian.Accounts.UserProfile.changeset(updated_profile, %{})
+    # Generate a new changeset with updated educations
+    changeset =
+      profile
+      |> Curatorian.Accounts.UserProfile.changeset(%{"educations" => updated_educations})
 
+    # Update socket with the new changeset
     {:noreply, assign(socket, update_profile_form: to_form(changeset))}
   end
 
@@ -501,6 +528,8 @@ defmodule CuratorianWeb.UserSettingsLive do
   def handle_event("update_profile", params, socket) do
     user = socket.assigns.current_user
 
+    dbg(params)
+
     case Accounts.update_user_profile(user, params) do
       {:ok, profile} ->
         info = "#{profile.fullname}'s updated successfully."
@@ -513,7 +542,11 @@ defmodule CuratorianWeb.UserSettingsLive do
          |> assign(current_user_profile: profile)}
 
       {:error, changeset} ->
+        dbg(changeset)
         {:noreply, assign(socket, update_profile_form: to_form(changeset))}
+
+      _ ->
+        {:noreply, socket}
     end
   end
 
