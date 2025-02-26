@@ -461,6 +461,22 @@ defmodule Curatorian.Accounts do
     Education.changeset(education, attrs)
   end
 
+  def get_education(education_id) do
+    Repo.get(Education, education_id)
+  end
+
+  def create_education(attrs) do
+    %Education{}
+    |> Education.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  def update_education(%Education{} = education, attrs) do
+    education
+    |> Education.changeset(attrs)
+    |> Repo.update()
+  end
+
   @doc """
   Follow a User
   """
