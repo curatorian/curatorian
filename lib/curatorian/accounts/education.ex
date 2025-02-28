@@ -30,10 +30,9 @@ defmodule Curatorian.Accounts.Education do
       :start_date,
       :end_date,
       :grade,
-      :description,
-      :user_profile_id
+      :description
     ])
-    |> validate_required([:school, :degree, :field_of_study, :graduation_year, :user_profile_id])
+    |> validate_required([:school, :degree, :field_of_study, :graduation_year])
     |> foreign_key_constraint(:user_profile_id)
   end
 end

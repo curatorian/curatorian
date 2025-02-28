@@ -141,6 +141,31 @@ defmodule CuratorianWeb.UserSettingsLive do
               id="bio"
             />
             <h6>Pendidikan</h6>
+            
+            <.inputs_for :let={edu} field={@update_profile_form[:educations]}>
+              <div class="grid grid-cols-2 gap-4">
+                <.input field={edu[:school]} label="School" type="text" id="school" />
+                <.input
+                  field={edu[:degree]}
+                  label="Degree"
+                  type="select"
+                  id="degree"
+                  options={[
+                    {"Sekolah", "sekolah"},
+                    {"Diploma", "d3"},
+                    {"Sarjana", "s1"},
+                    {"Magister", "s2"},
+                    {"Doktor", "s3"}
+                  ]}
+                /> <.input field={edu[:field_of_study]} label="Major" type="text" id="major" />
+                <.input
+                  field={edu[:graduation_year]}
+                  label="Graduation Year"
+                  type="number"
+                  id="graduation_year"
+                />
+              </div>
+            </.inputs_for>
              <button type="button" class="btn" phx-click="add_education">Add Education</button>
             <h6>Social Media</h6>
             
@@ -312,12 +337,13 @@ defmodule CuratorianWeb.UserSettingsLive do
   def mount(_params, _session, socket) do
     user = socket.assigns.current_user
     user_profile = Accounts.get_user_profile_by_user_id(user.id)
-    # educations = Accounts.get_user_educations(user_profile.id)
+    educations = Accounts.get_user_educations(user_profile.id)
 
     email_changeset = Accounts.change_user_email(user)
     password_changeset = Accounts.change_user_password(user)
     profile_changeset = Accounts.change_user_profile(user_profile)
-    education_changeset = Accounts.change_education(%Accounts.Education{})
+
+    IO.inspect(profile_changeset)
 
     socket =
       socket
@@ -326,11 +352,11 @@ defmodule CuratorianWeb.UserSettingsLive do
       |> assign(:current_password, nil)
       |> assign(:current_tab, :tab1)
       |> assign(:current_user_profile, user_profile)
+      |> assign(:educations, educations)
       |> assign(:email_form_current_password, nil)
       |> assign(:email_form, to_form(email_changeset))
       |> assign(:password_form, to_form(password_changeset))
       |> assign(:update_profile_form, to_form(profile_changeset))
-      |> assign(:educations_form, to_form(education_changeset))
       |> assign(:trigger_submit, false)
       |> assign(:uploaded_files, [])
       |> allow_upload(:avatar,
@@ -350,30 +376,17 @@ defmodule CuratorianWeb.UserSettingsLive do
 
   @impl Phoenix.LiveView
   def handle_event("add_education", _, socket) do
-    educations = socket.assigns.educations
+    changeset =
+      socket.assigns.update_profile_form.data
+      |> Accounts.change_user_profile()
 
-    # Create a new blank education map
-    new_education = %{
-      "school" => "",
-      "degree" => "",
-      "field_of_study" => "",
-      "graduation_year" => nil
-    }
-
-    # Append the new education to the existing list
+    educations = Ecto.Changeset.get_field(changeset, :educations) || []
+    new_education = %Accounts.Education{}
     updated_educations = educations ++ [new_education]
 
-    # Get the profile struct from the changeset data
-    profile = socket.assigns.update_profile_form.data
+    changeset = Ecto.Changeset.put_assoc(changeset, :educations, updated_educations)
 
-    # Rebuild the changeset with the updated educations list
-    changeset = Curatorian.Accounts.change_user_profile(profile, updated_educations)
-
-    # Update the socket assigns with both the new changeset and the new educations list
-    {:noreply,
-     socket
-     |> assign(update_profile_form: to_form(changeset))
-     |> assign(educations: updated_educations)}
+    {:noreply, assign(socket, update_profile_form: to_form(changeset))}
   end
 
   @impl Phoenix.LiveView
