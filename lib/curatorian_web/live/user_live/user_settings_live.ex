@@ -121,13 +121,12 @@ defmodule CuratorianWeb.UserSettingsLive do
         </div>
         
         <div class="w-full">
-          <.simple_form for={@update_profile_form} phx-submit="update_profile">
+          <.simple_form for={@update_profile_form} as="user_profile" phx-submit="update_profile">
             <h6>Biodata</h6>
             
             <.input
               field={@update_profile_form[:fullname]}
               value={@current_user_profile.fullname}
-              name="fullname"
               label="Full Name"
               type="text"
               id="fullname"
@@ -135,7 +134,6 @@ defmodule CuratorianWeb.UserSettingsLive do
             <.input
               field={@update_profile_form[:bio]}
               value={@current_user_profile.bio}
-              name="bio"
               label="Bio"
               type="textarea"
               id="bio"
@@ -143,37 +141,76 @@ defmodule CuratorianWeb.UserSettingsLive do
             <h6>Pendidikan</h6>
             
             <.inputs_for :let={edu} field={@update_profile_form[:educations]}>
-              <div class="grid grid-cols-2 gap-4">
-                <.input field={edu[:school]} label="School" type="text" id="school" />
-                <.input
-                  field={edu[:degree]}
-                  label="Degree"
-                  type="select"
-                  id="degree"
-                  options={[
-                    {"Sekolah", "sekolah"},
-                    {"Diploma", "d3"},
-                    {"Sarjana", "s1"},
-                    {"Magister", "s2"},
-                    {"Doktor", "s3"}
-                  ]}
-                /> <.input field={edu[:field_of_study]} label="Major" type="text" id="major" />
-                <.input
-                  field={edu[:graduation_year]}
-                  label="Graduation Year"
-                  type="number"
-                  id="graduation_year"
-                />
+              <p>Pendidikan Ke-{edu.index + 1}</p>
+               <.input field={edu[:id] || ""} type="hidden" id={"education-id-#{edu.index}"} />
+              <div class="flex w-full items-end gap-4">
+                <div class="grid grid-cols-4 gap-4 w-full -mt-8">
+                  <.input
+                    field={edu[:school]}
+                    label="Sekolah / Universitas :"
+                    type="text"
+                    id={"school-#{edu.index}"}
+                  />
+                  <.input
+                    field={edu[:degree]}
+                    label="Jenjang :"
+                    type="select"
+                    id={"degree-#{edu.index}"}
+                    options={[
+                      {"Sekolah", "Sekolah"},
+                      {"Diploma", "Diploma"},
+                      {"Sarjana", "Sarjana"},
+                      {"Magister", "Magister"},
+                      {"Doktor", "Doktor"}
+                    ]}
+                  />
+                  <.input
+                    field={edu[:field_of_study]}
+                    label="Jurusan / Prog. Studi :"
+                    type="text"
+                    id={"field-of-study-#{edu.index}"}
+                  />
+                  <.input
+                    field={edu[:graduation_year]}
+                    label="Angkatan :"
+                    type="number"
+                    id={"graduation-year-#{edu.index}"}
+                  />
+                </div>
+                
+                <%= if edu.data.id do %>
+                  <button
+                    type="button"
+                    class="btn-cancel"
+                    phx-click="delete_education"
+                    phx-value-education-id={edu.data.id}
+                  >
+                    <.icon name="hero-trash-solid" class="bg-white w-4 h-4" />
+                  </button>
+                <% else %>
+                  <!-- For unsaved entries, remove it from the changeset -->
+                  <button
+                    type="button"
+                    class="btn-warning"
+                    phx-click="delete_unsaved_education"
+                    phx-value-index={edu.index}
+                  >
+                    <.icon name="hero-trash-solid" class="bg-white w-4 h-4" />
+                  </button>
+                <% end %>
               </div>
             </.inputs_for>
-             <button type="button" class="btn" phx-click="add_education">Add Education</button>
+            
+            <%= if @show_add_education do %>
+              <button type="button" class="btn" phx-click="add_education">Add Education</button>
+            <% end %>
+            
             <h6>Social Media</h6>
             
             <div class="grid grid-cols-3 gap-4">
               <.input
                 field={@update_profile_form[:twitter]}
                 value={@current_user_profile.social_media["twitter"]}
-                name="twitter"
                 label="Twitter"
                 type="text"
                 id="twitter"
@@ -181,7 +218,6 @@ defmodule CuratorianWeb.UserSettingsLive do
               <.input
                 field={@update_profile_form[:facebook]}
                 value={@current_user_profile.social_media["facebook"]}
-                name="facebook"
                 label="Facebook"
                 type="text"
                 id="facebook"
@@ -189,7 +225,6 @@ defmodule CuratorianWeb.UserSettingsLive do
               <.input
                 field={@update_profile_form[:linkedin]}
                 value={@current_user_profile.social_media["linkedin"]}
-                name="linkedin"
                 label="LinkedIn"
                 type="text"
                 id="linkedin"
@@ -197,7 +232,6 @@ defmodule CuratorianWeb.UserSettingsLive do
               <.input
                 field={@update_profile_form[:instagram]}
                 value={@current_user_profile.social_media["instagram"]}
-                name="instagram"
                 label="Instagram"
                 type="text"
                 id="instagram"
@@ -205,7 +239,6 @@ defmodule CuratorianWeb.UserSettingsLive do
               <.input
                 field={@update_profile_form[:website]}
                 value={@current_user_profile.social_media["website"]}
-                name="website"
                 label="Website"
                 type="text"
                 id="website"
@@ -216,103 +249,6 @@ defmodule CuratorianWeb.UserSettingsLive do
               <.button class="btn-default">Update Profile</.button>
             </:actions>
           </.simple_form>
-        </div>
-        
-        <div>
-          <%!-- <div class="tabs">
-            <button
-              phx-click="change_tab"
-              phx-value-tab="tab1"
-              class={if @current_tab == :tab1, do: "active", else: ""}
-            >
-              Profile
-            </button>
-
-            <button
-              phx-click="change_tab"
-              phx-value-tab="tab2"
-              class={if @current_tab == :tab2, do: "active", else: ""}
-            >
-              Change Email
-            </button>
-
-            <button
-              phx-click="change_tab"
-              phx-value-tab="tab3"
-              class={if @current_tab == :tab3, do: "active", else: ""}
-            >
-              Update Password
-            </button>
-          </div> --%>
-          <%= case @current_tab do %>
-            <% :tab1 -> %>
-              <div />
-            <% :tab2 -> %>
-              <%!-- <div>
-                <.simple_form
-                  for={@email_form}
-                  id="email_form"
-                  phx-submit="update_email"
-                  phx-change="validate_email"
-                >
-                  <.input field={@email_form[:email]} type="email" label="Email" required />
-                  <.input
-                    field={@email_form[:current_password]}
-                    name="current_password"
-                    id="current_password_for_email"
-                    type="password"
-                    label="Current password"
-                    value={@email_form_current_password}
-                    required
-                  />
-                  <:actions>
-                    <.button phx-disable-with="Changing...">Change Email</.button>
-                  </:actions>
-                </.simple_form>
-              </div> --%>
-            <% :tab3 -> %>
-              <%!-- <div>
-                <.simple_form
-                  for={@password_form}
-                  id="password_form"
-                  action={~p"/users/log_in?_action=password_updated"}
-                  method="post"
-                  phx-change="validate_password"
-                  phx-submit="update_password"
-                  phx-trigger-action={@trigger_submit}
-                >
-                  <input
-                    name={@password_form[:email].name}
-                    type="hidden"
-                    id="hidden_user_email"
-                    value={@current_email}
-                  />
-                  <.input
-                    field={@password_form[:password]}
-                    type="password"
-                    label="New password"
-                    required
-                  />
-                  <.input
-                    field={@password_form[:password_confirmation]}
-                    type="password"
-                    label="Confirm new password"
-                  />
-                  <.input
-                    field={@password_form[:current_password]}
-                    name="current_password"
-                    type="password"
-                    label="Current password"
-                    id="current_password_for_password"
-                    value={@current_password}
-                    required
-                  />
-                  <:actions>
-                    <.button phx-disable-with="Changing...">Change Password</.button>
-                  </:actions>
-                </.simple_form>
-              </div> --%>
-          <% end %>
         </div>
       </section>
     </div>
@@ -343,8 +279,6 @@ defmodule CuratorianWeb.UserSettingsLive do
     password_changeset = Accounts.change_user_password(user)
     profile_changeset = Accounts.change_user_profile(user_profile)
 
-    IO.inspect(profile_changeset)
-
     socket =
       socket
       |> assign(:user, user)
@@ -358,6 +292,7 @@ defmodule CuratorianWeb.UserSettingsLive do
       |> assign(:password_form, to_form(password_changeset))
       |> assign(:update_profile_form, to_form(profile_changeset))
       |> assign(:trigger_submit, false)
+      |> assign(:show_add_education, true)
       |> assign(:uploaded_files, [])
       |> allow_upload(:avatar,
         accept: ~w(.jpg .jpeg),
@@ -367,11 +302,6 @@ defmodule CuratorianWeb.UserSettingsLive do
       )
 
     {:ok, socket}
-  end
-
-  @impl Phoenix.LiveView
-  def handle_event("change_tab", %{"tab" => tab}, socket) do
-    {:noreply, assign(socket, current_tab: String.to_existing_atom(tab))}
   end
 
   @impl Phoenix.LiveView
@@ -386,7 +316,59 @@ defmodule CuratorianWeb.UserSettingsLive do
 
     changeset = Ecto.Changeset.put_assoc(changeset, :educations, updated_educations)
 
-    {:noreply, assign(socket, update_profile_form: to_form(changeset))}
+    socket =
+      socket
+      |> assign(update_profile_form: to_form(changeset))
+      |> assign(show_add_education: false)
+
+    {:noreply, socket}
+  end
+
+  @impl Phoenix.LiveView
+  def handle_event("delete_unsaved_education", %{"index" => index_str}, socket) do
+    index = String.to_integer(index_str)
+
+    changeset =
+      socket.assigns.update_profile_form.data
+      |> Accounts.change_user_profile()
+
+    educations = Ecto.Changeset.get_field(changeset, :educations) || []
+    updated_educations = List.delete_at(educations, index)
+    changeset = Ecto.Changeset.put_assoc(changeset, :educations, updated_educations)
+
+    socket =
+      socket
+      |> assign(update_profile_form: to_form(changeset))
+      |> assign(show_add_education: true)
+
+    {:noreply, socket}
+  end
+
+  @impl Phoenix.LiveView
+  def handle_event("delete_education", %{"education-id" => id}, socket) do
+    changeset = Accounts.change_user_profile(socket.assigns.current_user_profile)
+
+    updated_educations =
+      Ecto.Changeset.get_field(changeset, :educations)
+      |> Enum.reject(fn edu ->
+        edu.id == id
+      end)
+
+    changeset = Ecto.Changeset.put_assoc(changeset, :educations, updated_educations)
+    socket = assign(socket, update_profile_form: to_form(changeset))
+    dbg(updated_educations)
+    {:noreply, socket}
+
+    case Accounts.delete_education(id) do
+      {:ok, _} ->
+        updated_profile = Accounts.get_user_profile_by_user_id(socket.assigns.user.id)
+        changeset = Accounts.change_user_profile(updated_profile)
+        {:noreply, assign(socket, update_profile_form: to_form(changeset))}
+
+      {:error, _reason} ->
+        # Optionally handle the error
+        {:noreply, socket}
+    end
   end
 
   @impl Phoenix.LiveView
@@ -447,60 +429,7 @@ defmodule CuratorianWeb.UserSettingsLive do
   end
 
   @impl Phoenix.LiveView
-  def handle_event("update_email", params, socket) do
-    %{"current_password" => password, "user" => user_params} = params
-    user = socket.assigns.current_user
-
-    case Accounts.apply_user_email(user, password, user_params) do
-      {:ok, applied_user} ->
-        Accounts.deliver_user_update_email_instructions(
-          applied_user,
-          user.email,
-          &url(~p"/users/settings/confirm_email/#{&1}")
-        )
-
-        info = "A link to confirm your email change has been sent to the new address."
-        {:noreply, socket |> put_flash(:info, info) |> assign(email_form_current_password: nil)}
-
-      {:error, changeset} ->
-        {:noreply, assign(socket, :email_form, to_form(Map.put(changeset, :action, :insert)))}
-    end
-  end
-
-  @impl Phoenix.LiveView
-  def handle_event("validate_password", params, socket) do
-    %{"current_password" => password, "user" => user_params} = params
-
-    password_form =
-      socket.assigns.current_user
-      |> Accounts.change_user_password(user_params)
-      |> Map.put(:action, :validate)
-      |> to_form()
-
-    {:noreply, assign(socket, password_form: password_form, current_password: password)}
-  end
-
-  @impl Phoenix.LiveView
-  def handle_event("update_password", params, socket) do
-    %{"current_password" => password, "user" => user_params} = params
-    user = socket.assigns.current_user
-
-    case Accounts.update_user_password(user, password, user_params) do
-      {:ok, user} ->
-        password_form =
-          user
-          |> Accounts.change_user_password(user_params)
-          |> to_form()
-
-        {:noreply, assign(socket, trigger_submit: true, password_form: password_form)}
-
-      {:error, changeset} ->
-        {:noreply, assign(socket, password_form: to_form(changeset))}
-    end
-  end
-
-  @impl Phoenix.LiveView
-  def handle_event("update_profile", params, socket) do
+  def handle_event("update_profile", %{"user_profile" => params}, socket) do
     user = socket.assigns.current_user
     IO.inspect(params, label: "🔥 Incoming Params")
 
@@ -513,7 +442,8 @@ defmodule CuratorianWeb.UserSettingsLive do
          socket
          |> put_flash(:info, info)
          |> assign(update_profile_form: profile_form)
-         |> assign(current_user_profile: profile)}
+         |> assign(current_user_profile: profile)
+         |> assign(show_add_education: true)}
 
       {:error, changeset} ->
         dbg(changeset)

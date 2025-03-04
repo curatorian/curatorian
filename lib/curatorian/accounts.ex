@@ -95,7 +95,7 @@ defmodule Curatorian.Accounts do
   """
   def get_user_profile_by_username(username) do
     Repo.get_by(User, username: username)
-    |> Repo.preload(:profile)
+    |> Repo.preload(profile: [:educations])
   end
 
   @doc """
@@ -465,16 +465,9 @@ defmodule Curatorian.Accounts do
     Repo.get(Education, education_id)
   end
 
-  def create_education(attrs) do
-    %Education{}
-    |> Education.changeset(attrs)
-    |> Repo.insert()
-  end
-
-  def update_education(%Education{} = education, attrs) do
-    education
-    |> Education.changeset(attrs)
-    |> Repo.update()
+  def delete_education(education_id) do
+    education = Repo.get!(Education, education_id)
+    Repo.delete(education)
   end
 
   @doc """

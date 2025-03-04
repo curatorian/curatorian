@@ -142,9 +142,12 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
         {:ok, image_path}
       end)
 
-    if length(uploaded_files) > 0 do
-      ^blog_params = blog_params |> Map.put("image_url", hd(uploaded_files))
-    end
+    blog_params =
+      if length(uploaded_files) > 0 do
+        Map.put(blog_params, "image_url", hd(uploaded_files))
+      else
+        blog_params
+      end
 
     socket =
       socket

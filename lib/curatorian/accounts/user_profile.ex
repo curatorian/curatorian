@@ -16,7 +16,10 @@ defmodule Curatorian.Accounts.UserProfile do
 
     belongs_to :user, User, type: :binary_id
 
-    has_many :educations, Education, foreign_key: :user_profile_id, on_delete: :delete_all
+    has_many :educations, Education,
+      foreign_key: :user_profile_id,
+      on_delete: :delete_all,
+      on_replace: :delete
 
     field :twitter, :string, virtual: true
     field :facebook, :string, virtual: true
@@ -41,11 +44,11 @@ defmodule Curatorian.Accounts.UserProfile do
       :website,
       :groups
     ])
-    |> cast_assoc(:educations, with: &Curatorian.Accounts.Education.changeset/2)
     |> validate_required([:user_id])
     |> put_social_media
     |> foreign_key_constraint(:user_id)
     |> cast_assoc(:user)
+    |> cast_assoc(:educations, with: &Curatorian.Accounts.Education.changeset/2)
   end
 
   defp put_social_media(changeset) do

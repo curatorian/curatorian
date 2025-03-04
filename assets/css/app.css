@@ -82,6 +82,10 @@ a {
   @apply bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600;
 }
 
+.btn-warning {
+  @apply bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600;
+}
+
 .btn-default {
   @apply bg-[--main-color] text-white px-4 py-2 rounded-md hover:bg-[--hover-color];
 }

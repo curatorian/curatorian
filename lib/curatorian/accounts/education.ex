@@ -23,6 +23,7 @@ defmodule Curatorian.Accounts.Education do
   def changeset(education, attrs) do
     education
     |> cast(attrs, [
+      :id,
       :school,
       :degree,
       :field_of_study,
@@ -32,7 +33,9 @@ defmodule Curatorian.Accounts.Education do
       :grade,
       :description
     ])
-    |> validate_required([:school, :degree, :field_of_study, :graduation_year])
+    |> validate_required([:school, :degree, :field_of_study, :graduation_year],
+      message: "Wajib diisi!"
+    )
     |> foreign_key_constraint(:user_profile_id)
   end
 end
