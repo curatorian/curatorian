@@ -94,7 +94,8 @@ defmodule Curatorian.Accounts do
       nil
   """
   def get_user_profile_by_username(username) do
-    Repo.get_by(User, username: username)
+    User
+    |> Repo.get_by(username: username)
     |> Repo.preload(profile: [:educations])
   end
 

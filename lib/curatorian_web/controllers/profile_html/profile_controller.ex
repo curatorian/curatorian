@@ -6,8 +6,6 @@ defmodule CuratorianWeb.ProfileController do
   def index(conn, %{"username" => username}) do
     user = Accounts.get_user_profile_by_username(username)
 
-    dbg(user)
-
     render(conn, :index, user: user)
   end
 end
