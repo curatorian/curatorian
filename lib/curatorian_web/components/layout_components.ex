@@ -22,23 +22,23 @@ defmodule CuratorianWeb.LayoutComponents do
 
           <div class="hidden lg:block">
             <div class="flex space-x-6 font-semibold">
-              <.link class="nav-link" href="/">
+              <.link class="nav-link" navigate="/">
                 Beranda
               </.link>
 
-              <.link class="nav-link" href="/#">
+              <.link class="nav-link" navigate="/about">
                 Tentang
               </.link>
 
-              <.link class="nav-link" href="/#">
+              <.link class="nav-link" navigate="/#">
                 Kurator
               </.link>
 
-              <.link class="nav-link" href="/#">
+              <.link class="nav-link" navigate="/#">
                 Events
               </.link>
 
-              <.link class="nav-link" href="/#">
+              <.link class="nav-link" navigate="/#">
                 Forum
               </.link>
             </div>

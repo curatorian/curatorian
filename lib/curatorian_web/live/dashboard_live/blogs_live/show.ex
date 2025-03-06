@@ -19,7 +19,7 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Show do
     <.header>
       <div class="flex items-center justify-between">
         <div>
-          Blog {@blog.slug}
+          Blog {@blog.title}
         </div>
 
         <div>

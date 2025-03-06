@@ -46,7 +46,11 @@ defmodule Curatorian.Blogs do
   """
   def get_blog!(id), do: Repo.get!(Blog, id)
 
-  def get_blog_by_slug(slug), do: Repo.get_by(Blog, slug: slug)
+  def get_blog_by_slug(slug) do
+    Blog
+    |> Repo.get_by(slug: slug)
+    |> Repo.preload(:user)
+  end
 
   @doc """
   Creates a blog.
@@ -111,5 +115,16 @@ defmodule Curatorian.Blogs do
   """
   def change_blog(%Blog{} = blog, attrs \\ %{}) do
     Blog.changeset(blog, attrs)
+  end
+
+  @doc """
+  Count total blogs user has.
+  ## Examples
+
+      iex> count_blogs_by_user(user_id)
+      5
+  """
+  def count_blogs_by_user(user_id) do
+    Repo.aggregate(Blog, :count, :id, where: [user_id: user_id])
   end
 end

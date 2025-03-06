@@ -21,6 +21,7 @@ defmodule Curatorian.Blogs.Blog do
     blog
     |> cast(attrs, [:title, :slug, :content, :summary, :image_url, :status, :user_id])
     |> validate_required([:title, :slug, :content, :summary, :status, :user_id])
+    |> validate_length(:summary, max: 200)
     |> unique_constraint(:slug)
   end
 end

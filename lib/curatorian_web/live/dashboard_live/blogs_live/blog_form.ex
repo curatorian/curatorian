@@ -14,6 +14,13 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
         phx-submit="save"
         phx-target={@myself}
       >
+        <.input
+          field={@form[:status]}
+          type="select"
+          label="Status"
+          prompt="Pilih Status Publikasi"
+          options={@status_input}
+        />
         <.input field={@form[:title]} type="text" label="Title" />
         <.input field={@form[:slug]} type="text" label="Slug" phx-hook="Slugify" id="slug" />
         <.input field={@form[:summary]} type="text" label="Summary" />
@@ -36,10 +43,13 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
         <div>
           <.input field={@form[:image_url]} type="hidden" label="Thumbnail" />
           <section phx-drop-target={@uploads.thumbnail.ref}>
+            <%= if length(@uploads.thumbnail.entries) === 0 do %>
+              <img src={@blog.image_url} class="w-full max-h-[320px] object-cover" />
+            <% end %>
             <%!-- render each thumbnail entry --%>
             <article :for={entry <- @uploads.thumbnail.entries} class="upload-entry">
               <figure>
-                <.live_img_preview entry={entry} />
+                <.live_img_preview entry={entry} class="w-full max-h-[120px] object-cover" />
                 <figcaption>{entry.client_name}</figcaption>
               </figure>
               <%!-- entry.progress will update automatically for in-flight entries --%>
@@ -67,13 +77,6 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
           <.live_file_input upload={@uploads.thumbnail} />
         </div>
 
-        <.input
-          field={@form[:status]}
-          type="select"
-          label="Status"
-          prompt="Pilih Status Publikasi"
-          options={@status_input}
-        />
         <:actions>
           <.button type="submit" phx-disable-with="Saving...">Save Blog</.button>
         </:actions>

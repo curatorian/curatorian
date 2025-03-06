@@ -6,4 +6,8 @@ defmodule CuratorianWeb.PageController do
     # so skip the default app layout.
     render(conn, :home)
   end
+
+  def about(conn, _) do
+    render(conn, :about)
+  end
 end

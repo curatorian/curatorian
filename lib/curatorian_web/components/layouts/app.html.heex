@@ -4,15 +4,16 @@
   <div class="absolute top-0 w-full">
     <img src="/images/lib.webp" alt="hero img" class="relative w-full h-40 object-cover" />
     <div class="absolute top-0 bg-black/80 w-full h-40"></div>
-    <div class="absolute bottom-0 w-full h-12 bg-gradient-to-t from-white to-transparent"></div>
+    <div class="absolute bottom-0 w-full h-12 bg-gradient-to-t from-violet-100 to-transparent">
+    </div>
   </div>
   <%= if @conn do %>
     <%= if @conn.request_path === "/" do %>
-      <section class="min-h-screen h-full">
+      <section class="min-h-screen h-full bg-violet-100">
         {@inner_content}
       </section>
     <% else %>
-      <section class="pt-48 px-5 min-h-screen h-full">
+      <section class="pt-48 px-5 min-h-screen h-full bg-violet-100">
         {@inner_content}
       </section>
     <% end %>

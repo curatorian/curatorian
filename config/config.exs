@@ -62,6 +62,9 @@ config :logger, :console,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
+# Configure the Elixir Time Zone Database
+config :elixir, :time_zone_database, Tzdata.TimeZoneDatabase
+
 # Configure Assent
 config :assent, http_adapter: {Assent.HTTPAdapter.Finch, supervisor: Curatorian.Finch}
 

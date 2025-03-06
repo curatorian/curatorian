@@ -28,15 +28,23 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Edit do
   @impl Phoenix.LiveView
   def mount(%{"slug" => slug}, _session, socket) do
     blog = Blogs.get_blog_by_slug(slug)
-    changeset = Blogs.change_blog(%Blog{})
     user_id = socket.assigns.current_user.id
 
-    socket =
-      socket
-      |> assign(:changeset, changeset)
-      |> assign(:blog, blog)
-      |> assign(:user_id, user_id)
+    if blog.user_id == user_id do
+      changeset = Blogs.change_blog(%Blog{})
 
-    {:ok, socket}
+      socket =
+        socket
+        |> assign(:changeset, changeset)
+        |> assign(:blog, blog)
+        |> assign(:user_id, user_id)
+
+      {:ok, socket}
+    else
+      {:ok,
+       socket
+       |> put_flash(:error, "You are not authorized to edit this blog.")
+       |> push_navigate(to: "/dashboard/blog")}
+    end
   end
 end

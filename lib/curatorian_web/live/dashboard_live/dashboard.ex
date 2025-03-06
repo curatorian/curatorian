@@ -3,6 +3,8 @@ defmodule CuratorianWeb.DashboardLive do
 
   import CuratorianWeb.DashboardComponents
 
+  alias Curatorian.Blogs
+
   def render(assigns) do
     ~H"""
     <section class="container mx-auto">
@@ -15,11 +17,7 @@ defmodule CuratorianWeb.DashboardLive do
           Halo, {@user.username}
         </p>
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 my-10">
-          <.stat_cards
-            icon="hero-home-solid"
-            number={12_312_312_314}
-            title="Average Treatment Cost For Them"
-          />
+          <.stat_cards icon="hero-home-solid" number={@count_blogs} title="Your Total Blogpost" />
           <.stat_cards
             icon="hero-computer-desktop-solid"
             number={14_123_124}
@@ -38,10 +36,12 @@ defmodule CuratorianWeb.DashboardLive do
 
   def mount(_params, _session, socket) do
     user = socket.assigns.current_user
+    count_blogs = Blogs.count_blogs_by_user(user.id)
 
     socket =
       socket
       |> assign(:user, user)
+      |> assign(:count_blogs, count_blogs)
 
     {:ok, socket}
   end
