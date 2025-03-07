@@ -1,5 +1,3 @@
-import Trix from "trix";
-
 export default {
   mounted() {
     const element = document.querySelector("trix-editor");
