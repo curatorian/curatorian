@@ -1,0 +1,55 @@
+<section class="container mx-auto">
+  <h4>List Kurator</h4>
+  
+  <%= if @page <= @total_pages do %>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <%= for curator <- @curatorians do %>
+        <div class="bg-white rounded-xl p-5">
+          <div class="flex gap-3">
+            <img
+              src={curator.profile.user_image}
+              class="w-24 h-24 object-cover rounded"
+              referrerPolicy="no-referrer"
+            />
+            <div class="flex flex-col justify-between">
+              <div>
+                <p class="font-semibold text-gray-800">{curator.profile.fullname}</p>
+                
+                <p class="text-xs text-gray-600">{curator.email}</p>
+              </div>
+              
+              <div>
+                <.link
+                  href={~p"/#{curator.username}"}
+                  class="btn no-underline text-center text-xs"
+                >
+                  Lihat Profil
+                </.link>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="text-center mt-4">
+      <p class="text-red-500">
+        Halaman yang anda minta tidak sesuai dengan jumlah total Kurator.
+      </p>
+    </div>
+  <% end %>
+  
+  <div class="flex items-center justify-center mt-4 gap-2">
+    <%= if @page > 1 do %>
+      <.link href={~p"/kurator?page=#{@page - 1}"} class="btn">Previous</.link>
+    <% else %>
+      <span class="btn-disabled">Previous</span>
+    <% end %>
+     <span>{@page} / {@total_pages}</span>
+    <%= if @page < @total_pages do %>
+      <.link href={~p"/kurator?page=#{@page + 1}"} class="btn">Next</.link>
+    <% else %>
+      <span class="btn-disabled">Next</span>
+    <% end %>
+  </div>
+</section>

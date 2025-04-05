@@ -1,7 +1,7 @@
 defmodule CuratorianWeb.UserAuthGoogle do
   import Plug.Conn
 
-  alias Assent.{Config, Strategy.Google}
+  alias Assent.Strategy.Google
   alias Curatorian.Accounts.User
 
   # http://localhost:4000/auth/google
@@ -43,7 +43,7 @@ defmodule CuratorianWeb.UserAuthGoogle do
 
     Application.get_env(:assent, :google)
     # Session params should be added to the config so the strategy can use them
-    |> Config.put(:session_params, session_params)
+    |> Keyword.put(:session_params, session_params)
     |> Google.callback(params)
     |> case do
       {:ok, %{user: user, token: token}} ->

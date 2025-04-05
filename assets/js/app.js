@@ -76,6 +76,19 @@ Hooks.NavbarScroll = {
   },
 };
 
+Hooks.NavbarToggle = {
+  mounted() {
+    const burger = this.el;
+    const mobileMenu = document.querySelector("#mobile-menu");
+
+    burger.addEventListener("click", () => {
+      if (mobileMenu) {
+        mobileMenu.classList.toggle("hidden");
+      }
+    });
+  },
+};
+
 Hooks.Trix = Trix;
 Hooks.Slugify = Slugify;
 

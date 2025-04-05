@@ -7,7 +7,7 @@ defmodule CuratorianWeb.DashboardLive do
 
   def render(assigns) do
     ~H"""
-    <section class="container mx-auto">
+    <section class="w-full">
       <.header class="text-center">
         Welcome to Curatorian Dashboard
       </.header>

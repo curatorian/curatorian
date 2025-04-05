@@ -126,6 +126,47 @@ defmodule Curatorian.Accounts do
   end
 
   @doc """
+  Gets all Curatorian users.
+
+  ## Examples
+
+      iex> list_all_curatorian()
+      [%User{}, ...]
+  """
+  def list_all_curatorian(params) do
+    page =
+      case Map.get(params, "page") do
+        nil -> 1
+        value -> String.to_integer(value)
+      end
+
+    per_page = 12
+    offset = (page - 1) * per_page
+
+    curatorian_query =
+      from c in User,
+        order_by: [desc: c.inserted_at],
+        limit: ^per_page,
+        offset: ^offset
+
+    curatorians =
+      curatorian_query
+      |> Repo.all()
+      |> Repo.preload(:profile)
+
+    total_count = Repo.aggregate(User, :count, :id)
+    total_pages = div(total_count + per_page - 1, per_page)
+
+    %{
+      curatorians: curatorians,
+      page: page,
+      per_page: per_page,
+      total_count: total_count,
+      total_pages: total_pages
+    }
+  end
+
+  @doc """
   Registers a user.
 
   ## Examples

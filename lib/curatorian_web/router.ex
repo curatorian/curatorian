@@ -29,6 +29,7 @@ defmodule CuratorianWeb.Router do
 
     get "/", PageController, :home
     get "/about", PageController, :about
+    get "/kurator", CuratorController, :index
   end
 
   # Other scopes may use custom stacks.

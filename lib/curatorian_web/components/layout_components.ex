@@ -8,6 +8,15 @@ defmodule CuratorianWeb.LayoutComponents do
   attr :current_user, :map
 
   def navigation_header(assigns) do
+    assigns =
+      assigns
+      |> assign(:menus, [
+        %{title: "Beranda", url: "/"},
+        %{title: "Tentang", url: "/about"},
+        %{title: "Kurator", url: "/kurator"},
+        %{title: "Events", url: "/events"}
+      ])
+
     ~H"""
     <header class="fixed w-full z-40">
       <nav class="p-0 md:p-5">
@@ -22,25 +31,11 @@ defmodule CuratorianWeb.LayoutComponents do
 
           <div class="hidden lg:block">
             <div class="flex space-x-6 font-semibold">
-              <.link class="nav-link" navigate="/">
-                Beranda
-              </.link>
-
-              <.link class="nav-link" navigate="/about">
-                Tentang
-              </.link>
-
-              <.link class="nav-link" navigate="/#">
-                Kurator
-              </.link>
-
-              <.link class="nav-link" navigate="/#">
-                Events
-              </.link>
-
-              <.link class="nav-link" navigate="/#">
-                Forum
-              </.link>
+              <%= for menu <- @menus do %>
+                <.link class="nav-link" navigate={menu.url}>
+                  {menu.title}
+                </.link>
+              <% end %>
             </div>
           </div>
 
@@ -73,7 +68,35 @@ defmodule CuratorianWeb.LayoutComponents do
           <% end %>
 
           <div class="block lg:hidden">
-            <button class="btn bg-violet-1 text-violet-6 text-lg font-bold">☰</button>
+            <button
+              class="btn bg-violet-1 text-violet-6 text-lg font-bold"
+              id="burger"
+              phx-hook="NavbarToggle"
+            >
+              ☰
+            </button>
+          </div>
+        </div>
+        <div
+          id="mobile-menu"
+          class="lg:hidden hidden h-screen bg-white/90 rounded-xl shadow-md p-4 space-y-4 font-semibold transition-all duration-300"
+        >
+          <div>
+            <button
+              class="text-2xl font-bold text-gray-500"
+              id="close-menu"
+              aria-label="Close"
+              phx-hook="NavbarToggle"
+            >
+              &times;
+            </button>
+          </div>
+          <div class="flex flex-col space-y-4">
+            <%= for menu <- @menus do %>
+              <.link class="block nav-link" navigate={menu.url}>
+                {menu.title}
+              </.link>
+            <% end %>
           </div>
         </div>
       </nav>

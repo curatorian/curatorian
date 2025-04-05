@@ -7,10 +7,18 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Edit do
   @impl Phoenix.LiveView
   def render(assigns) do
     ~H"""
-    <.header>
-      Edit Blog
-      <:subtitle>Use this form to manage blog records in your database.</:subtitle>
-    </.header>
+    <div>
+      <.header>
+        Edit Blog
+        <:subtitle>Use this form to manage blog records in your database.</:subtitle>
+      </.header>
+
+      <div>
+        <.link href={"/#{@user_profile.username}/#{@blog.slug}"}>
+          Show Blog
+        </.link>
+      </div>
+    </div>
 
     <.live_component
       module={CuratorianWeb.DashboardLive.BlogsLive.BlogForm}
@@ -28,6 +36,7 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Edit do
   @impl Phoenix.LiveView
   def mount(%{"slug" => slug}, _session, socket) do
     blog = Blogs.get_blog_by_slug(slug)
+    user_profile = socket.assigns.current_user
     user_id = socket.assigns.current_user.id
 
     if blog.user_id == user_id do
@@ -38,6 +47,7 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Edit do
         |> assign(:changeset, changeset)
         |> assign(:blog, blog)
         |> assign(:user_id, user_id)
+        |> assign(:user_profile, user_profile)
 
       {:ok, socket}
     else
