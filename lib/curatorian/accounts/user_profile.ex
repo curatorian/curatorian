@@ -11,8 +11,15 @@ defmodule Curatorian.Accounts.UserProfile do
     field :fullname, :string
     field :bio, :string
     field :user_image, :string
+    field :cover_image, :string
     field :social_media, :map, type: :jsonb
     field :groups, {:array, :string}
+    field :job_title, :string
+    field :company, :string
+    field :location, :string
+    field :phone_number, :string
+    field :birthday, :date
+    field :gender, :string
 
     belongs_to :user, User, type: :binary_id
 

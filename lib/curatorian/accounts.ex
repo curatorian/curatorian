@@ -126,6 +126,23 @@ defmodule Curatorian.Accounts do
   end
 
   @doc """
+  Update the user Login Infor with their Last Login Date and IP
+
+  ## Examples
+    iex> update_user_login_info(id, attrs)
+    {:ok, %User{}}
+    iex> update_user_login_info(id, %{})
+    {:error, %Ecto.Changeset{}}
+  """
+  def update_user_login_info(id, attrs) do
+    user = Repo.get!(User, id)
+
+    user
+    |> Ecto.Changeset.change(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
   Gets all Curatorian users.
 
   ## Examples

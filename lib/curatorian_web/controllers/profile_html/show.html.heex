@@ -2,7 +2,7 @@
   <div class="flex justify-between items-center mb-4">
     <.back navigate={~p"/#{@blog.user.username}"}>Kembali</.back>
     
-    <%= if @current_user.id == @user.id do %>
+    <%= if @current_user && @current_user.id == @user.id do %>
       <.link navigate={~p"/dashboard/blog/#{@blog.slug}/edit"} class="btn no-underline">
         Edit Blog
       </.link>

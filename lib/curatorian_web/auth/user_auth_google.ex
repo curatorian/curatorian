@@ -49,6 +49,13 @@ defmodule CuratorianWeb.UserAuthGoogle do
       {:ok, %{user: user, token: token}} ->
         user_record = Curatorian.Accounts.get_user_by_email_or_register(user)
 
+        ip = get_ip(conn)
+
+        Curatorian.Accounts.update_user_login_info(user_record.id, %{
+          last_login: DateTime.utc_now(),
+          last_login_ip: ip
+        })
+
         conn
         |> CuratorianWeb.UserAuth.log_in_user(user_record)
         |> put_session(:google_user, user)
@@ -83,5 +90,14 @@ defmodule CuratorianWeb.UserAuthGoogle do
         %User{email: user["email"]}
       end
     end)
+  end
+
+  defp get_ip(conn) do
+    conn
+    |> Plug.Conn.get_req_header("x-forwarded-for")
+    |> List.first()
+    |> String.split(",")
+    |> List.first()
+    |> String.trim()
   end
 end

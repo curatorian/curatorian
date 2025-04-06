@@ -3,7 +3,7 @@
     <div class="flex items-center justify-between mb-4">
       <h3>Profile</h3>
       
-      <%= if @current_user.id == @user.id do %>
+      <%= if @current_user && @current_user.id == @user.id do %>
         <.link navigate={~p"/users/settings"} class="btn no-underline">Edit Profile</.link>
       <% end %>
     </div>

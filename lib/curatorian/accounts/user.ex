@@ -8,10 +8,13 @@ defmodule Curatorian.Accounts.User do
     field :email, :string
     field :username, :string
     field :user_type, :string
+    field :user_role, :string
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :current_password, :string, virtual: true, redact: true
     field :confirmed_at, :utc_datetime
+    field :is_verified, :boolean, default: false
+    field :is_private, :boolean, default: false
     field :last_login, :utc_datetime
     field :last_login_ip, :string
 
