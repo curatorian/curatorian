@@ -77,6 +77,10 @@ a {
   @apply text-lg md:text-xl lg:text-2xl font-bold;
 }
 
+.error-page {
+  @apply max-w-7xl mx-auto flex flex-col items-center justify-center min-h-screen text-center;
+}
+
 /* This file is for your main application CSS */
 .btn {
   @apply bg-violet-500 text-white px-4 py-2 rounded-md hover:bg-violet-600;

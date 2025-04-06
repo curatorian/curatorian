@@ -39,6 +39,10 @@ config :curatorian, CuratorianWeb.Endpoint,
   watchers: [
     esbuild: {Esbuild, :install_and_run, [:curatorian, ~w(--sourcemap=inline --watch)]},
     tailwind: {Tailwind, :install_and_run, [:curatorian, ~w(--watch)]}
+  ],
+  render_errors: [
+    formats: [html: CuratorianWeb.ErrorHTML],
+    layout: [html: {CuratorianWeb.Layouts, :root}]
   ]
 
 # ## SSL Support

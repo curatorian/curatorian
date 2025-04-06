@@ -6,25 +6,44 @@ defmodule CuratorianWeb.ProfileController do
 
   def index(conn, %{"username" => username}) do
     user = Accounts.get_user_profile_by_username(username)
-    blogs = Blogs.list_blogs_by_user(user.id)
 
-    conn =
-      conn
-      |> assign(:user, user)
-      |> assign(:blogs, blogs)
+    case user do
+      nil ->
+        conn
+        |> put_status(:not_found)
+        |> put_view(CuratorianWeb.ErrorHTML)
+        |> render(:not_found)
 
-    render(conn, :index)
+      %Accounts.User{} ->
+        blogs = Blogs.list_blogs_by_user(user.id)
+
+        conn =
+          conn
+          |> assign(:user, user)
+          |> assign(:blogs, blogs)
+
+        render(conn, :index)
+    end
   end
 
-  def show(conn, %{"username" => username, "slug" => slug}) do
+  def show_blog(conn, %{"username" => username, "slug" => slug}) do
     user = Accounts.get_user_profile_by_username(username)
     blog = Blogs.get_blog_by_slug(slug)
 
-    conn =
-      conn
-      |> assign(:user, user)
-      |> assign(:blog, blog)
+    with %Accounts.User{} <- user,
+         %Blogs.Blog{} <- blog do
+      conn =
+        conn
+        |> assign(:user, user)
+        |> assign(:blog, blog)
 
-    render(conn, :show)
+      render(conn, :show_blog)
+    else
+      _ ->
+        conn
+        |> put_status(:not_found)
+        |> put_view(CuratorianWeb.ErrorHTML)
+        |> render(:not_found)
+    end
   end
 end

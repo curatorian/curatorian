@@ -2,6 +2,7 @@ defmodule CuratorianWeb.UserAuthGoogle do
   import Plug.Conn
 
   alias Assent.Strategy.Google
+  alias Curatorian.Accounts
   alias Curatorian.Accounts.User
 
   # http://localhost:4000/auth/google
@@ -50,9 +51,10 @@ defmodule CuratorianWeb.UserAuthGoogle do
         user_record = Curatorian.Accounts.get_user_by_email_or_register(user)
 
         ip = get_ip(conn)
+        utc_datetime = DateTime.utc_now()
 
-        Curatorian.Accounts.update_user_login_info(user_record.id, %{
-          last_login: DateTime.utc_now(),
+        Accounts.update_user_login_info(user_record.id, %{
+          last_login: DateTime.truncate(utc_datetime, :second),
           last_login_ip: ip
         })
 
@@ -93,11 +95,9 @@ defmodule CuratorianWeb.UserAuthGoogle do
   end
 
   defp get_ip(conn) do
-    conn
-    |> Plug.Conn.get_req_header("x-forwarded-for")
-    |> List.first()
-    |> String.split(",")
-    |> List.first()
-    |> String.trim()
+    case Tuple.to_list(conn.remote_ip) do
+      [a, b, c, d] -> "#{a}.#{b}.#{c}.#{d}"
+      _ -> "unknown"
+    end
   end
 end

@@ -1,9 +1,8 @@
 defmodule CuratorianWeb.UserSettingsLive do
-  alias CuratorianWeb.Utils.Basic.ReadSocmed
   use CuratorianWeb, :live_view_dashboard
 
   alias Curatorian.Accounts
-  alias CuratorianWeb.Utils.Basic.ReadSocmed
+  # alias CuratorianWeb.Utils.Basic.ReadSocmed
 
   @impl Phoenix.LiveView
   def render(assigns) do
@@ -112,7 +111,7 @@ defmodule CuratorianWeb.UserSettingsLive do
                 <div class="flex items-center w-full gap-2 py-2">
                   <.icon name="hero-at-symbol-solid" class="w-6 h-6 max-w-8" />
                   <p class="max-w-48">
-                    {ReadSocmed.create_handler(@current_user_profile.social_media["twitter"])}
+                    <%!-- {ReadSocmed.create_handler(@current_user_profile.social_media["twitter"])} --%> {@current_user.username}
                   </p>
                 </div>
               </div>
@@ -205,7 +204,7 @@ defmodule CuratorianWeb.UserSettingsLive do
               <button type="button" class="btn" phx-click="add_education">Add Education</button>
             <% end %>
             
-            <h6>Social Media</h6>
+            <h6>Media Sosial</h6>
             
             <div class="grid grid-cols-3 gap-4">
               <.input

@@ -7,14 +7,14 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Edit do
   @impl Phoenix.LiveView
   def render(assigns) do
     ~H"""
-    <div>
+    <div class="flex items-center justify-between mb-4">
       <.header>
         Edit Blog
         <:subtitle>Use this form to manage blog records in your database.</:subtitle>
       </.header>
 
       <div>
-        <.link href={"/#{@user_profile.username}/#{@blog.slug}"}>
+        <.link class="btn no-underline" navigate={"/#{@user_profile.username}/blog/#{@blog.slug}"}>
           Show Blog
         </.link>
       </div>
