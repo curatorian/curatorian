@@ -10,6 +10,7 @@ defmodule CuratorianWeb.ProfileController do
     case user do
       nil ->
         conn
+        |> assign(:info, "User not found")
         |> put_status(:not_found)
         |> put_view(CuratorianWeb.ErrorHTML)
         |> render(:"404")
@@ -41,9 +42,10 @@ defmodule CuratorianWeb.ProfileController do
     else
       _ ->
         conn
+        |> assign(:info, "Content not found")
         |> put_status(:not_found)
         |> put_view(CuratorianWeb.ErrorHTML)
-        |> render(:not_found)
+        |> render(:"404")
     end
   end
 end

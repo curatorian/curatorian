@@ -1,14 +1,12 @@
 <section class="bg-violet-100">
-  <div class="absolute top-0 w-full">
-    <img src="/images/lib.webp" alt="hero img" class="relative w-full h-40 object-cover" />
-    <div class="absolute bottom-0 w-full h-12 bg-gradient-to-t from-violet-100 to-transparent">
-    </div>
-  </div>
-  
   <div class="error-page">
-    <h1 class="homepage-heading text-red-500">500</h1>
+    <h1 class="error-status-heading">500</h1>
     
-    <h3>Internal Server Error</h3>
+    <h3>Ksalahan Server Internal</h3>
+    
+    <h6 class="mb-4">
+      Kamu mencoba untuk mengakses halaman : <pre class="mt-4">{@conn.request_path} <br>{@conn.info}</pre>
+    </h6>
     
     <p>
       Mohon maaf, Curatorian sepertinya sedang bermasalah. <br />

@@ -5,7 +5,10 @@
     <h3>Halaman tidak ditemukan</h3>
     
     <h6 class="mb-4">
-      Kamu mencoba untuk mengakses halaman : <pre class="mt-4">{@conn.request_path}</pre>
+      Kamu mencoba untuk mengakses halaman : <pre class="mt-4">
+        {@conn.request_path} 
+        <br>{@conn.info}
+      </pre>
     </h6>
     
     <p>
