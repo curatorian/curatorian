@@ -1,20 +1,12 @@
 <section class="bg-violet-100">
-  <div class="absolute top-0 w-full">
-    <img src="/images/lib.webp" alt="hero img" class="relative w-full h-40 object-cover" />
-    <div class="absolute top-0 bg-black/80 w-full h-40">
-      <div class="absolute top-0 left-0 w-full h-full flex items-center justify-center">
-        <h1 class="text-white">Curatorian</h1>
-      </div>
-    </div>
-    
-    <div class="absolute bottom-0 w-full h-12 bg-gradient-to-t from-violet-100 to-transparent">
-    </div>
-  </div>
-  
   <div class="error-page">
-    <h1 class="homepage-heading text-red-500">404</h1>
+    <h1 class="error-status-heading">404</h1>
     
-    <h3>Page Not Found</h3>
+    <h3>Halaman tidak ditemukan</h3>
+    
+    <h6 class="mb-4">
+      Kamu mencoba untuk mengakses halaman : <pre class="mt-4">{@conn.request_path}</pre>
+    </h6>
     
     <p>
       Mohon maaf, kamu sepertinya tersesat karena halaman ini tidak tersedia. <br />
@@ -27,4 +19,3 @@
     </div>
   </div>
 </section>
- <.footer_layout />

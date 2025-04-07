@@ -17,7 +17,7 @@ config :curatorian, CuratorianWeb.Endpoint,
   adapter: Bandit.PhoenixAdapter,
   render_errors: [
     formats: [html: CuratorianWeb.ErrorHTML, json: CuratorianWeb.ErrorJSON],
-    layout: false
+    layout: [html: {CuratorianWeb.Layouts, :root}]
   ],
   pubsub_server: Curatorian.PubSub,
   live_view: [signing_salt: "w42TLB75"]

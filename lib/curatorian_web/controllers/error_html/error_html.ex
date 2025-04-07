@@ -13,5 +13,5 @@ defmodule CuratorianWeb.ErrorHTML do
   #   * lib/curatorian_web/controllers/error_html/404.html.heex
   #   * lib/curatorian_web/controllers/error_html/500.html.heex
   #
-  embed_templates "error_html/*"
+  embed_templates "*"
 end

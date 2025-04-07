@@ -12,7 +12,7 @@ defmodule CuratorianWeb.ProfileController do
         conn
         |> put_status(:not_found)
         |> put_view(CuratorianWeb.ErrorHTML)
-        |> render(:not_found)
+        |> render(:"404")
 
       %Accounts.User{} ->
         blogs = Blogs.list_blogs_by_user(user.id)
