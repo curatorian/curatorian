@@ -83,10 +83,13 @@ defmodule CuratorianWeb.Router do
       ] do
       scope "/dashboard" do
         live "/", DashboardLive, :show
-        live "/blog", DashboardLive.BlogsLive.Index, :index
-        live "/blog/new", DashboardLive.BlogsLive.New, :new
-        live "/blog/:slug", DashboardLive.BlogsLive.Show, :show
-        live "/blog/:slug/edit", DashboardLive.BlogsLive.Edit, :edit
+
+        scope "/blog" do
+          live "/", DashboardLive.BlogsLive.Index, :index
+          live "/new", DashboardLive.BlogsLive.New, :new
+          live "/:slug", DashboardLive.BlogsLive.Show, :show
+          live "/:slug/edit", DashboardLive.BlogsLive.Edit, :edit
+        end
       end
 
       live "/users/settings", UserSettingsLive, :edit
@@ -98,6 +101,22 @@ defmodule CuratorianWeb.Router do
       live "/comments/new", CommentLive.Index, :new
       live "/comments/:id", CommentLive.Show, :show
       live "/comments/:id/edit", CommentLive.Show, :edit
+    end
+
+    live_session :require_manager_role,
+      on_mount: [
+        {CuratorianWeb.Utils.SaveRequestUri, :save_request_uri},
+        {CuratorianWeb.UserAuth, :ensure_authenticated},
+        {CuratorianWeb.UserAuth, :ensure_user_is_manager}
+      ] do
+      scope "/dashboard" do
+        scope "/user_manager" do
+          live "/", DashboardLive.UserManagerLive.Index, :index
+          live "/:username", DashboardLive.UserManagerLive.Show, :show
+          live "/:username/edit", DashboardLive.UserManagerLive.Edit, :edit
+          live "/:username/delete", DashboardLive.UserManagerLive.Delete, :delete
+        end
+      end
     end
   end
 

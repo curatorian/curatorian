@@ -157,7 +157,7 @@ defmodule Curatorian.Accounts do
         value -> String.to_integer(value)
       end
 
-    per_page = 12
+    per_page = 1
     offset = (page - 1) * per_page
 
     curatorian_query =

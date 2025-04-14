@@ -60,7 +60,7 @@
         <.link
           class={[
             "no-underline",
-            if(@current_uri == "/users/settings",
+            if(@current_uri |> String.starts_with?("/users/settings"),
               do: "active-menu-dashboard",
               else: "inactive-menu-dashboard"
             )
@@ -72,7 +72,7 @@
         <.link
           class={[
             "no-underline",
-            if(@current_uri == "/dashboard/blog",
+            if(@current_uri |> String.starts_with?("/dashboard/blog"),
               do: "active-menu-dashboard",
               else: "inactive-menu-dashboard"
             )
@@ -80,6 +80,19 @@
           href="/dashboard/blog"
         >
           <.icon name="hero-pencil-square-solid" class="h-6 w-6 mr-3" /> <span>Blog Saya</span>
+        </.link>
+
+        <.link
+          class={[
+            "no-underline",
+            if(@current_uri |> String.starts_with?("/dashboard/user_manager"),
+              do: "active-menu-dashboard",
+              else: "inactive-menu-dashboard"
+            )
+          ]}
+          href="/dashboard/user_manager"
+        >
+          <.icon name="hero-user-group-solid" class="h-6 w-6 mr-3" /> <span>User Manager</span>
         </.link>
       </div>
 
