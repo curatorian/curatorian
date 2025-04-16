@@ -157,7 +157,7 @@ defmodule Curatorian.Accounts do
         value -> String.to_integer(value)
       end
 
-    per_page = 1
+    per_page = 12
     offset = (page - 1) * per_page
 
     curatorian_query =
@@ -222,6 +222,23 @@ defmodule Curatorian.Accounts do
         # Return the user profile changeset in case of user profile insertion error
         {:error, :user_profile, changeset}
     end
+  end
+
+  def change_user(%User{} = user, attrs \\ %{}) do
+    User.changeset(user, attrs)
+  end
+
+  def update_user(%User{} = user, attrs) do
+    user
+    |> User.changeset(attrs)
+    |> Repo.update()
+  end
+
+  def update_user_and_profile(user, user_params, profile, profile_params) do
+    Ecto.Multi.new()
+    |> Ecto.Multi.update(:user, User.changeset(user, user_params))
+    |> Ecto.Multi.update(:profile, UserProfile.changeset(profile, profile_params))
+    |> Repo.transaction()
   end
 
   @doc """

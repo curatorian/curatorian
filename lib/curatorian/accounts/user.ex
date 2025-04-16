@@ -23,6 +23,14 @@ defmodule Curatorian.Accounts.User do
     timestamps(type: :utc_datetime)
   end
 
+  def changeset(user, attrs) do
+    user
+    |> cast(attrs, [:email, :username, :user_type, :user_role, :password])
+    |> validate_length(:username, min: 3, max: 30)
+    |> unique_constraint(:email)
+    |> unique_constraint(:username)
+  end
+
   @doc """
   A user changeset for registration.
 

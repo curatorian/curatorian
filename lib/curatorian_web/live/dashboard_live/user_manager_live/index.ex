@@ -69,23 +69,32 @@ defmodule CuratorianWeb.DashboardLive.UserManagerLive.Index do
                   
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <.link
-                      patch={~p"/dashboard/user_manager/#{user.username}/edit"}
-                      class="text-blue-600 hover:text-blue-900"
+                      patch={~p"/dashboard/user_manager/#{user.username}"}
+                      class="btn btn-primary no-underline"
                     >
-                      Edit
-                    </.link>
-                    
-                    <.link
-                      patch={~p"/dashboard/user_manager/#{user.username}/delete"}
-                      class="text-red-600 hover:text-red-900"
-                    >
-                      Delete
+                      View
                     </.link>
                   </td>
                 </tr>
               <% end %>
             </tbody>
           </table>
+        </div>
+        
+        <div class="flex items-center justify-center mt-4 gap-2">
+          <%= if @page > 1 do %>
+            <.link navigate={~p"/dashboard/user_manager?page=#{@page - 1}"} class="btn">
+              Previous
+            </.link>
+          <% else %>
+            <span class="btn-disabled">Previous</span>
+          <% end %>
+           <span>{@page} / {@total_pages}</span>
+          <%= if @page < @total_pages do %>
+            <.link navigate={~p"/dashboard/user_manager?page=#{@page + 1}"} class="btn">Next</.link>
+          <% else %>
+            <span class="btn-disabled">Next</span>
+          <% end %>
         </div>
       <% else %>
         <p>No users found.</p>
