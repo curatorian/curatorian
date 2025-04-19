@@ -6,6 +6,11 @@ defmodule CuratorianWeb.ProfileController do
 
   def index(conn, %{"username" => username}) do
     user = Accounts.get_user_profile_by_username(username)
+    active_tab = "blog"
+
+    conn =
+      conn
+      |> assign(:active_tab, active_tab)
 
     case user do
       nil ->

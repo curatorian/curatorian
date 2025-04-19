@@ -89,6 +89,27 @@ Hooks.NavbarToggle = {
   },
 };
 
+// Handle Category Selection
+Hooks.CategorySelect = {
+  mounted() {
+    this.el.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault(); // Prevent browser submit
+        e.stopPropagation(); // Prevent LiveView bubbling
+        e.stopImmediatePropagation(); // 💥 STOP LiveView from catching it too
+
+        const value = this.el.value.trim();
+        if (value.length > 0) {
+          this.pushEvent("add_tag", {
+            category: value,
+          });
+          this.el.value = "";
+        }
+      }
+    });
+  },
+};
+
 Hooks.Trix = Trix;
 Hooks.Slugify = Slugify;
 

@@ -3,6 +3,7 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Edit do
 
   alias Curatorian.Blogs
   alias Curatorian.Blogs.Blog
+  alias CuratorianWeb.Utils.Slugify
 
   @impl Phoenix.LiveView
   def render(assigns) do
@@ -13,11 +14,11 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Edit do
         <:subtitle>Use this form to manage blog records in your database.</:subtitle>
       </.header>
 
-      <div>
+      <%!-- <div>
         <.link class="btn no-underline" navigate={"/#{@user_profile.username}/blog/#{@blog.slug}"}>
-          Show Blog
+          View Blog
         </.link>
-      </div>
+      </div> --%>
     </div>
 
     <.live_component
@@ -25,7 +26,9 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Edit do
       id={@blog.id}
       blog={@blog}
       user_id={@user_id}
-      title="New Blog"
+      categories={@categories}
+      tags={@tags}
+      title="Edit Blog"
       navigate={~p"/dashboard/blog"}
       action={:edit}
     />
@@ -38,6 +41,8 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Edit do
     blog = Blogs.get_blog_by_slug(slug)
     user_profile = socket.assigns.current_user
     user_id = socket.assigns.current_user.id
+    categories = Blogs.list_categories()
+    tags = Blogs.list_tags()
 
     if blog.user_id == user_id do
       changeset = Blogs.change_blog(%Blog{})
@@ -46,6 +51,8 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Edit do
         socket
         |> assign(:changeset, changeset)
         |> assign(:blog, blog)
+        |> assign(:categories, categories)
+        |> assign(:tags, tags)
         |> assign(:user_id, user_id)
         |> assign(:user_profile, user_profile)
 
@@ -56,5 +63,30 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Edit do
        |> put_flash(:error, "You are not authorized to edit this blog.")
        |> push_navigate(to: "/dashboard/blog")}
     end
+  end
+
+  @impl true
+  def handle_event("add_tag", %{"category" => tag}, socket) do
+    tag_slug = Slugify.slugify(tag)
+
+    new_tag = %{name: tag, slug: tag_slug}
+
+    socket =
+      socket
+      |> update(:tags, fn tags ->
+        tags ++ [new_tag]
+      end)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("delete_tag", %{"tag-slug" => slug}, socket) do
+    socket =
+      socket
+      |> update(:tags, fn tags ->
+        Enum.reject(tags, fn tag -> tag.slug == slug end)
+      end)
+
+    {:noreply, socket}
   end
 end

@@ -13,6 +13,14 @@ defmodule Curatorian.Blogs.Blog do
     field :image_url, :string
     belongs_to :user, Curatorian.Accounts.User, type: :binary_id
 
+    many_to_many :categories, Curatorian.Blogs.Category,
+      join_through: "blogs_categories",
+      on_replace: :delete
+
+    many_to_many :tags, Curatorian.Blogs.Tag,
+      join_through: "blogs_tags",
+      on_replace: :delete
+
     timestamps(type: :utc_datetime)
   end
 

@@ -24,7 +24,27 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
         <.input field={@form[:title]} type="text" label="Title" />
         <.input field={@form[:slug]} type="text" label="Slug" phx-hook="Slugify" id="slug" />
         <.input field={@form[:summary]} type="text" label="Summary" />
-        <%!-- <.input field={@form[:content]} type="text" label="Content" /> --%>
+
+        <.input
+          type="text"
+          label="Tags"
+          placeholder="e.g. Art, History, Tech"
+          field={@form[:tag_name]}
+          phx-enter="add_tag"
+          phx-hook="CategorySelect"
+          autocomplete="off"
+        />
+        <div class="flex gap-2">
+          <%= for tag <- @tags do %>
+            <div
+              class="bg-purple-500 text-white px-4 py-1 rounded-lg text-sm -mt-6 cursor-pointer"
+              phx-click="delete_tag"
+              phx-value-tag-slug={tag.slug}
+            >
+              {tag.name}
+            </div>
+          <% end %>
+        </div>
         <div>
           <.label>Trix</.label>
 
@@ -44,7 +64,7 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
           <.input field={@form[:image_url]} type="hidden" label="Thumbnail" />
           <section phx-drop-target={@uploads.thumbnail.ref}>
             <%= if length(@uploads.thumbnail.entries) === 0 do %>
-              <img src={@blog.image_url} class="w-full max-h-[320px] object-cover" />
+              <img src={@blog.image_url} class="max-h-[320px] object-cover" />
             <% end %>
             <%!-- render each thumbnail entry --%>
             <article :for={entry <- @uploads.thumbnail.entries} class="upload-entry">
@@ -145,11 +165,38 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
         {:ok, image_path}
       end)
 
+    tags = socket.assigns.tags
+    categories = socket.assigns.categories
+
+    chosen_tags =
+      tags
+      |> Enum.map(fn tag ->
+        # Validate tag
+        if is_map(tag) and Map.has_key?(tag, :name) and Map.has_key?(tag, :slug) do
+          case Blogs.get_or_create_tag(tag) do
+            {:ok, tag} ->
+              tag
+
+            {:error, changeset} ->
+              dbg("Error creating tag: #{inspect(changeset)}")
+              nil
+          end
+        else
+          dbg("Invalid tag data: #{inspect(tag)}")
+          nil
+        end
+      end)
+
     blog_params =
       if length(uploaded_files) > 0 do
-        Map.put(blog_params, "image_url", hd(uploaded_files))
+        blog_params
+        |> Map.put("image_url", hd(uploaded_files))
+        |> Map.put("tags", chosen_tags)
+        |> Map.put("categories", categories)
       else
         blog_params
+        |> Map.put("tags", chosen_tags)
+        |> Map.put("categories", categories)
       end
 
     socket =
@@ -164,7 +211,6 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
 
     blog_params =
       blog_params
-      # |> Map.put("content", socket.assigns.content)
       |> Map.put("user_id", user_id)
       |> sanitize_html()
 
@@ -178,6 +224,7 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
          |> push_navigate(to: socket.assigns.navigate)}
 
       {:error, changeset} ->
+        dbg(changeset)
         {:noreply, assign(socket, form: to_form(changeset, action: :validate))}
     end
   end
@@ -188,7 +235,6 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
     blog_params =
       blog_params
       |> Map.put("user_id", user_id)
-      # |> Map.put("content", socket.assigns.content)
       |> sanitize_html()
 
     case Blogs.create_blog(blog_params) do
@@ -201,6 +247,7 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
          |> push_navigate(to: socket.assigns.navigate)}
 
       {:error, changeset} ->
+        dbg(changeset)
         {:noreply, assign(socket, form: to_form(changeset, action: :validate))}
     end
   end
