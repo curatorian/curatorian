@@ -1,7 +1,9 @@
 defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
+  alias Curatorian.Repo
   use CuratorianWeb, :live_component
 
   alias Curatorian.Blogs
+  alias CuratorianWeb.Utils.Slugify
 
   @impl true
   def render(assigns) do
@@ -30,8 +32,8 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
           label="Tags"
           placeholder="e.g. Art, History, Tech"
           field={@form[:tag_name]}
-          phx-enter="add_tag"
-          phx-hook="CategorySelect"
+          phx-hook="ChooseTag"
+          phx-target={@myself}
           autocomplete="off"
         />
         <div class="flex gap-2">
@@ -39,6 +41,7 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
             <div
               class="bg-purple-500 text-white px-4 py-1 rounded-lg text-sm -mt-6 cursor-pointer"
               phx-click="delete_tag"
+              phx-target={@myself}
               phx-value-tag-slug={tag.slug}
             >
               {tag.name}
@@ -46,7 +49,7 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
           <% end %>
         </div>
         <div>
-          <.label>Trix</.label>
+          <.label>Konten</.label>
 
           <.input
             field={@form[:content]}
@@ -107,6 +110,11 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
 
   @impl true
   def update(%{blog: blog} = assigns, socket) do
+    blog =
+      blog
+      |> Repo.preload(:tags)
+      |> Repo.preload(:categories)
+
     {:ok,
      socket
      |> assign(assigns)
@@ -143,6 +151,39 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
   def handle_event("cancel-upload", %{"ref" => ref}, socket) do
     send(self(), {:cancel_upload})
     {:noreply, cancel_upload(socket, :thumbnail, ref)}
+  end
+
+  @impl true
+  def handle_event("add_tag", %{"name" => tag_name}, socket) do
+    new_tag = %{
+      name: tag_name,
+      slug: Slugify.slugify(tag_name)
+    }
+
+    updated_tags =
+      socket.assigns.tags
+      |> Enum.reject(&(&1.slug == new_tag.slug))
+      |> Kernel.++([new_tag])
+
+    {:noreply, assign(socket, tags: updated_tags)}
+  end
+
+  @impl true
+  def handle_event("delete_tag", %{"tag-slug" => tag_slug}, socket) do
+    changeset =
+      socket.assigns.blog
+      |> Blogs.change_blog(%{"tag_name" => ""})
+
+    form = to_form(changeset, action: :validate)
+
+    socket =
+      socket
+      |> assign(form: form)
+      |> update(:tags, fn tags ->
+        Enum.reject(tags, fn tag -> tag.slug == tag_slug end)
+      end)
+
+    {:noreply, socket}
   end
 
   @impl true

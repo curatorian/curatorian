@@ -15,7 +15,7 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Edit do
       </.header>
 
       <%!-- <div>
-        <.link class="btn no-underline" navigate={"/#{@user_profile.username}/blog/#{@blog.slug}"}>
+        <.link class="btn-primary no-underline" navigate={"/#{@user_profile.username}/blog/#{@blog.slug}"}>
           View Blog
         </.link>
       </div> --%>

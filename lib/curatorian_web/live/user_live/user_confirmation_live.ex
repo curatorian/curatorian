@@ -16,7 +16,7 @@ defmodule CuratorianWeb.UserConfirmationLive do
       </.simple_form>
 
       <p class="text-center mt-4">
-        <.link href="/users/register">Register</.link> | <.link href="/users/log_in">Log in</.link>
+        <.link href="/users/register">Register</.link> | <.link href="/login">Log in</.link>
       </p>
     </div>
     """

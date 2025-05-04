@@ -9,12 +9,12 @@ defmodule CuratorianWeb.UserSettingsLive do
     ~H"""
     <div class="container mx-auto px-5">
       <.header class="text-center mb-5">
-        Account Settings
-        <:subtitle>Manage your account email address and password settings</:subtitle>
+        Profil Anda
+        <:subtitle>Kelola Profil dan Akun anda disini.</:subtitle>
       </.header>
       
       <section class="flex flex-col gap-5 lg:flex-row items-center lg:items-start justify-center min-h-screen h-full">
-        <div class="bg-violet-100 p-10 rounded w-full sm:max-w-80">
+        <div class="bg-white p-10 rounded-lg w-full sm:max-w-80">
           <%= if length(@uploads.avatar.entries) === 0 do %>
             <div id="user-image">
               <%= if @current_user_profile.user_image do %>
@@ -48,7 +48,7 @@ defmodule CuratorianWeb.UserSettingsLive do
                 <div class="mt-3">
                   <.button
                     type="click"
-                    class="w-full btn"
+                    class="w-full btn-primary"
                     phx-click={JS.dispatch("click", to: "##{@uploads.avatar.ref}")}
                   >
                     Ganti Foto
@@ -90,7 +90,7 @@ defmodule CuratorianWeb.UserSettingsLive do
               </p>
                <hr class="border-t-1 border-violet-500 my-8" />
               <div class="my-5">
-                <div class="w-full bg-violet-600 text-center text-white p-0 mb-2 rounded">
+                <div class="w-full bg-violet-600 text-center text-white mb-2 rounded">
                   <h5>Profil</h5>
                 </div>
                 
@@ -136,6 +136,46 @@ defmodule CuratorianWeb.UserSettingsLive do
               label="Bio"
               type="textarea"
               id="bio"
+            />
+            <.input
+              field={@update_profile_form[:job_title]}
+              value={@current_user_profile.job_title}
+              label="Pekerjaan"
+              type="text"
+              id="phone-number"
+            />
+            <.input
+              field={@update_profile_form[:company]}
+              value={@current_user_profile.company}
+              label="Perusahaan / Lembaga"
+              type="text"
+              id="company"
+            />
+            <.input
+              field={@update_profile_form[:location]}
+              value={@current_user_profile.location}
+              label="Alamat / Lokasi"
+              type="textarea"
+              id="location"
+            />
+            <.input
+              field={@update_profile_form[:birthday]}
+              value={@current_user_profile.birthday}
+              label="Tanggal Lahir"
+              type="date"
+              id="birthday"
+            />
+            <.input
+              field={@update_profile_form[:gender]}
+              value={@current_user_profile.gender}
+              label="Jenis Kelamin"
+              type="select"
+              options={[
+                {"Pilih Jenis Kelamin", nil},
+                {"Laki-laki", "laki-laki"},
+                {"Perempuan", "perempuan"}
+              ]}
+              id="gender"
             />
             <h6>Pendidikan</h6>
             
@@ -201,7 +241,9 @@ defmodule CuratorianWeb.UserSettingsLive do
             </.inputs_for>
             
             <%= if @show_add_education do %>
-              <button type="button" class="btn" phx-click="add_education">Add Education</button>
+              <button type="button" class="btn-primary" phx-click="add_education">
+                Add Education
+              </button>
             <% end %>
             
             <h6>Media Sosial</h6>

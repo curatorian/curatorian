@@ -25,11 +25,12 @@ defmodule Curatorian.Blogs.Blog do
   end
 
   @doc false
-  def changeset(blog, attrs) do
+  def changeset(blog, attrs, tags \\ []) do
     blog
     |> cast(attrs, [:title, :slug, :content, :summary, :image_url, :status, :user_id])
     |> validate_required([:title, :slug, :content, :summary, :status, :user_id])
     |> validate_length(:summary, max: 200)
     |> unique_constraint(:slug)
+    |> put_assoc(:tags, tags)
   end
 end

@@ -3,7 +3,7 @@
     <.back navigate={~p"/#{@blog.user.username}"}>Kembali</.back>
     
     <%= if @current_user && @current_user.id == @user.id do %>
-      <.link navigate={~p"/dashboard/blog/#{@blog.slug}/edit"} class="btn no-underline">
+      <.link navigate={~p"/dashboard/blog/#{@blog.slug}/edit"} class="btn-primary no-underline">
         Edit Blog
       </.link>
     <% end %>

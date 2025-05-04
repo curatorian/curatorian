@@ -23,7 +23,10 @@
             referrerPolicy="no-referrer"
           />
           <%= if @current_user && @current_user.id == @user.id do %>
-            <.link navigate={~p"/users/settings"} class="btn w-full max-w-24 text-xs no-underline">
+            <.link
+              navigate={~p"/users/settings"}
+              class="btn-primary w-full max-w-24 text-xs no-underline"
+            >
               Edit Profile
             </.link>
           <% end %>
@@ -62,7 +65,7 @@
         <button
           phx-click="show_tab"
           phx-value-tab="blog"
-          class={"px-4 py-2 focus:outline-none hover:text-violet-500 #{if @active_tab == "blog", do: "border-b-2 border-violet-500 text-violet-500", else: "text-gray-500"}"}
+          class={"px-4 py-2 focus:outline-none hover:text-violet-500 #{if @active_tab == "blogs", do: "border-b-2 border-violet-500 text-violet-500", else: "text-gray-500"}"}
         >
           Blogs
         </button>
@@ -70,7 +73,7 @@
         <button
           phx-click="show_tab"
           phx-value-tab="post"
-          class={"px-4 py-2 focus:outline-none hover:text-violet-500 #{if @active_tab == "post", do: "border-b-2 border-violet-500 text-violet-500", else: "text-gray-500"}"}
+          class={"px-4 py-2 focus:outline-none hover:text-violet-500 #{if @active_tab == "posts", do: "border-b-2 border-violet-500 text-violet-500", else: "text-gray-500"}"}
         >
           Posts
         </button>
@@ -96,7 +99,7 @@
                 src={if blog.image_url, do: blog.image_url, else: "/images/lib.webp"}
                 class="w-full h-full max-h-56 object-cover shadow-lg rounded-xl"
               />
-              <div class="flex justify-between items-center my-8 px-7 text-gray-500">
+              <div class="flex justify-between items-center my-8 px-7 text-gray-500 text-xs">
                 <p>by {blog.user.profile.fullname}</p>
                 
                 <p>{convert_time_zone_to_indonesia(blog.inserted_at)}</p>
@@ -107,17 +110,17 @@
                   navigate={~p"/#{blog.user.username}/blog/#{blog.slug}"}
                   class="no-underline hover:underline"
                 >
-                  <h3 class="text-violet-500 -mb-2">{blog.title}</h3>
+                  <h4 class="text-violet-500 -mb-2">{blog.title}</h4>
                 </.link>
                 
                 <p class="mt-5 text-gray-500 text-justify">
-                  {trim_description(blog.content, 150)}
+                  {trim_description(blog.content, 120)}
                 </p>
                 
                 <div class="my-10">
                   <.link
                     navigate={~p"/#{blog.user.username}/blog/#{blog.slug}"}
-                    class="btn no-underline"
+                    class="btn-primary no-underline"
                   >
                     Baca &rightarrow;
                   </.link>

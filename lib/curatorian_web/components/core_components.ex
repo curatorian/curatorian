@@ -231,7 +231,7 @@ defmodule CuratorianWeb.CoreComponents do
     <button
       type={@type}
       class={[
-        "phx-submit-loading:opacity-75 btn",
+        "phx-submit-loading:opacity-75 btn-primary",
         "text-sm font-semibold leading-6",
         @class
       ]}
@@ -561,7 +561,7 @@ defmodule CuratorianWeb.CoreComponents do
     <div class="mt-5">
       <.link
         navigate={@navigate}
-        class="text-sm font-semibold leading-6 text-zinc-900 hover:text-zinc-700 no-underline"
+        class="text-sm font-semibold leading-6 text-violet-600 hover:text-violet-500 no-underline"
       >
         <.icon name="hero-arrow-left-solid" class="h-3 w-3" />
         {render_slot(@inner_block)}

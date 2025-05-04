@@ -90,20 +90,17 @@ Hooks.NavbarToggle = {
 };
 
 // Handle Category Selection
-Hooks.CategorySelect = {
+Hooks.ChooseTag = {
   mounted() {
     this.el.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
-        e.preventDefault(); // Prevent browser submit
-        e.stopPropagation(); // Prevent LiveView bubbling
-        e.stopImmediatePropagation(); // 💥 STOP LiveView from catching it too
-
+        e.preventDefault();
         const value = this.el.value.trim();
-        if (value.length > 0) {
-          this.pushEvent("add_tag", {
-            category: value,
+        if (value !== "") {
+          this.pushEventTo(this.el.getAttribute("phx-target"), "add_tag", {
+            name: value,
           });
-          this.el.value = "";
+          this.el.value = ""; // clear input
         }
       }
     });

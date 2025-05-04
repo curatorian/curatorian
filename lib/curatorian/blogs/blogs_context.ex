@@ -49,6 +49,7 @@ defmodule Curatorian.Blogs do
   def get_blog_by_slug(slug) do
     Blog
     |> Repo.get_by(slug: slug)
+    |> Repo.preload([:tags, :categories])
     |> Repo.preload(user: [:profile])
   end
 
@@ -133,7 +134,10 @@ defmodule Curatorian.Blogs do
       5
   """
   def count_blogs_by_user(user_id) do
-    Repo.aggregate(Blog, :count, :id, where: [user_id: user_id])
+    from(b in Blog,
+      where: b.user_id == ^user_id
+    )
+    |> Repo.aggregate(:count, :id)
   end
 
   # Tags

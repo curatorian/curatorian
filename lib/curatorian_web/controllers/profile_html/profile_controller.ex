@@ -6,7 +6,7 @@ defmodule CuratorianWeb.ProfileController do
 
   def index(conn, %{"username" => username}) do
     user = Accounts.get_user_profile_by_username(username)
-    active_tab = "blog"
+    active_tab = "blogs"
 
     conn =
       conn

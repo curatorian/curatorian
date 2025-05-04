@@ -10,10 +10,44 @@ defmodule CuratorianWeb.MemberLoginLive do
         </.header>
       </div>
 
-      <div class="flex items-center justify-center mt-5">
-        <.button phx-click="google_auth" class="bg-violet-100">
-          Login with Google
-        </.button>
+      <div class="flex gap-10 items-center justify-center mt-5">
+        <div class="w-full max-w-sm">
+          <.simple_form for={@form} id="login_form" action="/users/log_in" phx-update="ignore">
+            <.input field={@form[:email]} type="email" label="Email" required />
+            <.input field={@form[:password]} type="password" label="Password" required />
+
+            <:actions>
+              <.input field={@form[:remember_me]} type="checkbox" label="Keep me logged in" />
+              <.link
+                href="/users/reset_password"
+                class="text-sm font-semibold no-underline hover:underline"
+              >
+                Lupa Password
+              </.link>
+            </:actions>
+            <:actions>
+              <.button phx-disable-with="Logging in..." class="w-full">
+                Log in <span aria-hidden="true">→</span>
+              </.button>
+            </:actions>
+          </.simple_form>
+          <.link
+            navigate={~p"/users/register"}
+            class="text-sm font-semibold no-underline hover:underline"
+            id="register_link"
+          >
+            Daftar akun baru &rightarrow;
+          </.link>
+        </div>
+        <div class="h-xl">
+          <div class="w-px h-96 bg-violet-300 mx-4"></div>
+        </div>
+        <div>
+          <img src="/images/undraw_fingerprint-login.png" class="h-[17rem]" />
+          <.button phx-click="google_auth" class="bg-violet-100 w-full">
+            Login with Google
+          </.button>
+        </div>
       </div>
     </div>
     """

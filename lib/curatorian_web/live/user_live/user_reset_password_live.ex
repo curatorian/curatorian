@@ -31,7 +31,7 @@ defmodule CuratorianWeb.UserResetPasswordLive do
       </.simple_form>
 
       <p class="text-center text-sm mt-4">
-        <.link href="/users/register">Register</.link> | <.link href="/users/log_in">Log in</.link>
+        <.link navigate="/users/register">Register</.link> | <.link navigate="/login">Log in</.link>
       </p>
     </div>
     """
@@ -60,7 +60,7 @@ defmodule CuratorianWeb.UserResetPasswordLive do
         {:noreply,
          socket
          |> put_flash(:info, "Password reset successfully.")
-         |> redirect(to: "/users/log_in")}
+         |> redirect(to: "/login")}
 
       {:error, changeset} ->
         {:noreply, assign_form(socket, Map.put(changeset, :action, :insert))}

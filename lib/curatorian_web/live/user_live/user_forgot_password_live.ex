@@ -20,7 +20,7 @@ defmodule CuratorianWeb.UserForgotPasswordLive do
         </:actions>
       </.simple_form>
       <p class="text-center text-sm mt-4">
-        <.link href="/users/register">Register</.link> | <.link href="/users/log_in">Log in</.link>
+        <.link navigate="/users/register">Register</.link> | <.link navigate="/login">Log in</.link>
       </p>
     </div>
     """

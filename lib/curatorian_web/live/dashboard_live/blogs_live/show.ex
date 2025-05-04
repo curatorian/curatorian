@@ -50,6 +50,8 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Show do
     blog = Blogs.get_blog_by_slug(slug)
     user_profile = Accounts.get_user_profile_by_user_id(blog.user_id)
 
+    dbg(blog)
+
     socket =
       socket
       |> assign(:blog, blog)

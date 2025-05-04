@@ -1,4 +1,8 @@
-<.navigation_header current_user={@current_user} />
+<%= if assigns[:current_user] do %>
+  <.navigation_header current_user={@current_user} />
+<% else %>
+  <.navigation_header />
+<% end %>
 <main>
   <.flash_group flash={@flash} />
   <div class="absolute top-0 w-full">
@@ -7,7 +11,7 @@
     <div class="absolute bottom-0 w-full h-12 bg-gradient-to-t from-violet-100 to-transparent">
     </div>
   </div>
-  <%= if @conn do %>
+  <%= if assigns[:conn] do %>
     <%= if @conn.request_path === "/" do %>
       <section class="min-h-screen h-full bg-violet-100">
         {@inner_content}
@@ -18,7 +22,7 @@
       </section>
     <% end %>
   <% else %>
-    <section class="pt-48 min-h-screen h-full">
+    <section class="pt-48 min-h-screen h-full bg-violet-100">
       {@inner_content}
     </section>
   <% end %>

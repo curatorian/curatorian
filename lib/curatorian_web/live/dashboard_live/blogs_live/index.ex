@@ -9,22 +9,26 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Index do
       Listing Blogs
       <:actions>
         <.link href={~p"/dashboard/blog/new"}>
-          <.button>New Blog</.button>
+          <.button>Buat Blog Baru</.button>
         </.link>
       </:actions>
     </.header>
 
     <section class="grid grid-cols-3 gap-4 my-5">
-      <%= for blog <- @blogs do %>
-        <div class="bg-violet-100 p-4 rounded-xl flex flex-col items-center justify-between text-center gap-4">
-          <h5>{blog.title}</h5>
+      <%= if @blogs == [] do %>
+        <h5>Kamu belum membuat Blog</h5>
+      <% else %>
+        <%= for blog <- @blogs do %>
+          <div class="bg-white p-4 rounded-xl flex flex-col items-center justify-between text-center gap-4">
+            <h5>{blog.title}</h5>
 
-          <p class="text-xs">{blog.summary}</p>
+            <p class="text-xs">{blog.summary}</p>
 
-          <.link href={~p"/dashboard/blog/#{blog.slug}"}>
-            <.button>View</.button>
-          </.link>
-        </div>
+            <.link href={~p"/dashboard/blog/#{blog.slug}"}>
+              <.button>View</.button>
+            </.link>
+          </div>
+        <% end %>
       <% end %>
     </section>
     """

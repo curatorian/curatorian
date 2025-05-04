@@ -16,7 +16,7 @@
       </div>
       <div class="mt-5">
         <a href="https://www.figma.com/design/zuTAgw55YphtJ5F8QzHmt3/Curatorian" target="_blank">
-          <button class="btn bg-violet-5 text-white">Roadmap &rightarrow;</button>
+          <button class="btn-primary bg-violet-5 text-white">Roadmap &rightarrow;</button>
         </a>
       </div>
     </div>
@@ -24,8 +24,12 @@
   <div class="absolute bottom-0 w-full h-24 bg-gradient-to-t from-violet-100 to-transparent">
   </div>
 </section>
-<%= if @current_user do %>
-  <h3>Halo, {@current_user.email}!</h3>
-<% else %>
-  <h3>Halo, tamu!</h3>
-<% end %>
+<section>
+  <.apa_itu_curatorian />
+  <.kenapa_harus_curatorian />
+  <.cara_kerja_curatorian />
+</section>
+<section>
+  <.fitur_utama_curatorian />
+  <.tertarik_dengan_curatorian />
+</section>

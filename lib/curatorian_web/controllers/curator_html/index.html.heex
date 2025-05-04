@@ -21,7 +21,7 @@
               <div>
                 <.link
                   href={~p"/#{curator.username}"}
-                  class="btn no-underline text-center text-xs"
+                  class="btn-primary no-underline text-center text-xs"
                 >
                   Lihat Profil
                 </.link>
@@ -41,13 +41,13 @@
   
   <div class="flex items-center justify-center mt-4 gap-2">
     <%= if @page > 1 do %>
-      <.link href={~p"/kurator?page=#{@page - 1}"} class="btn">Previous</.link>
+      <.link href={~p"/kurator?page=#{@page - 1}"} class="btn-primary">Previous</.link>
     <% else %>
       <span class="btn-disabled">Previous</span>
     <% end %>
      <span>{@page} / {@total_pages}</span>
     <%= if @page < @total_pages do %>
-      <.link href={~p"/kurator?page=#{@page + 1}"} class="btn">Next</.link>
+      <.link href={~p"/kurator?page=#{@page + 1}"} class="btn-primary">Next</.link>
     <% else %>
       <span class="btn-disabled">Next</span>
     <% end %>

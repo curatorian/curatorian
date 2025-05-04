@@ -143,6 +143,14 @@ defmodule Curatorian.Accounts do
   end
 
   @doc """
+  Count all registered users
+  """
+  def count_users do
+    from(u in User)
+    |> Repo.aggregate(:count, :id)
+  end
+
+  @doc """
   Gets all Curatorian users.
 
   ## Examples

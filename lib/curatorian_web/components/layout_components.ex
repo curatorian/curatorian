@@ -51,7 +51,7 @@ defmodule CuratorianWeb.LayoutComponents do
                     alt={@current_user.username}
                   />
                 </.link>
-                <.link href="/dashboard" class="btn no-underline text-xs">
+                <.link href="/dashboard" class="btn-primary no-underline text-xs">
                   Dashboard
                 </.link>
 
@@ -63,14 +63,14 @@ defmodule CuratorianWeb.LayoutComponents do
           <% else %>
             <div class="hidden lg:block">
               <.link class="no-underline" href="/login">
-                <button class="btn bg-violet-1 text-violet-6">Masuk</button>
+                <button class="btn-primary bg-violet-1 text-violet-6">Masuk</button>
               </.link>
             </div>
           <% end %>
 
           <div class="block lg:hidden">
             <button
-              class="btn bg-violet-1 text-violet-6 text-lg font-bold"
+              class="btn-primary bg-violet-1 text-violet-6 text-lg font-bold"
               id="burger"
               phx-hook="NavbarToggle"
             >
@@ -130,7 +130,7 @@ defmodule CuratorianWeb.LayoutComponents do
                   </div>
                 </div>
                 <div class="flex gap-3">
-                  <.link href="/dashboard" class="btn no-underline text-xs">
+                  <.link href="/dashboard" class="btn-primary no-underline text-xs">
                     Dashboard
                   </.link>
 
@@ -141,7 +141,7 @@ defmodule CuratorianWeb.LayoutComponents do
               </div>
             <% else %>
               <.link class="no-underline" href="/login">
-                <button class="btn bg-violet-1 text-violet-6">Masuk</button>
+                <button class="btn-primary bg-violet-1 text-violet-6">Masuk</button>
               </.link>
             <% end %>
           </div>

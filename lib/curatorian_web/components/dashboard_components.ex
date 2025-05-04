@@ -16,13 +16,13 @@ defmodule CuratorianWeb.DashboardComponents do
 
   def stat_cards(assigns) do
     ~H"""
-    <div class="bg-white rounded-lg p-5 flex items-center justify-center gap-6">
+    <div class="bg-white rounded-lg p-5 flex items-center justify-start gap-6">
       <div class={"p-2 rounded-full #{@bg_color}"}>
         <.icon name={@icon} class={"h-10 w-10 #{@icon_color}"} />
       </div>
       
       <div>
-        <h4>{@number}</h4>
+        <h3>{@number}</h3>
         
         <p class="text-sm">{@title}</p>
       </div>

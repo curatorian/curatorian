@@ -8,13 +8,13 @@ defmodule CuratorianWeb.UserRegistrationLive do
     ~H"""
     <div class="mx-auto max-w-sm">
       <.header class="text-center">
-        Register for an account
+        Daftar akun Curatorian
         <:subtitle>
-          Already registered?
-          <.link navigate={~p"/users/log_in"} class="font-semibold text-brand hover:underline">
+          Sudah pernah login atau mendaftar ? <br />
+          <.link navigate={~p"/login"} class="font-semibold text-violet-500 hover:underline">
             Log in
           </.link>
-          to your account now.
+          ke akun anda sekarang.
         </:subtitle>
       </.header>
 
@@ -37,6 +37,7 @@ defmodule CuratorianWeb.UserRegistrationLive do
           <.button phx-disable-with="Creating account..." class="w-full">Create an account</.button>
         </:actions>
       </.simple_form>
+      <.back navigate={~p"/login"}>Kembali ke Login</.back>
     </div>
     """
   end

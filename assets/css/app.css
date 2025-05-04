@@ -104,6 +104,10 @@ a {
 
 /* This file is for your main application CSS */
 .btn {
+  @apply px-4 py-2 rounded-md;
+}
+
+.btn-primary {
   @apply bg-violet-500 text-white px-4 py-2 rounded-md hover:bg-violet-600;
 }
 
@@ -185,6 +189,7 @@ blockquote {
   trix-editor {
     height: 350px;
     overflow-y: auto;
+    @apply bg-white border border-violet-300 rounded-md p-4;
   }
 
   trix-editor > h1 {
