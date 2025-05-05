@@ -96,6 +96,22 @@
             <.icon name="hero-user-group-solid" class="h-6 w-6 mr-3" /> <span>User Manager</span>
           </.link>
         <% end %>
+
+        <%= if @current_user.user_role in ["manager", "admin", "coordinator"] do %>
+          <.link
+            class={[
+              "no-underline",
+              if(@current_uri |> String.starts_with?("/dashboard/orgs"),
+                do: "active-menu-dashboard",
+                else: "inactive-menu-dashboard"
+              )
+            ]}
+            href="/dashboard/orgs"
+          >
+            <.icon name="hero-identification-solid" class="h-6 w-6 mr-3" />
+            <span>Organization</span>
+          </.link>
+        <% end %>
       </div>
 
       <div class="mt-20">

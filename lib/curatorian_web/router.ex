@@ -93,6 +93,10 @@ defmodule CuratorianWeb.Router do
           live "/:slug", DashboardLive.BlogsLive.Show, :show
           live "/:slug/edit", DashboardLive.BlogsLive.Edit, :edit
         end
+
+        scope "/orgs" do
+          live "/", DashboardLive.OrgsLive.Index, :index
+        end
       end
 
       live "/users/settings", UserSettingsLive, :edit

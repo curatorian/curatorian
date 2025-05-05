@@ -241,7 +241,7 @@ defmodule CuratorianWeb.UserSettingsLive do
             </.inputs_for>
             
             <%= if @show_add_education do %>
-              <button type="button" class="btn-primary" phx-click="add_education">
+              <button type="button" class="btn-primary text-xs" phx-click="add_education">
                 Add Education
               </button>
             <% end %>
@@ -287,7 +287,7 @@ defmodule CuratorianWeb.UserSettingsLive do
             </div>
             
             <:actions>
-              <.button class="btn-default">Update Profile</.button>
+              <.button class="">Update Profile</.button>
             </:actions>
           </.simple_form>
         </div>
