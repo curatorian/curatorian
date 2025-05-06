@@ -15,6 +15,21 @@ defmodule CuratorianWeb.DashboardLive.UserManagerLive.Edit do
       <.simple_form for={@form} phx-submit="save">
         <.input field={@form[:fullname]} label="Full Name" type="text" />
         <.input field={@form[:bio]} label="Bio" type="textarea" />
+        <.input field={@form[:job_title]} label="Pekerjaan" type="text" id="phone-number" />
+        <.input field={@form[:company]} label="Perusahaan / Lembaga" type="text" id="company" />
+        <.input field={@form[:location]} label="Alamat / Lokasi" type="textarea" id="location" />
+        <.input field={@form[:birthday]} label="Tanggal Lahir" type="date" id="birthday" />
+        <.input
+          field={@form[:gender]}
+          label="Jenis Kelamin"
+          type="select"
+          options={[
+            {"Pilih Jenis Kelamin", nil},
+            {"Laki-laki", "laki-laki"},
+            {"Perempuan", "perempuan"}
+          ]}
+          id="gender"
+        />
         <.input
           field={@form[:user_role]}
           label="Role"
