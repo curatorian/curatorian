@@ -38,6 +38,24 @@ defmodule Curatorian.Orgs do
   def get_organization!(id), do: Repo.get!(Organization, id)
 
   @doc """
+  Gets a single organization by slug.
+
+  Raises `Ecto.NoResultsError` if the Organization does not exist.
+  ## Examples
+
+      iex> get_organization_by_slug("my-organization")
+      %Organization{}
+
+      iex> get_organization_by_slug("non-existent-slug")
+      ** (Ecto.NoResultsError)
+  """
+  def get_organization_by_slug(slug) do
+    Organization
+    |> where([o], o.slug == ^slug)
+    |> Repo.one!()
+  end
+
+  @doc """
   Creates a organization.
 
   ## Examples

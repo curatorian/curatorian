@@ -96,6 +96,7 @@ defmodule CuratorianWeb.Router do
 
         scope "/orgs" do
           live "/", DashboardLive.OrgsLive.Index, :index
+          live "/new", DashboardLive.OrgsLive.New, :new
         end
       end
 

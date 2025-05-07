@@ -1,8 +1,8 @@
 defmodule CuratorianWeb.DashboardLive.BlogsLive.BlogForm do
-  alias Curatorian.Repo
   use CuratorianWeb, :live_component
 
   alias Curatorian.Blogs
+  alias Curatorian.Repo
   alias CuratorianWeb.Utils.Slugify
 
   @impl true
