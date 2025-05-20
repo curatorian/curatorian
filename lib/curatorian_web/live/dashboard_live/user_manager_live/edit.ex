@@ -96,7 +96,8 @@ defmodule CuratorianWeb.DashboardLive.UserManagerLive.Edit do
          |> put_flash(:info, "User and profile updated")
          |> assign(:user, updated_user)
          |> assign(:profile, updated_profile)
-         |> assign(:form, to_form(changeset, as: :form))}
+         |> assign(:form, to_form(changeset, as: :form))
+         |> push_navigate(to: "/dashboard/user_manager/#{updated_user.username}")}
 
       {:error, :user, _changeset, _} ->
         {:noreply, put_flash(socket, :error, "Failed to update user")}

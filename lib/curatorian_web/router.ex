@@ -137,6 +137,7 @@ defmodule CuratorianWeb.Router do
 
     get "/:username", ProfileController, :index
     get "/:username/blog/:slug", ProfileController, :show_blog
+    get "/:username/posts", ProfileController, :show_posts
 
     delete "/users/log_out", UserSessionController, :delete
 

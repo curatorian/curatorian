@@ -83,7 +83,10 @@ defmodule CuratorianWeb.DashboardLive.UserManagerLive.Index do
         
         <div class="flex items-center justify-center mt-4 gap-2">
           <%= if @page > 1 do %>
-            <.link navigate={~p"/dashboard/user_manager?page=#{@page - 1}"} class="btn">
+            <.link
+              navigate={~p"/dashboard/user_manager?page=#{@page - 1}"}
+              class="btn btn-primary no-underline"
+            >
               Previous
             </.link>
           <% else %>
@@ -91,7 +94,12 @@ defmodule CuratorianWeb.DashboardLive.UserManagerLive.Index do
           <% end %>
            <span>{@page} / {@total_pages}</span>
           <%= if @page < @total_pages do %>
-            <.link navigate={~p"/dashboard/user_manager?page=#{@page + 1}"} class="btn">Next</.link>
+            <.link
+              navigate={~p"/dashboard/user_manager?page=#{@page + 1}"}
+              class="btn btn-primary no-underline"
+            >
+              Next
+            </.link>
           <% else %>
             <span class="btn-disabled">Next</span>
           <% end %>

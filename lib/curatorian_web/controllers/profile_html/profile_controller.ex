@@ -53,4 +53,23 @@ defmodule CuratorianWeb.ProfileController do
         |> render(:"404")
     end
   end
+
+  def show_posts(conn, %{"username" => username}) do
+    user = Accounts.get_user_profile_by_username(username)
+
+    with %Accounts.User{} <- user do
+      conn =
+        conn
+        |> assign(:user, user)
+
+      render(conn, :show_posts)
+    else
+      _ ->
+        conn
+        |> assign(:info, "User not found")
+        |> put_status(:not_found)
+        |> put_view(CuratorianWeb.ErrorHTML)
+        |> render(:"404")
+    end
+  end
 end
