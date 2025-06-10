@@ -165,7 +165,7 @@ defmodule Curatorian.Accounts do
         value -> String.to_integer(value)
       end
 
-    per_page = 1
+    per_page = 12
     offset = (page - 1) * per_page
 
     curatorian_query =
@@ -204,17 +204,27 @@ defmodule Curatorian.Accounts do
 
   """
   def register_user(user_attrs, profile_attrs) do
+    dbg(profile_attrs)
+    dbg(user_attrs)
+
     Ecto.Multi.new()
     |> Ecto.Multi.insert(:user, User.registration_changeset(%User{}, user_attrs))
     |> Ecto.Multi.insert(:user_profile, fn %{user: user} ->
-      # Ensure user_id is set and add more metadata from the google profile
-      %{fullname: fullname, user_image: user_image} = profile_attrs
+      # Extract optional fields with defaults
+      fullname = Map.get(profile_attrs, :fullname) || Map.get(profile_attrs, "fullname")
+      user_image = Map.get(profile_attrs, :user_image) || Map.get(profile_attrs, "user_image")
 
-      UserProfile.changeset(%UserProfile{}, %{
-        user_id: user.id,
-        fullname: fullname,
-        user_image: user_image
-      })
+      # Build profile params with only the required user_id
+      profile_params = %{user_id: user.id}
+
+      # Add optional fields only if they exist
+      profile_params =
+        if fullname, do: Map.put(profile_params, :fullname, fullname), else: profile_params
+
+      profile_params =
+        if user_image, do: Map.put(profile_params, :user_image, user_image), else: profile_params
+
+      UserProfile.changeset(%UserProfile{}, profile_params)
     end)
     |> Repo.transaction()
     |> case do
