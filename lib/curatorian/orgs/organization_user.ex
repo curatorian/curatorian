@@ -18,8 +18,10 @@ defmodule Curatorian.Orgs.OrganizationUser do
   @doc false
   def changeset(organization_user, attrs) do
     organization_user
-    |> cast(attrs, [:user_id, :organization_id, :role_id, :joined_at])
-    |> validate_required([:user_id, :organization_id, :role_id])
+    |> cast(attrs, [:user_id, :organization_id, :organization_role_id, :joined_at])
+    |> validate_required([:user_id, :organization_id, :organization_role_id])
     |> unique_constraint(:user_id, name: :unique_org_membership)
+    |> foreign_key_constraint(:organization_role_id)
+    |> put_change(:joined_at, attrs[:joined_at] || DateTime.utc_now())
   end
 end

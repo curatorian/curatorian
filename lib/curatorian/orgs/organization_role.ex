@@ -5,15 +5,22 @@ defmodule Curatorian.Orgs.OrganizationRole do
   schema "organization_roles" do
     field :label, :string
     field :slug, :string
+    field :description, :string
+    field :permissions, {:array, :string}
+
+    belongs_to :owner, Curatorian.Accounts.User
 
     timestamps(type: :utc_datetime)
   end
 
+  @roles ~w(owner admin editor member guest)
+
   @doc false
   def changeset(organization_role, attrs) do
     organization_role
-    |> cast(attrs, [:slug, :label])
+    |> cast(attrs, [:slug, :label, :description])
     |> validate_required([:slug, :label])
+    |> validate_inclusion(:slug, @roles)
     |> unique_constraint(:slug)
   end
 end

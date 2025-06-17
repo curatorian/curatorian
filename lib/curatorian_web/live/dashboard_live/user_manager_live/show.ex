@@ -15,7 +15,20 @@ defmodule CuratorianWeb.DashboardLive.UserManagerLive.Show do
       <div class="profile-header">
         <h2>{@user.profile.fullname}</h2>
         
-        <img src={@user.profile.user_image} class="w-32 h-32 rounded-xl" referrerPolicy="no-referrer" />
+        <%= if @user.profile.user_image do %>
+          <img
+            src={@user.profile.user_image}
+            class="w-32 h-32 rounded-xl"
+            referrerPolicy="no-referrer"
+          />
+        <% else %>
+          <img
+            src={~p"/images/default.png"}
+            class="w-32 h-32 rounded-xl"
+            referrerPolicy="no-referrer"
+          />
+        <% end %>
+        
         <p>@{@user.username}</p>
       </div>
       
@@ -80,8 +93,6 @@ defmodule CuratorianWeb.DashboardLive.UserManagerLive.Show do
 
   def mount(params, _session, socket) do
     user = Accounts.get_user_profile_by_username(params["username"])
-
-    dbg(user)
 
     socket =
       socket

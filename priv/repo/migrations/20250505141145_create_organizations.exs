@@ -14,6 +14,7 @@ defmodule Curatorian.Repo.Migrations.CreateOrganizations do
       timestamps(type: :utc_datetime)
     end
 
-    create unique_index(:organizations, [:slug])
+    create index(:organizations, [:slug])
+    create index(:organizations, [:status])
   end
 end

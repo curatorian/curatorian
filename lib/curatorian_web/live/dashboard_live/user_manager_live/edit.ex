@@ -49,7 +49,12 @@ defmodule CuratorianWeb.DashboardLive.UserManagerLive.Edit do
     merged_params = %{
       user_role: user.user_role,
       fullname: profile.fullname,
-      bio: profile.bio
+      bio: profile.bio,
+      job_title: profile.job_title,
+      company: profile.company,
+      location: profile.location,
+      birthday: profile.birthday,
+      gender: profile.gender
     }
 
     types = %{user_role: :string, fullname: :string, bio: :string}
@@ -69,17 +74,12 @@ defmodule CuratorianWeb.DashboardLive.UserManagerLive.Edit do
   end
 
   def handle_event("save", %{"form" => form_params}, socket) do
-    user_params = %{"user_role" => form_params["user_role"]}
-
-    profile_params = %{
-      "fullname" => form_params["fullname"],
-      "bio" => form_params["bio"]
-    }
-
     user = socket.assigns.user
     profile = socket.assigns.profile
 
-    case Accounts.update_user_and_profile(user, user_params, profile, profile_params) do
+    dbg(form_params)
+
+    case Accounts.update_user_and_profile(user, form_params, profile, form_params) do
       {:ok, %{user: updated_user, profile: updated_profile}} ->
         merged_params = %{
           user_role: updated_user.user_role,

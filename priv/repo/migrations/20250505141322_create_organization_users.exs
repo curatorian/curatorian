@@ -16,5 +16,7 @@ defmodule Curatorian.Repo.Migrations.CreateOrganizationUsers do
            )
 
     create index(:organization_users, [:organization_id])
+    create index(:organization_users, [:user_id])
+    create index(:organization_users, [:organization_role_id])
   end
 end

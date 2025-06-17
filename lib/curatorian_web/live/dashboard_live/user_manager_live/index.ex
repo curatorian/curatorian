@@ -45,11 +45,20 @@ defmodule CuratorianWeb.DashboardLive.UserManagerLive.Index do
               <%= for user <- @curatorians do %>
                 <tr class="hover:bg-gray-100">
                   <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 flex items-center gap-2">
-                    <img
-                      src={user.profile.user_image}
-                      referrerPolicy="no-referrer"
-                      class="w-8 h-8 rounded"
-                    />
+                    <%= if user.profile.user_image do %>
+                      <img
+                        src={user.profile.user_image}
+                        referrerPolicy="no-referrer"
+                        class="w-8 h-8 rounded"
+                      />
+                    <% else %>
+                      <img
+                        src={~p"/images/default.png"}
+                        referrerPolicy="no-referrer"
+                        class="w-8 h-8 rounded"
+                      />
+                    <% end %>
+                    
                     <span>
                       {user.username}
                     </span>

@@ -50,6 +50,7 @@ defmodule Curatorian.Accounts.UserProfile do
       :location,
       :phone_number,
       :birthday,
+      :gender,
       :twitter,
       :facebook,
       :linkedin,

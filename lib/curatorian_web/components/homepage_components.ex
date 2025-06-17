@@ -8,7 +8,15 @@ defmodule CuratorianWeb.HomepageComponents do
   def apa_itu_curatorian(assigns) do
     ~H"""
     <div class="relative">
-      <div class="text-center pt-20 z-2">
+      <div class="absolute w-full flex items-center justify-center">
+        <img
+          src="/images/undraw_questions.png"
+          class="w-full max-w-xl h-full opacity-15"
+          alt="questions"
+        />
+      </div>
+      
+      <div class="relative text-center pt-20 z-10">
         <h2>Apa itu Curatorian ?</h2>
         
         <h6 class="pt-3 italic">(abbr) Curator's Information Associated Network</h6>
@@ -16,14 +24,6 @@ defmodule CuratorianWeb.HomepageComponents do
         <p class="max-w-3xl mx-auto py-10 px-5 text-justify">
           Curatorian merupakan sebuah situs dan portal berbasis komunitas dimana seluruh lapisan masyarakat yang berprofesi atau memiliki ketertarikan dalam melakukan kurasi koleksi dapat berkumpul dan berbagi bersama mengenai profil identitas, hasil kurasi koleksi, kegiatan, acara serta pengalaman. Inisiasi ini dibentuk untuk memberikan wadah bagi para profesional, pendidik maupun pembelajar untuk berbagi pengalaman sebagai seorang profesional pengelola koleksi serta pengetahuan.
         </p>
-      </div>
-      
-      <div class="absolute top-0 -z-1 w-full flex items-center justify-center">
-        <img
-          src="/images/undraw_questions.png"
-          class="w-full max-w-xl h-full opacity-15"
-          alt="questions"
-        />
       </div>
     </div>
     """
@@ -79,19 +79,22 @@ defmodule CuratorianWeb.HomepageComponents do
         title: "Profil",
         description:
           "Berisi profil dan detail biodata dari profesional kurator, tenaga teknis pengelolaan koleksi, fresh graduate maupun mahasiswa.",
-        icon: "hero-user-circle-solid"
+        icon: "hero-user-circle-solid",
+        status: "active"
       },
       %{
         title: "Profil Lembaga",
         description:
           "Halaman profil dari lembaga, asosiasi, forum maupun organisasi tempat bekerja atau berkarya.",
-        icon: "hero-building-library-solid"
+        icon: "hero-building-library-solid",
+        status: "soon"
       },
       %{
         title: "Kegiatan & Acara",
         description:
           "Membuat dan membagikan kegiatan serta event yang berkaitan dengan kurasi koleksi.",
-        icon: "hero-calendar-days-solid"
+        icon: "hero-calendar-days-solid",
+        status: "soon"
       }
     ]
 
@@ -99,16 +102,19 @@ defmodule CuratorianWeb.HomepageComponents do
       %{
         title: "Kolaborasi Projek",
         image:
-          "Fitur untuk melakukan kolaborasi projek dengan para profesional, pendidik serta pembelajar."
+          "Fitur untuk melakukan kolaborasi projek dengan para profesional, pendidik serta pembelajar.",
+        status: "soon"
       },
       %{
         title: "Lowongan Kerja",
-        image: "Fitur untuk mencari dan membagikan lowongan pekerjaan di bidang kurasi koleksi."
+        image: "Fitur untuk mencari dan membagikan lowongan pekerjaan di bidang kurasi koleksi.",
+        status: "soon"
       },
       %{
         title: "Live Chat & Voice Chat",
         image:
-          "Fitur untuk melakukan live chat dan voice chat dengan seluruh user dalam bentuk grup (kanal) maupun personal."
+          "Fitur untuk melakukan live chat dan voice chat dengan seluruh user dalam bentuk grup (kanal) maupun personal.",
+        status: "soon"
       }
     ]
 
@@ -117,19 +123,22 @@ defmodule CuratorianWeb.HomepageComponents do
         title: "Job Boards",
         description:
           "Memberikan fitur bagi pengguna untuk mencari dan menawarkan lowongan kerja di bidang kurasi koleksi.",
-        icon: "hero-briefcase-solid"
+        icon: "hero-briefcase-solid",
+        status: "soon"
       },
       %{
         title: "Forum",
         description:
           "Memberikan fitur bagi pengguna untuk berkomunikasi dalam bentuk grup (kanal) maupun personal.",
-        icon: "hero-chat-bubble-left-right-solid"
+        icon: "hero-chat-bubble-left-right-solid",
+        status: "soon"
       },
       %{
         title: "Courses",
         description:
           "Memberikan fitur bagi pengguna untuk mengikuti kursus, workshop, seminar, dan pelatihan.",
-        icon: "hero-academic-cap-solid"
+        icon: "hero-academic-cap-solid",
+        status: "soon"
       }
     ]
 
@@ -145,26 +154,50 @@ defmodule CuratorianWeb.HomepageComponents do
       
       <div class="flex flex-col md:grid md:grid-cols-2) lg:grid-cols-3 gap-5 py-10">
         <%= for feature <- @first_feature_list do %>
-          <div class="bg-white p-8 rounded-lg">
-            <.icon name={feature.icon} class="text-violet-500 h-16 w-16" />
-            <h4 class="py-1 text-violet-500">{feature.title}</h4>
+          <div class="bg-white p-8 rounded-lg flex flex-col items-center justify-between">
+            <div>
+              <.icon name={feature.icon} class="text-violet-500 h-16 w-16" />
+              <h4 class="py-1 text-violet-500">{feature.title}</h4>
+              
+              <p class="text-gray-600 text-sm italic">
+                {feature.description}
+              </p>
+            </div>
             
-            <p>
-              {feature.description}
-            </p>
+            <div class="mt-2">
+              <span class={[
+                "text-xs py-1 px-2 rounded-full",
+                feature.status == "active" && "bg-green-500 text-white",
+                feature.status == "soon" && "bg-gray-200 text-violet-600"
+              ]}>
+                {String.capitalize(feature.status)}
+              </span>
+            </div>
           </div>
         <% end %>
       </div>
       
       <div class="flex flex-col md:grid md:grid-cols-2) lg:grid-cols-3 gap-5 py-10">
         <%= for feature <- @third_feature_list do %>
-          <div class="bg-white p-8 rounded-lg">
-            <.icon name={feature.icon} class="text-violet-500 h-16 w-16" />
-            <h4 class="py-1 text-violet-500">{feature.title}</h4>
+          <div class="bg-white p-8 rounded-lg flex flex-col items-center justify-between">
+            <div>
+              <.icon name={feature.icon} class="text-violet-500 h-16 w-16" />
+              <h4 class="py-1 text-violet-500">{feature.title}</h4>
+              
+              <p class="text-gray-600 text-sm italic">
+                {feature.description}
+              </p>
+            </div>
             
-            <p>
-              {feature.description}
-            </p>
+            <div class="mt-2">
+              <span class={[
+                "text-xs py-1 px-2 rounded-full",
+                feature.status == "active" && "bg-green-500 text-white",
+                feature.status == "soon" && "bg-gray-200 text-violet-600"
+              ]}>
+                {String.capitalize(feature.status)}
+              </span>
+            </div>
           </div>
         <% end %>
       </div>
