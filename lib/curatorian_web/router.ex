@@ -97,10 +97,13 @@ defmodule CuratorianWeb.Router do
         scope "/orgs" do
           live "/", DashboardLive.OrgsLive.Index, :index
           live "/new", DashboardLive.OrgsLive.New, :new
+          live "/:slug", DashboardLive.OrgsLive.Show, :show
+          live "/:slug/edit", DashboardLive.OrgsLive.Edit, :edit
         end
       end
 
       live "/users/settings", UserSettingsLive, :edit
+      live "/users/settings/change_password", UserLive.UserChangePassword, :edit
 
       live "/comments", CommentLive.Index, :index
       live "/comments/new", CommentLive.Index, :new

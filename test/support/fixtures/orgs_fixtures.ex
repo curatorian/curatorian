@@ -24,7 +24,7 @@ defmodule Curatorian.OrgsFixtures do
         status: "some status",
         type: "some type"
       })
-      |> Curatorian.Orgs.create_organization()
+      |> Curatorian.Orgs.create_organization(%{})
 
     organization
   end

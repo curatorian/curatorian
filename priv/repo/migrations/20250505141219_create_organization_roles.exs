@@ -7,13 +7,11 @@ defmodule Curatorian.Repo.Migrations.CreateOrganizationRoles do
       add :label, :string
       add :description, :string
       add :permissions, {:array, :string}, default: []
-      add :owner_id, references(:users, on_delete: :nothing)
 
       timestamps(type: :utc_datetime)
     end
 
     create unique_index(:organization_roles, [:slug])
-    create index(:organization_roles, [:owner_id])
 
     # Create default roles
     execute """

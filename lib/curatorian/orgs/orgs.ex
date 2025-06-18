@@ -6,7 +6,7 @@ defmodule Curatorian.Orgs do
   import Ecto.Query, warn: false
   alias Curatorian.Repo
 
-  alias Curatorian.Orgs.Organization
+  alias Curatorian.Orgs.{Organization, OrganizationRole, OrganizationUser}
 
   @doc """
   Returns the list of organizations.
@@ -18,7 +18,7 @@ defmodule Curatorian.Orgs do
 
   """
   def list_organizations do
-    Repo.all(Organization)
+    Repo.all(Organization) |> Repo.preload([:owner, :organization_users])
   end
 
   @doc """
@@ -35,7 +35,8 @@ defmodule Curatorian.Orgs do
       ** (Ecto.NoResultsError)
 
   """
-  def get_organization!(id), do: Repo.get!(Organization, id)
+  def get_organization!(id),
+    do: Repo.get!(Organization, id) |> Repo.preload([:owner, :organization_users])
 
   @doc """
   Gets a single organization by slug.
@@ -67,10 +68,18 @@ defmodule Curatorian.Orgs do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_organization(attrs \\ %{}) do
-    %Organization{}
-    |> Organization.changeset(attrs)
-    |> Repo.insert()
+  def create_organization(owner, attrs) do
+    # Create organization and set owner as admin
+    Ecto.Multi.new()
+    |> Ecto.Multi.insert(:organization, Organization.changeset(%Organization{}, attrs))
+    |> Ecto.Multi.run(:owner_membership, fn _repo, %{organization: org} ->
+      add_member(org, owner, "admin")
+    end)
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{organization: org}} -> {:ok, org}
+      {:error, _, changeset, _} -> {:error, changeset}
+    end
   end
 
   @doc """
@@ -118,6 +127,56 @@ defmodule Curatorian.Orgs do
   """
   def change_organization(%Organization{} = organization, attrs \\ %{}) do
     Organization.changeset(organization, attrs)
+  end
+
+  def add_member(organization, user, role_slug) do
+    role = Repo.get_by!(OrganizationRole, slug: role_slug)
+
+    %OrganizationUser{}
+    |> OrganizationUser.changeset(%{
+      organization_id: organization.id,
+      user_id: user.id,
+      organization_role_id: role.id,
+      joined_at: DateTime.utc_now()
+    })
+    |> Repo.insert()
+  end
+
+  def remove_member(organization, user) do
+    Repo.delete_all(
+      from ou in OrganizationUser,
+        where: ou.organization_id == ^organization.id and ou.user_id == ^user.id
+    )
+  end
+
+  # Permissions
+  def has_permission?(org, user, required_permission) do
+    user_role = get_user_role(org, user)
+    permissions = role_permissions()[user_role] || []
+    :manage_all in permissions or required_permission in permissions
+  end
+
+  def get_user_role(org, user) do
+    case Repo.get_by(OrganizationUser, organization_id: org.id, user_id: user.id) do
+      nil ->
+        :guest
+
+      membership ->
+        membership
+        |> Repo.preload(:organization_role)
+        |> Map.get(:organization_role)
+        |> Map.get(:slug)
+    end
+  end
+
+  defp role_permissions do
+    %{
+      "owner" => [:manage_all],
+      "admin" => [:manage_members, :create_content, :manage_events],
+      "editor" => [:create_content, :edit_content],
+      "member" => [:view_private, :comment],
+      "guest" => [:view_public]
+    }
   end
 
   alias Curatorian.Orgs.OrganizationRole

@@ -2,7 +2,6 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.Edit do
   use CuratorianWeb, :live_view_dashboard
 
   alias Curatorian.Orgs
-  alias Curatorian.Orgs.Organization
 
   @impl Phoenix.LiveView
   def render(assigns) do
@@ -29,24 +28,20 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.Edit do
   end
 
   @impl Phoenix.LiveView
-  def mount(%{"slug" => slug}, _session, socket) do
+  def mount(%{"slug" => slug}, session, socket) do
+    current_user = socket.assigns.current_user || session["current_user"]
     organization = Orgs.get_organization_by_slug(slug)
-    user_profile = socket.assigns.current_user
-    user_id = socket.assigns.current_user.id
 
-    if organization.user_id == user_id do
-      changeset = Orgs.change_organization(%Organization{})
-
-      socket =
-        socket
-        |> assign(:changeset, changeset)
-        |> assign(:organization, organization)
-        |> assign(:user_id, user_id)
-        |> assign(:user_profile, user_profile)
-
-      {:ok, socket}
+    if Orgs.has_permission?(organization, current_user, :manage_all) do
+      {:ok,
+       socket
+       |> assign(:current_user, current_user)
+       |> assign(:organization, organization)}
     else
-      {:error, :not_found}
+      {:ok,
+       socket
+       |> put_flash(:error, "You don't have permission to edit this organization")
+       |> push_navigate(to: ~p"/dashboard/orgs/#{slug}")}
     end
   end
 end

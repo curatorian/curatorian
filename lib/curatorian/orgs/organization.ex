@@ -45,5 +45,14 @@ defmodule Curatorian.Orgs.Organization do
     )
     |> unique_constraint(:slug)
     |> foreign_key_constraint(:owner_id)
+    |> validate_owner_exists()
+  end
+
+  defp validate_owner_exists(changeset) do
+    if get_field(changeset, :owner_id) do
+      changeset
+    else
+      add_error(changeset, :owner_id, "must have an owner")
+    end
   end
 end
