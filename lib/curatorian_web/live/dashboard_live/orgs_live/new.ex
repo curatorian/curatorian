@@ -21,6 +21,7 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.New do
         organization={@organization}
         title="New Organization"
         navigate={~p"/dashboard/orgs"}
+        current_user={@current_user}
         action={:new}
       />
       <.back navigate="/dashboard/orgs">Kembali</.back>
@@ -36,6 +37,8 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.New do
       socket
       |> assign(:changeset, changeset)
       |> assign(:organization, %Organization{})
+      |> allow_upload(:profile_image, accept: ~w(.jpg .jpeg .png), max_entries: 1)
+      |> allow_upload(:cover_image, accept: ~w(.jpg .jpeg .png), max_entries: 1)
 
     {:ok, socket}
   end

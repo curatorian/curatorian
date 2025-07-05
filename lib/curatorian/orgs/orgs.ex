@@ -73,7 +73,7 @@ defmodule Curatorian.Orgs do
     Ecto.Multi.new()
     |> Ecto.Multi.insert(:organization, Organization.changeset(%Organization{}, attrs))
     |> Ecto.Multi.run(:owner_membership, fn _repo, %{organization: org} ->
-      add_member(org, owner, "admin")
+      add_member(org, owner, "owner")
     end)
     |> Repo.transaction()
     |> case do

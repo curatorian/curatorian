@@ -8,8 +8,6 @@ defmodule Curatorian.Orgs.OrganizationRole do
     field :description, :string
     field :permissions, {:array, :string}
 
-    belongs_to :owner, Curatorian.Accounts.User
-
     timestamps(type: :utc_datetime)
   end
 
@@ -18,7 +16,7 @@ defmodule Curatorian.Orgs.OrganizationRole do
   @doc false
   def changeset(organization_role, attrs) do
     organization_role
-    |> cast(attrs, [:slug, :label, :description])
+    |> cast(attrs, [:slug, :label, :description, :owner_id])
     |> validate_required([:slug, :label])
     |> validate_inclusion(:slug, @roles)
     |> unique_constraint(:slug)

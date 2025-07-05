@@ -18,6 +18,7 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.Edit do
         module={CuratorianWeb.DashboardLive.OrgsLive.OrganizationForm}
         id={@organization.id}
         organization={@organization}
+        current_user={@current_user}
         title="Edit Organization"
         navigate={~p"/dashboard/orgs"}
         action={:edit}
@@ -36,7 +37,9 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.Edit do
       {:ok,
        socket
        |> assign(:current_user, current_user)
-       |> assign(:organization, organization)}
+       |> assign(:organization, organization)
+       |> allow_upload(:profile_image, accept: ~w(.jpg .jpeg .png), max_entries: 1)
+       |> allow_upload(:cover_image, accept: ~w(.jpg .jpeg .png), max_entries: 1)}
     else
       {:ok,
        socket

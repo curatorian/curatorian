@@ -131,7 +131,9 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.Show do
      socket
      |> assign(:current_user, current_user)
      |> assign(:organization, organization)
-     |> assign(:active_tab, :about)}
+     |> assign(:active_tab, :about)
+     |> allow_upload(:profile_image, accept: ~w(.jpg .jpeg .png), max_entries: 1)
+     |> allow_upload(:cover_image, accept: ~w(.jpg .jpeg .png), max_entries: 1)}
   end
 
   defp is_member?(org, user), do: Orgs.get_user_role(org, user) != :guest

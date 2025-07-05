@@ -7,8 +7,8 @@ defmodule Curatorian.Orgs.OrganizationUser do
   alias Curatorian.Orgs.OrganizationRole
 
   schema "organization_users" do
-    field :joined_at, :utc_datetime
-    belongs_to :user, User
+    field :joined_at, :utc_datetime_usec
+    belongs_to :user, User, type: :binary_id
     belongs_to :organization, Organization
     belongs_to :organization_role, OrganizationRole
 
@@ -22,6 +22,9 @@ defmodule Curatorian.Orgs.OrganizationUser do
     |> validate_required([:user_id, :organization_id, :organization_role_id])
     |> unique_constraint(:user_id, name: :unique_org_membership)
     |> foreign_key_constraint(:organization_role_id)
-    |> put_change(:joined_at, attrs[:joined_at] || DateTime.utc_now())
+    |> put_change(
+      :joined_at,
+      attrs[:joined_at] || DateTime.utc_now() |> DateTime.truncate(:second)
+    )
   end
 end

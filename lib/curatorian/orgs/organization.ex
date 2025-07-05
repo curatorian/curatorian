@@ -14,7 +14,7 @@ defmodule Curatorian.Orgs.Organization do
     field :image_logo, :string
     field :image_cover, :string
 
-    belongs_to :owner, User
+    belongs_to :owner, User, type: :binary_id
     has_many :organization_users, OrganizationUser
     has_many :users, through: [:organization_users, :user]
 
@@ -45,14 +45,5 @@ defmodule Curatorian.Orgs.Organization do
     )
     |> unique_constraint(:slug)
     |> foreign_key_constraint(:owner_id)
-    |> validate_owner_exists()
-  end
-
-  defp validate_owner_exists(changeset) do
-    if get_field(changeset, :owner_id) do
-      changeset
-    else
-      add_error(changeset, :owner_id, "must have an owner")
-    end
   end
 end
