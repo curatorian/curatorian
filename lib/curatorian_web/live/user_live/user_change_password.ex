@@ -6,6 +6,12 @@ defmodule CuratorianWeb.UserLive.UserChangePassword do
   def render(assigns) do
     ~H"""
     <div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md">
+      <div class="mb-4">
+        <.back navigate={~p"/users/settings"}>
+          Back to Settings
+        </.back>
+      </div>
+      
       <h2 class="text-2xl font-bold mb-6 text-center">Change Password</h2>
       
       <div class="bg-white rounded-lg p-4">
@@ -30,7 +36,7 @@ defmodule CuratorianWeb.UserLive.UserChangePassword do
             type="password"
             label="Confirm new password"
           />
-          <.input
+          <%!-- <.input
             field={@password_form[:current_password]}
             name="current_password"
             type="password"
@@ -38,7 +44,7 @@ defmodule CuratorianWeb.UserLive.UserChangePassword do
             id="current_password_for_password"
             value={@current_password}
             required
-          />
+          /> --%>
           <:actions>
             <.button phx-disable-with="Changing...">Change Password</.button>
           </:actions>
@@ -63,11 +69,19 @@ defmodule CuratorianWeb.UserLive.UserChangePassword do
     {:ok, socket}
   end
 
-  def handle_event("update_password", params, socket) do
-    %{"current_password" => password, "user" => user_params} = params
+  def handle_event("validate_password", %{"user" => user_params}, socket) do
+    changeset =
+      socket.assigns.current_user
+      |> Accounts.change_user_password(user_params)
+      |> Map.put(:action, :validate)
+
+    {:noreply, assign(socket, password_form: to_form(changeset))}
+  end
+
+  def handle_event("update_password", %{"user" => user_params} = _params, socket) do
     user = socket.assigns.current_user
 
-    case Accounts.update_user_password(user, password, user_params) do
+    case Accounts.update_user_password(user, user_params) do
       {:ok, user} ->
         password_form =
           user

@@ -17,7 +17,7 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.Show do
         <div class="absolute bottom-0 left-8 transform translate-y-1/2">
           <img
             src={@organization.image_logo || "/images/default-avatar.jpg"}
-            class="w-32 h-32 rounded-full border-4 border-white bg-white"
+            class="w-32 h-32 object-cover rounded-full border-4 border-white bg-white"
           />
         </div>
       </div>
@@ -31,21 +31,31 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.Show do
     <!-- Action Buttons -->
         <div class="mt-4 flex space-x-2">
           <%= if @current_user do %>
-            <%= if is_member?(@organization, @current_user) do %>
-              <button phx-click="leave" class="px-4 py-2 bg-red-600 text-white rounded">
-                Leave
+            <%= if is_owner?(@organization, @current_user) do %>
+              <button
+                phx-click="delete_org"
+                data-confirm="Are you sure you want to delete this organization? This action cannot be undone."
+                class="px-4 py-2 bg-red-600 text-white rounded"
+              >
+                Delete Organization
               </button>
             <% else %>
-              <button phx-click="join" class="px-4 py-2 bg-blue-600 text-white rounded">
-                Join
-              </button>
+              <%= if is_member?(@organization, @current_user) do %>
+                <button phx-click="leave" class="px-4 py-2 bg-red-600 text-white rounded">
+                  Leave
+                </button>
+              <% else %>
+                <button phx-click="join" class="px-4 py-2 bg-blue-600 text-white rounded">
+                  Join
+                </button>
+              <% end %>
             <% end %>
           <% end %>
           
           <%= if Orgs.has_permission?(@organization, @current_user, :manage_all) do %>
             <.link
               patch={~p"/dashboard/orgs/#{@organization.slug}/edit"}
-              class="px-4 py-2 bg-gray-600 text-white rounded"
+              class="px-4 py-2 bg-gray-600 text-white rounded no-underline"
             >
               Edit
             </.link>
@@ -57,7 +67,7 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.Show do
       <div class="container mx-auto mt-4">
         <%= case @active_tab do %>
           <% :about -> %>
-            <div class="bg-white p-6 rounded-lg shadow">
+            <div class="bg-white mx-5 p-6 rounded-lg shadow">
               <h3 class="text-xl font-semibold mb-4">About</h3>
               
               <p class="text-gray-700">{@organization.description}</p>
@@ -127,6 +137,8 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.Show do
     current_user = socket.assigns.current_user || session["current_user"]
     organization = Orgs.get_organization_by_slug(slug)
 
+    dbg(Orgs.get_user_role(organization, current_user))
+
     {:ok,
      socket
      |> assign(:current_user, current_user)
@@ -136,5 +148,13 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.Show do
      |> allow_upload(:cover_image, accept: ~w(.jpg .jpeg .png), max_entries: 1)}
   end
 
+  def handle_event("delete_org", _params, socket) do
+    organization = socket.assigns.organization
+    Orgs.delete_organization(organization)
+
+    {:noreply, push_navigate(socket, to: ~p"/dashboard/orgs")}
+  end
+
   defp is_member?(org, user), do: Orgs.get_user_role(org, user) != :guest
+  defp is_owner?(org, user), do: Orgs.get_user_role(org, user) == "owner"
 end

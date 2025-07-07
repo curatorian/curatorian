@@ -155,6 +155,10 @@ a {
   @apply rounded-2xl w-full h-56 object-cover;
 }
 
+.main-profile-pic {
+  @apply w-32 h-32 rounded-full shadow-xl object-cover -mt-24;
+}
+
 .active-menu-dashboard {
   @apply text-violet-500 font-bold;
 }

@@ -49,13 +49,16 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.Index do
         
         <:action :let={org}>
           <div class="flex justify-end space-x-3">
-            <div class="sr-only">
-              <.link navigate={~p"/dashboard/orgs/#{org.slug}"}>Show</.link>
-            </div>
+            <.link
+              navigate={~p"/dashboard/orgs/#{org.slug}"}
+              class="btn-primary text-indigo-600 hover:text-indigo-900 font-medium no-underline"
+            >
+              Show
+            </.link>
             
             <.link
               patch={~p"/dashboard/orgs/#{org.slug}/edit"}
-              class="text-indigo-600 hover:text-indigo-900 font-medium"
+              class="btn-default text-indigo-600 hover:text-indigo-900 font-medium no-underline"
             >
               Edit
             </.link>
@@ -63,7 +66,7 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.Index do
             <.link
               phx-click={JS.push("delete", value: %{id: org.id}) |> hide("##{org.id}")}
               data-confirm="Are you sure?"
-              class="text-red-600 hover:text-red-900 font-medium"
+              class="btn-cancel text-red-600 hover:text-red-900 font-medium no-underline"
             >
               Delete
             </.link>

@@ -56,6 +56,16 @@ defmodule Curatorian.Orgs do
     |> Repo.one!()
   end
 
+  def get_member_count_by_slug(slug) do
+    from(ou in OrganizationUser,
+      join: o in Organization,
+      on: ou.organization_id == o.id,
+      where: o.slug == ^slug,
+      select: count(ou.id)
+    )
+    |> Repo.one()
+  end
+
   @doc """
   Creates a organization.
 

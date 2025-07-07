@@ -30,6 +30,9 @@ defmodule CuratorianWeb.Router do
     get "/", PageController, :home
     get "/about", PageController, :about
     get "/kurator", CuratorController, :index
+
+    get "/orgs", OrgsController, :index
+    get "/orgs/:slug", OrgsController, :show, as: :organization
   end
 
   # Other scopes may use custom stacks.
@@ -155,5 +158,17 @@ defmodule CuratorianWeb.Router do
       live "/users/confirm/:token", UserConfirmationLive, :edit
       live "/users/confirm", UserConfirmationInstructionsLive, :new
     end
+  end
+
+  scope "/", CuratorianWeb do
+    pipe_through [:browser, :require_authenticated_user]
+
+    # Protected organization routes
+    resources "/orgs", OrgsController,
+      param: "slug",
+      only: [:new, :create, :edit, :update, :delete]
+
+    post "/orgs/:slug/join", OrgsController, :join
+    post "/orgs/:slug/leave", OrgsController, :leave
   end
 end

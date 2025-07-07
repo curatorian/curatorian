@@ -16,12 +16,22 @@
       />
       <div class="bg-white shadow-md rounded-lg p-6">
         <div class="flex justify-between">
-          <img
-            src={@user.profile.user_image}
-            alt="Profile Picture"
-            class="w-32 h-32 rounded-full shadow-xl -mt-24"
-            referrerPolicy="no-referrer"
-          />
+          <%= if @user.profile.user_image do %>
+            <img
+              src={@user.profile.user_image}
+              alt="Profile Picture"
+              class="main-profile-pic"
+              referrerPolicy="no-referrer"
+            />
+          <% else %>
+            <img
+              src={~p"/images/default.png"}
+              alt="Default Profile Picture"
+              class="main-profile-pic"
+              referrerPolicy="no-referrer"
+            />
+          <% end %>
+          
           <%= if @current_user && @current_user.id == @user.id do %>
             <.link
               navigate={~p"/users/settings"}

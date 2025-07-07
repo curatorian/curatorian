@@ -19,7 +19,11 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.OrganizationForm do
           <label class="block text-sm font-medium">Cover Image</label>
           <%= if @organization.image_cover && Enum.empty?(@uploads.image_cover.entries) do %>
             <div class="mb-2 flex flex-col gap-2">
-              <img src={@organization.image_cover} alt="Cover image" class="rounded" />
+              <img
+                src={@organization.image_cover}
+                alt="Cover image"
+                class="rounded w-full h-full max-h-[480px] object-cover"
+              />
               <button
                 type="button"
                 class="btn-cancel text-sm text-red-600"
@@ -35,7 +39,10 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.OrganizationForm do
             <%= if Enum.any?(@uploads.image_cover.entries) do %>
               <%= for entry <- @uploads.image_cover.entries do %>
                 <div class="mt-2">
-                  <.live_img_preview entry={entry} width="200" />
+                  <.live_img_preview
+                    entry={entry}
+                    class="rounded w-full h-full max-h-[480px] object-cover"
+                  />
                 </div>
                  <progress value={entry.progress} max="100">{entry.progress}%</progress>
                 <button
@@ -58,7 +65,11 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.OrganizationForm do
             <label class="block text-sm font-medium">Profile Image</label>
             <%= if @organization.image_logo && Enum.empty?(@uploads.image_logo.entries) do %>
               <div class="mb-2 flex flex-col gap-2">
-                <img src={@organization.image_logo} alt="Profile image" width="100" class="rounded" />
+                <img
+                  src={@organization.image_logo}
+                  alt="Profile image"
+                  class="w-64 h-64 object-cover rounded"
+                />
                 <button
                   type="button"
                   class="btn-cancel text-sm text-red-600"
@@ -92,37 +103,37 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.OrganizationForm do
             <% end %>
           </div>
           
-          <div class="col-span-4 flex flex-col justify-between">
+          <div class="col-span-4 flex flex-col justify-evenly h-full">
             <.input field={@form[:name]} type="text" label="Name" />
             <.input field={@form[:slug]} type="text" label="Slug" phx-hook="Slugify" id="slug" />
+            <.input
+              field={@form[:status]}
+              type="select"
+              label="Status"
+              options={[
+                {"Draft", "draft"},
+                {"Pending", "pending"},
+                {"Approved", "approved"},
+                {"Archived", "archived"}
+              ]}
+              prompt="Select status of organization"
+              disabled={@current_user.user_role != "manager"}
+            />
+            <.input
+              field={@form[:type]}
+              type="select"
+              label="Type"
+              options={[
+                {"Company", "company"},
+                {"Institution", "institution"},
+                {"Community", "community"},
+                {"Non-profit", "non_profit"}
+              ]}
+              prompt="Select type of organization"
+            />
           </div>
         </div>
-        
-        <.input
-          field={@form[:status]}
-          type="select"
-          label="Status"
-          options={[
-            {"Draft", "draft"},
-            {"Pending", "pending"},
-            {"Approved", "approved"},
-            {"Archived", "archived"}
-          ]}
-          prompt="Select status of organization"
-          disabled={@current_user.user_role != "manager"}
-        />
-        <.input
-          field={@form[:type]}
-          type="select"
-          label="Type"
-          options={[
-            {"Company", "company"},
-            {"Institution", "institution"},
-            {"Community", "community"},
-            {"Non-profit", "non_profit"}
-          ]}
-          prompt="Select type of organization"
-        /> <.input field={@form[:description]} type="textarea" label="Description" />
+         <.input field={@form[:description]} type="textarea" label="Description" />
         <:actions>
           <.button type="submit" phx-disable-with="Saving...">Save</.button>
         </:actions>

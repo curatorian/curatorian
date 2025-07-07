@@ -15,6 +15,7 @@ defmodule CuratorianWeb.LayoutComponents do
         %{title: "Beranda", url: "/"},
         %{title: "Tentang", url: "/about"},
         %{title: "Kurator", url: "/kurator"},
+        %{title: "Organisasi", url: "/orgs"},
         %{title: "Events", url: "/events"}
       ])
 

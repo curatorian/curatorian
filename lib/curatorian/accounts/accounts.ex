@@ -378,11 +378,12 @@ defmodule Curatorian.Accounts do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_user_password(user, password, attrs) do
+  def update_user_password(user, attrs) do
     changeset =
       user
       |> User.password_changeset(attrs)
-      |> User.validate_current_password(password)
+
+    # |> User.validate_current_password(password)
 
     Ecto.Multi.new()
     |> Ecto.Multi.update(:user, changeset)
