@@ -22,7 +22,7 @@ defmodule CuratorianWeb.Endpoint do
   plug Plug.Static,
     at: "/",
     from: :curatorian,
-    gzip: false,
+    gzip: not code_reloading?,
     only: CuratorianWeb.static_paths()
 
   # Tidewave

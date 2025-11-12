@@ -125,7 +125,7 @@ defmodule CuratorianWeb.Router do
           live "/", DashboardLive.UserManagerLive.Index, :index
           live "/:username", DashboardLive.UserManagerLive.Show, :show
           live "/:username/edit", DashboardLive.UserManagerLive.Edit, :edit
-          live "/:username/delete", DashboardLive.UserManagerLive.Delete, :delete
+          # live "/:username/delete", DashboardLive.UserManagerLive.Delete, :delete
         end
       end
     end

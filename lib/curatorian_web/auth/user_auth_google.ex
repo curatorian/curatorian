@@ -7,26 +7,24 @@ defmodule CuratorianWeb.UserAuthGoogle do
 
   # http://localhost:4000/auth/google
   def request(conn) do
-    Application.get_env(:assent, :google)
-    |> Google.authorize_url()
-    |> IO.inspect(label: "authorize_url")
-    |> case do
+    case Application.get_env(:assent, :google)
+         |> Google.authorize_url() do
       {:ok, %{url: url, session_params: session_params}} ->
         # Session params (used for OAuth 2.0 and OIDC strategies) will be
         # retrieved when user returns for the callback phase
         conn = put_session(conn, :session_params, session_params)
 
-        # Redirect end-user to google to authorize access to their account
+        # Redirect end-user to Github to authorize access to their account
         conn
         |> put_resp_header("location", url)
-        |> send_resp(302, "")
+        |> send_resp(302, "Successfully Redirected")
 
       {:error, error} ->
         conn
         |> put_resp_content_type("text/plain")
         |> send_resp(
           500,
-          "Something went wrong generating the request authorization url: #{inspect(error)}"
+          "Something went wrong on authorization! Here is the reason: #{inspect(error)}"
         )
     end
   end
@@ -48,6 +46,8 @@ defmodule CuratorianWeb.UserAuthGoogle do
     |> Google.callback(params)
     |> case do
       {:ok, %{user: user, token: token}} ->
+        # Assent v0.3.1: userinfo claims are now cast to correct types per OIDC spec
+        # email_verified is now a boolean, hd replaces google_hd
         user_record = Curatorian.Accounts.get_user_by_email_or_register(user)
 
         ip = get_ip(conn)
@@ -65,9 +65,7 @@ defmodule CuratorianWeb.UserAuthGoogle do
         |> Phoenix.Controller.redirect(to: "/")
 
       {:error, error} ->
-        # Authorizaiton failed
-        IO.inspect(error, label: "error")
-
+        # Authorization failed
         conn
         |> put_resp_content_type("text/plain")
         |> send_resp(500, inspect(error, pretty: true))
@@ -76,6 +74,8 @@ defmodule CuratorianWeb.UserAuthGoogle do
 
   def fetch_google_user(conn, _opts) do
     with user when is_map(user) <- get_session(conn, :google_user) do
+      # Assent v0.3.1: userinfo claims are now cast to correct types per OIDC spec
+      # email_verified is now a boolean, hd replaces google_hd
       assign(conn, :current_user, %User{email: user["email"]})
     else
       _ -> conn
@@ -89,6 +89,8 @@ defmodule CuratorianWeb.UserAuthGoogle do
   defp mount_current_user(socket, session) do
     Phoenix.Component.assign_new(socket, :current_user, fn ->
       if user = session["google_user"] do
+        # Assent v0.3.1: userinfo claims are now cast to correct types per OIDC spec
+        # email_verified is now a boolean, hd replaces google_hd
         %User{email: user["email"]}
       end
     end)

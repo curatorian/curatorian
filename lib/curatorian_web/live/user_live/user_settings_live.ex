@@ -57,9 +57,7 @@ defmodule CuratorianWeb.UserSettingsLive do
               <% end %>
                <%!-- render each avatar entry --%>
               <article :for={entry <- @uploads.avatar.entries} class="upload-entry">
-                <figure>
-                  <.live_img_preview entry={entry} class="profile-pic" />
-                </figure>
+                <figure><.live_img_preview entry={entry} class="profile-pic" /></figure>
                 
                 <%!-- a regular click event whose handler will invoke Phoenix.LiveView.cancel_upload/3 --%>
                 <div class="w-full flex gap-2 mt-3">
@@ -72,7 +70,6 @@ defmodule CuratorianWeb.UserSettingsLive do
                   >
                     Batal
                   </.button>
-                  
                   <.button type="button" phx-click="upload_image" class="w-full btn-confirm">
                     Simpan
                   </.button>
@@ -96,16 +93,12 @@ defmodule CuratorianWeb.UserSettingsLive do
                 
                 <div class="flex items-center w-full gap-2 py-2">
                   <.icon name="hero-user-solid" class="w-6 h-6 max-w-8" />
-                  <p class="max-w-48">
-                    {@current_user.profile.fullname}
-                  </p>
+                  <p class="max-w-48">{@current_user.profile.fullname}</p>
                 </div>
                 
                 <div class="flex items-center w-full gap-2 py-2">
                   <.icon name="hero-envelope-solid" class="w-6 h-6 max-w-8" />
-                  <a href={"mailto:#{@current_user.email}"} class="max-w-48">
-                    {@current_user.email}
-                  </a>
+                  <a href={"mailto:#{@current_user.email}"} class="max-w-48">{@current_user.email}</a>
                 </div>
                 
                 <div class="flex items-center w-full gap-2 py-2">
@@ -286,9 +279,7 @@ defmodule CuratorianWeb.UserSettingsLive do
               />
             </div>
             
-            <:actions>
-              <.button class="">Update Profile</.button>
-            </:actions>
+            <:actions><.button class="">Update Profile</.button></:actions>
           </.simple_form>
         </div>
       </section>
@@ -472,7 +463,6 @@ defmodule CuratorianWeb.UserSettingsLive do
   @impl Phoenix.LiveView
   def handle_event("update_profile", %{"user_profile" => params}, socket) do
     user = socket.assigns.current_user
-    IO.inspect(params, label: "🔥 Incoming Params")
 
     case Accounts.update_user_profile(user, params) do
       {:ok, profile} ->
