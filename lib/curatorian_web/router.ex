@@ -64,15 +64,15 @@ defmodule CuratorianWeb.Router do
 
     live_session :current_user,
       on_mount: [
-        {CuratorianWeb.UserAuth, :mount_current_user}
+        {CuratorianWeb.UserAuth, :mount_current_scope}
       ] do
       live "/register", UserLive.Registration, :new
       live "/login", UserLive.Login, :new
       live "/login/:token", UserLive.Confirmation, :new
     end
 
-    post "/users/log-in", UserSessionController, :create
-    delete "/users/log-out", UserSessionController, :delete
+    post "/login", UserSessionController, :create
+    delete "/logout", UserSessionController, :delete
   end
 
   scope "/", CuratorianWeb do

@@ -19,9 +19,9 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.New do
         organization={@organization}
         title="New Organization"
         navigate={~p"/dashboard/orgs"}
-        current_user={@current_user}
+        current_user={@current_scope.user}
         action={:new}
-      /> <.button navigate="/dashboard/orgs">Kembali</.button>
+      />
     </section>
     """
   end

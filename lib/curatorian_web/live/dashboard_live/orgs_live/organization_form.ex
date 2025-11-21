@@ -51,7 +51,7 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.OrganizationForm do
                   phx-value-field="image_cover"
                   phx-value-ref={entry.ref}
                   phx-target={@myself}
-                  class="btn-warning text-sm text-red-600"
+                  class="btn btn-warning text-sm text-red-600"
                 >
                   Cancel
                 </button>
@@ -72,7 +72,7 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.OrganizationForm do
                 />
                 <button
                   type="button"
-                  class="btn-cancel text-sm text-red-600"
+                  class="btn btn-cancel text-sm text-red-600"
                   phx-click="remove-image"
                   phx-value-field="image_logo"
                   phx-target={@myself}

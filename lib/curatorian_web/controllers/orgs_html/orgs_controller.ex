@@ -31,7 +31,7 @@ defmodule CuratorianWeb.OrgsController do
   end
 
   def create(conn, %{"organization" => organization_params}) do
-    current_user = conn.assigns.current_user
+    current_user = conn.assigns.current_scope.user
 
     case Orgs.create_organization(current_user, organization_params) do
       {:ok, organization} ->
@@ -122,7 +122,7 @@ defmodule CuratorianWeb.OrgsController do
 
   def join(conn, %{"slug" => slug}) do
     with {:ok, organization} <- safe_get_organization(slug) do
-      current_user = conn.assigns.current_user
+      current_user = conn.assigns.current_scope.user
 
       case Orgs.add_member(organization, current_user, "member") do
         {:ok, _} ->
@@ -145,7 +145,7 @@ defmodule CuratorianWeb.OrgsController do
 
   def leave(conn, %{"slug" => slug}) do
     with {:ok, organization} <- safe_get_organization(slug) do
-      current_user = conn.assigns.current_user
+      current_user = conn.assigns.current_scope.user
 
       case Orgs.remove_member(organization, current_user) do
         {1, _} ->
@@ -185,7 +185,7 @@ defmodule CuratorianWeb.OrgsController do
   end
 
   defp can_manage?(conn, organization) do
-    current_user = conn.assigns.current_user
+    current_user = conn.assigns.current_scope.user
     Orgs.has_permission?(organization, current_user, :manage_all)
   end
 end

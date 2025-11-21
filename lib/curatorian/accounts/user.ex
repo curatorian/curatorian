@@ -131,7 +131,7 @@ defmodule Curatorian.Accounts.User do
   """
   def email_changeset(user, attrs, opts \\ []) do
     user
-    |> cast(attrs, [:email])
+    |> cast(attrs, [:email, :username])
     |> validate_email(opts)
     |> case do
       %{changes: %{email: _}} = changeset -> changeset

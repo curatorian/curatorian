@@ -70,7 +70,15 @@ defmodule Curatorian.Accounts do
       ** (Ecto.NoResultsError)
   """
   def get_user_profile_by_user_id(user_id) do
-    Repo.get_by!(UserProfile, user_id: user_id)
+    case Repo.get_by(UserProfile, user_id: user_id) do
+      nil ->
+        %UserProfile{}
+        |> UserProfile.changeset(%{user_id: user_id})
+        |> Repo.insert!()
+
+      profile ->
+        profile
+    end
     |> Repo.preload(:educations)
   end
 
@@ -237,6 +245,12 @@ defmodule Curatorian.Accounts do
         # Return the user profile changeset in case of user profile insertion error
         {:error, :user_profile, changeset}
     end
+  end
+
+  def register_user_by_email_only(attrs) do
+    %User{}
+    |> User.email_changeset(attrs)
+    |> Repo.insert()
   end
 
   @doc """
@@ -499,13 +513,13 @@ defmodule Curatorian.Accounts do
   ## Token helper
 
   defp update_user_and_delete_all_tokens(changeset) do
-    Repo.transact(fn ->
+    Repo.transaction(fn ->
       with {:ok, user} <- Repo.update(changeset) do
         tokens_to_expire = Repo.all_by(UserToken, user_id: user.id)
 
         Repo.delete_all(from(t in UserToken, where: t.id in ^Enum.map(tokens_to_expire, & &1.id)))
 
-        {:ok, {user, tokens_to_expire}}
+        {user, tokens_to_expire}
       end
     end)
   end

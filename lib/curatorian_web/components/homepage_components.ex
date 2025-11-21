@@ -154,14 +154,12 @@ defmodule CuratorianWeb.HomepageComponents do
       
       <div class="flex flex-col md:grid md:grid-cols-2) lg:grid-cols-3 gap-5 py-10">
         <%= for feature <- @first_feature_list do %>
-          <div class="bg-white p-8 rounded-lg flex flex-col items-center justify-between">
+          <div class="bg-white dark:bg-gray-700 p-8 rounded-lg flex flex-col items-center justify-between">
             <div>
               <.icon name={feature.icon} class="text-violet-500 h-16 w-16" />
               <h4 class="py-1 text-violet-500">{feature.title}</h4>
               
-              <p class="text-gray-600 text-sm italic">
-                {feature.description}
-              </p>
+              <p class="text-gray-600 dark:text-white text-sm italic">{feature.description}</p>
             </div>
             
             <div class="mt-2">
@@ -179,14 +177,12 @@ defmodule CuratorianWeb.HomepageComponents do
       
       <div class="flex flex-col md:grid md:grid-cols-2) lg:grid-cols-3 gap-5 py-10">
         <%= for feature <- @third_feature_list do %>
-          <div class="bg-white p-8 rounded-lg flex flex-col items-center justify-between">
+          <div class="bg-white dark:bg-gray-700 p-8 rounded-lg flex flex-col items-center justify-between">
             <div>
               <.icon name={feature.icon} class="text-violet-500 h-16 w-16" />
               <h4 class="py-1 text-violet-500">{feature.title}</h4>
               
-              <p class="text-gray-600 text-sm italic">
-                {feature.description}
-              </p>
+              <p class="text-gray-600 dark:text-white text-sm italic">{feature.description}</p>
             </div>
             
             <div class="mt-2">
@@ -212,7 +208,7 @@ defmodule CuratorianWeb.HomepageComponents do
         <p>April ~ Juni 2025</p>
         
         <a href="https://www.figma.com/design/zuTAgw55YphtJ5F8QzHmt3/Curatorian" target="_blank">
-          <button class="btn bg-white text-violet-5">Roadmap &rightarrow;</button>
+          <button class="btn bg-white dark:bg-gray-600 text-violet-5">Roadmap &rightarrow;</button>
         </a>
       </div>
     </div>
@@ -225,9 +221,7 @@ defmodule CuratorianWeb.HomepageComponents do
       <h3 class="mb-10">Tertarik dengan Curatorian ?</h3>
       
       <div class="flex flex-col md:flex-row items-center justify-center w-full gap-5">
-        <div>
-          <img src="/images/undraw_referral.png" class="w-full max-w-md" alt="" />
-        </div>
+        <div><img src="/images/undraw_referral.png" class="w-full max-w-md" alt="" /></div>
         
         <div>
           <p class="py-5">Silahkan masukkan E-Mail pengingat untuk informasi rilis Curatorian</p>
@@ -260,7 +254,6 @@ defmodule CuratorianWeb.HomepageComponents do
                     />
                   </svg>
                 </a>
-                
                 <a
                   href="https://twitter.com/curatorian_id"
                   target="_blank"
@@ -274,7 +267,6 @@ defmodule CuratorianWeb.HomepageComponents do
                     />
                   </svg>
                 </a>
-                
                 <a
                   href="https://github.com/curatorian"
                   target="_blank"
@@ -288,7 +280,6 @@ defmodule CuratorianWeb.HomepageComponents do
                     />
                   </svg>
                 </a>
-                
                 <a
                   href="https://discord.gg/CS6pYuVwZa"
                   target="_blank"

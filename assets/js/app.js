@@ -92,7 +92,7 @@ Hooks.NavbarToggle = {
   },
 };
 
-// Handle Category Selection
+// Handle Category/Tag Selection: push to LiveView on Enter
 Hooks.ChooseTag = {
   mounted() {
     this.el.addEventListener("keydown", (e) => {
@@ -100,9 +100,8 @@ Hooks.ChooseTag = {
         e.preventDefault();
         const value = this.el.value.trim();
         if (value !== "") {
-          this.pushEventTo(this.el.getAttribute("phx-target"), "add_tag", {
-            name: value,
-          });
+          // Push event to the LiveView (no phx-target needed)
+          this.pushEvent("add_tag", { name: value });
           this.el.value = ""; // clear input
         }
       }
@@ -119,7 +118,7 @@ const csrfToken = document
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: { _csrf_token: csrfToken },
-  hooks: { Hooks, ...colocatedHooks },
+  hooks: { ...Hooks, ...colocatedHooks },
 });
 
 // Show progress bar on live navigation and form submits
@@ -177,3 +176,45 @@ if (process.env.NODE_ENV === "development") {
     }
   );
 }
+
+function applySystemTheme() {
+  const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  document.documentElement.setAttribute(
+    "data-theme",
+    isDark ? "dark" : "light"
+  );
+  document.documentElement.classList.toggle("dark", isDark);
+}
+
+window
+  .matchMedia("(prefers-color-scheme: dark)")
+  .addEventListener("change", () => {
+    if (localStorage.getItem("theme") === "system") {
+      applySystemTheme();
+    }
+  });
+
+window.addEventListener("phx:set-theme", (e) => {
+  let pref = e.target.dataset.phxTheme;
+  localStorage.setItem("theme", pref);
+  document.documentElement.setAttribute("data-theme-pref", pref);
+
+  if (pref === "system") {
+    applySystemTheme();
+  } else {
+    document.documentElement.setAttribute("data-theme", pref);
+    document.documentElement.classList.toggle("dark", pref === "dark");
+  }
+});
+
+(function initTheme() {
+  let pref = localStorage.getItem("theme") || "system";
+  document.documentElement.setAttribute("data-theme-pref", pref);
+
+  if (pref === "system") {
+    applySystemTheme();
+  } else {
+    document.documentElement.setAttribute("data-theme", pref);
+    document.documentElement.classList.toggle("dark", pref === "dark");
+  }
+})();

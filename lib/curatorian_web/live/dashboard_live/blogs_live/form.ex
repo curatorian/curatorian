@@ -15,7 +15,6 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Form do
         id="blog-form"
         phx-change="validate"
         phx-submit="save"
-        phx-target={@myself}
       >
         <.input
           field={@form[:status]}
@@ -32,15 +31,13 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Form do
           placeholder="e.g. Art, History, Tech"
           field={@form[:tag_name]}
           phx-hook="ChooseTag"
-          phx-target={@myself}
           autocomplete="off"
         />
         <div class="flex gap-2">
           <%= for tag <- @tags do %>
             <div
-              class="bg-purple-500 text-white px-4 py-1 rounded-lg text-sm -mt-6 cursor-pointer"
+              class="bg-purple-500 text-white px-4 py-1 rounded-lg my-3 text-sm cursor-pointer"
               phx-click="delete_tag"
-              phx-target={@myself}
               phx-value-tag-slug={tag.slug}
             >
               {tag.name}
@@ -82,7 +79,6 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Form do
                 phx-click="cancel-upload"
                 phx-value-ref={entry.ref}
                 aria-label="cancel"
-                phx-target={@myself}
               >
                 &times;
               </button> <%!-- Phoenix.Component.upload_errors/2 returns a list of error atoms --%>
@@ -138,8 +134,8 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Form do
     blog = Blogs.get_blog_by_slug(slug) |> Repo.preload(:tags) |> Repo.preload(:categories)
 
     # Authorization: only the blog owner or privileged users can edit
-    user_id = socket.assigns[:user_id]
-    user_profile = socket.assigns[:user_profile] || socket.assigns[:current_user]
+    user_id = socket.assigns.current_scope.user.id
+    user_profile = socket.assigns.current_scope.user.profile || socket.assigns.current_scope.user
 
     privileged_roles = ["manager", "admin", "coordinator"]
 
@@ -150,6 +146,7 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Form do
     if authorized do
       socket
       |> assign(:title, "Edit Blog")
+      |> assign(:action, :edit)
       |> assign(:blog, blog)
       |> assign(:tags, blog.tags)
       |> assign(:categories, blog.categories)
@@ -157,7 +154,7 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Form do
     else
       socket
       |> put_flash(:error, "You are not authorized to edit this blog.")
-      |> push_navigate(to: ~p"/dashboard/blogs")
+      |> push_navigate(to: ~p"/dashboard/blog")
     end
   end
 
@@ -166,6 +163,7 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Form do
 
     socket
     |> assign(:title, "New Blog")
+    |> assign(:action, :new)
     |> assign(:blog, blog)
     |> assign(:tags, [])
     |> assign(:categories, [])
@@ -284,11 +282,13 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Form do
       socket
       |> update(:uploaded_files, &(&1 ++ uploaded_files))
 
-    save_blog(socket, socket.assigns.action, blog_params)
+    action = Map.get(socket.assigns, :action, socket.assigns.live_action || :new)
+
+    save_blog(socket, action, blog_params)
   end
 
   defp save_blog(socket, :edit, blog_params) do
-    user_id = socket.assigns.user_id
+    user_id = socket.assigns.current_scope.user.id
 
     blog_params =
       blog_params
@@ -309,7 +309,7 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Form do
   end
 
   defp save_blog(socket, :new, blog_params) do
-    user_id = socket.assigns.user_id
+    user_id = socket.assigns.current_scope.user.id
 
     blog_params =
       blog_params
@@ -347,6 +347,6 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Form do
   defp error_to_string(:not_accepted), do: "You have selected an unacceptable file type"
   defp error_to_string(:too_many_files), do: "You have selected too many files"
 
-  defp return_path("index", _blog), do: ~p"/dashboard/blogs"
-  defp return_path("show", blog), do: ~p"/dashboard/blogs/#{blog}"
+  defp return_path("index", _blog), do: ~p"/dashboard/blog"
+  defp return_path("show", blog), do: ~p"/dashboard/blog/#{blog}"
 end

@@ -27,9 +27,8 @@ defmodule CuratorianWeb.UserLive.Registration do
             field={@form[:email]}
             type="email"
             label="Email"
-            autocomplete="username"
+            autocomplete="email"
             required
-            phx-mounted={JS.focus()}
           />
           <.button phx-disable-with="Creating account..." class="btn btn-primary w-full">
             Create an account
@@ -47,15 +46,20 @@ defmodule CuratorianWeb.UserLive.Registration do
   end
 
   def mount(_params, _session, socket) do
-    changeset = Accounts.change_user_email(%User{}, %{}, validate_unique: false)
+    # Use the registration changeset so username and password fields
+    # are present and validated on the LiveView form.
+    changeset = Accounts.change_user_registration(%User{}, %{})
 
     {:ok, assign_form(socket, changeset), temporary_assigns: [form: nil]}
   end
 
   @impl true
   def handle_event("save", %{"user" => user_params}, socket) do
-    case Accounts.register_user(user_params) do
-      {:ok, user, _user_profile} ->
+    username = Map.get(user_params, "email", "") |> String.split("@") |> hd()
+    user_params = Map.put(user_params, "username", username)
+
+    case Accounts.register_user_by_email_only(user_params) do
+      {:ok, user} ->
         {:ok, _} =
           Accounts.deliver_login_instructions(
             user,
@@ -64,24 +68,21 @@ defmodule CuratorianWeb.UserLive.Registration do
 
         {:noreply,
          socket
+         |> put_flash(:email, user.email)
          |> put_flash(
            :info,
            "An email was sent to #{user.email}, please access it to confirm your account."
          )
          |> push_navigate(to: ~p"/login")}
 
-      {:error, :user, %Ecto.Changeset{} = changeset} ->
-        # Handle user changeset error with additional data
-        {:noreply, socket |> assign(check_errors: true) |> assign_form(changeset)}
-
-      {:error, :user_profile, %Ecto.Changeset{} = changeset} ->
+      {:error, %Ecto.Changeset{} = changeset} ->
         # Handle user changeset error with additional data
         {:noreply, socket |> assign(check_errors: true) |> assign_form(changeset)}
     end
   end
 
   def handle_event("validate", %{"user" => user_params}, socket) do
-    changeset = Accounts.change_user_email(%User{}, user_params, validate_unique: false)
+    changeset = Accounts.change_user_registration(%User{}, user_params)
     {:noreply, assign_form(socket, Map.put(changeset, :action, :validate))}
   end
 

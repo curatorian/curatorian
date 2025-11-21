@@ -1,21 +1,24 @@
-<section class="bg-violet-100">
-  <div class="error-page">
-    <h1 class="error-status-heading">500</h1>
-    
-    <h3>Ksalahan Server Internal</h3>
-    
-    <h6 class="mb-4">
-      Kamu mencoba untuk mengakses halaman : <pre class="mt-4">{@conn.request_path} <br>{@conn.info}</pre>
-    </h6>
-    
-    <p>
-      Mohon maaf, Curatorian sepertinya sedang bermasalah. <br />
-      Silahkan coba lagi nanti atau hubungi Admin.
-    </p>
-    
-    <div class="my-4 flex items-center justify-center gap-3">
-      <.link href="mailto:curatorian.id@gmail.com" class="btn no-underline">Hubungi Admin</.link>
-      <.link navigate="/" class="btn no-underline">Kembali ke Beranda</.link>
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <section class="bg-violet-100 dark:bg-gray-600">
+    <div class="error-page">
+      <h1 class="error-status-heading">500</h1>
+      
+      <h3>Ksalahan Server Internal</h3>
+      
+      <h6 class="mb-4">
+        Kamu mencoba untuk mengakses halaman : <pre class="mt-4">{@conn.request_path} <br>{@conn.info}</pre>
+      </h6>
+      
+      <p>
+        Mohon maaf, Curatorian sepertinya sedang bermasalah. <br />
+        Silahkan coba lagi nanti atau hubungi Admin.
+      </p>
+      
+      <div class="my-4 flex items-center justify-center gap-3">
+        <.link href="mailto:curatorian.id@gmail.com" class="btn no-underline">
+          Hubungi Admin
+        </.link> <.link navigate="/" class="btn no-underline">Kembali ke Beranda</.link>
+      </div>
     </div>
-  </div>
-</section>
+  </section>
+</Layouts.app>

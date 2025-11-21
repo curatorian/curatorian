@@ -13,11 +13,12 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Index do
     </.header>
 
     <section class="grid grid-cols-3 gap-4 my-5">
-      <%= if @streams.blogs == [] do %>
+      <%= if Enum.empty?(@blogs) do %>
         <h5>Kamu belum membuat Blog</h5>
       <% else %>
-        <%= for blog <- @streams.blogs do %>
-          <div class="bg-white p-4 rounded-xl flex flex-col items-center justify-between text-center gap-4">
+        <%= for blog <- @blogs do %>
+          <div class="bg-white dark:bg-gray-700 p-4 rounded-xl flex flex-col items-center justify-between text-center gap-2">
+            <img src={blog.image_url} class="rounded-xl" />
             <h5>{blog.title}</h5>
             
             <p class="text-xs">{blog.summary}</p>
@@ -35,7 +36,7 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Index do
     socket =
       socket
       |> assign(:page_title, "Listing Blogs")
-      |> stream(:blogs, blogs)
+      |> assign(:blogs, blogs)
 
     {:ok, socket}
   end

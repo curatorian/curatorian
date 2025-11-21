@@ -2,6 +2,7 @@ defmodule Curatorian.Accounts.UserToken do
   use Ecto.Schema
   import Ecto.Query
   alias Curatorian.Accounts.UserToken
+  alias Curatorian.Accounts.User
 
   @hash_algorithm :sha256
   @rand_size 32
@@ -17,7 +18,7 @@ defmodule Curatorian.Accounts.UserToken do
     field :context, :string
     field :sent_to, :string
     field :authenticated_at, :utc_datetime
-    belongs_to :user, Curatorian.Accounts.User
+    belongs_to :user, User, type: :binary_id
 
     timestamps(type: :utc_datetime, updated_at: false)
   end

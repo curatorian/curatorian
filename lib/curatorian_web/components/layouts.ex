@@ -33,6 +33,8 @@ defmodule CuratorianWeb.Layouts do
     default: nil,
     doc: "the current [scope](https://hexdocs.pm/phoenix/scopes.html)"
 
+  attr :current_path, :string, default: nil, doc: "the current request path"
+
   slot :inner_block, required: true
 
   def app(assigns) do
@@ -49,23 +51,23 @@ defmodule CuratorianWeb.Layouts do
         <img src="/images/lib.webp" alt="hero img" class="relative w-full h-40 object-cover" />
         <div class="absolute top-0 bg-black/80 w-full h-40"></div>
         
-        <div class="absolute bottom-0 w-full h-12 bg-gradient-to-t from-violet-100 to-transparent">
+        <div class="absolute bottom-0 w-full h-12 bg-gradient-to-t from-violet-100 dark:from-gray-600 to-transparent">
         </div>
       </div>
       
-      <%= if assigns[:conn] do %>
-        <%= if @conn.request_path === "/" do %>
-          <section class="min-h-screen h-full bg-violet-100">{render_slot(@inner_block)}</section>
-        <% else %>
-          <section class="pt-48 px-5 min-h-screen h-full bg-violet-100">
-            {render_slot(@inner_block)}
-          </section>
-        <% end %>
+      <%= if @current_path === "/" do %>
+        <section class="min-h-screen h-full bg-violet-100 dark:bg-gray-600">
+          {render_slot(@inner_block)}
+        </section>
       <% else %>
-        <section class="pt-48 min-h-screen h-full bg-violet-100">
-          {render_slot(@inner_block)}}
+        <section class="pt-48 px-5 min-h-screen h-full bg-violet-100 dark:bg-gray-600">
+          {render_slot(@inner_block)}
         </section>
       <% end %>
+      
+      <%!-- <section class="pt-48 min-h-screen h-full bg-violet-100 dark:bg-gray-600">
+          {render_slot(@inner_block)}}
+        </section> --%>
     </main>
      <.footer_layout /> <.flash_group flash={@flash} />
     """
@@ -120,7 +122,10 @@ defmodule CuratorianWeb.Layouts do
   def theme_toggle(assigns) do
     ~H"""
     <div class="card relative flex flex-row items-center border-2 border-base-300 bg-base-300 rounded-full">
-      <div class="absolute w-1/3 h-full rounded-full border-1 border-base-200 bg-base-100 brightness-200 left-0 [[data-theme=light]_&]:left-1/3 [[data-theme=dark]_&]:left-2/3 transition-[left]" />
+      <div class="absolute w-1/3 h-full rounded-full border-1 border-base-200 bg-base-100 brightness-200 left-0
+        [[data-theme-pref=light]_&]:left-1/3
+        [[data-theme-pref=dark]_&]:left-2/3
+        transition-[left]" />
       <button
         class="flex p-2 cursor-pointer w-1/3"
         phx-click={JS.dispatch("phx:set-theme")}
@@ -164,7 +169,7 @@ defmodule CuratorianWeb.Layouts do
     <header class="fixed w-full z-40">
       <nav class="p-0 md:p-5">
         <div
-          class="bg-white/90 shadow-xl w-full md:rounded-xl p-5 flex justify-between items-center transition-all-500"
+          class="bg-white/90 dark:bg-gray-800/90 shadow-xl w-full md:rounded-xl p-5 flex justify-between items-center transition-all-500"
           id="navbar"
           phx-hook="NavbarScroll"
         >
@@ -178,11 +183,12 @@ defmodule CuratorianWeb.Layouts do
             </div>
           </div>
           
-          <%= if @current_user do %>
+          <%= if @current_user != nil do %>
             <div class="hidden lg:block">
               <div class="flex items-center space-x-2">
+                <.theme_toggle />
                 <.link href={"/#{@current_user.username}"}>
-                  <%= if @current_user.profile.user_image do %>
+                  <%= if @current_user.profile && @current_user.profile.user_image do %>
                     <img
                       src={@current_user.profile.user_image}
                       class="w-8 h-8 object-cover rounded-full"
@@ -204,7 +210,8 @@ defmodule CuratorianWeb.Layouts do
               </div>
             </div>
           <% else %>
-            <div class="hidden lg:block">
+            <div class="hidden lg:flex lg:items-center lg:space-x-4">
+              <.theme_toggle />
               <.link class="no-underline" href="/login">
                 <button class="btn-primary bg-violet-1 text-violet-6">Masuk</button>
               </.link>
@@ -224,7 +231,7 @@ defmodule CuratorianWeb.Layouts do
         
         <div
           id="mobile-menu"
-          class="lg:hidden hidden h-screen bg-white/90 rounded-xl shadow-md p-6 space-y-4 font-semibold transition-all duration-300"
+          class="lg:hidden hidden h-screen bg-white/90 bg-gray-800/90 rounded-xl shadow-md p-6 space-y-4 font-semibold transition-all duration-300"
         >
           <div>
             <button
@@ -249,7 +256,7 @@ defmodule CuratorianWeb.Layouts do
           </div>
           
           <div class="pt-6">
-            <%= if @current_user do %>
+            <%= if @current_user.profile && @current_user.profile.user_image do %>
               <div class="flex flex-col items-center justify-center my-5 gap-3">
                 <div class="flex gap-3">
                   <.link href={"/#{@current_user.username}"}>

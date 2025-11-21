@@ -5,30 +5,27 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.Show do
 
   def render(assigns) do
     ~H"""
-    <div class="bg-gray-100 min-h-screen">
+    <div class="bg-gray-100 dark:bg-gray-500 h-full mb-16">
       <!-- Cover Image -->
       <div class="h-64 bg-gray-300 relative">
         <img
           src={@organization.image_cover || "/images/default-cover.jpg"}
           class="w-full h-full object-cover"
         />
-        
-    <!-- Profile Image -->
+        <!-- Profile Image -->
         <div class="absolute bottom-0 left-8 transform translate-y-1/2">
           <img
             src={@organization.image_logo || "/images/default-avatar.jpg"}
-            class="w-32 h-32 object-cover rounded-full border-4 border-white bg-white"
+            class="w-32 h-32 object-cover rounded-full border-4 border-white bg-white dark:bg-gray-700"
           />
         </div>
       </div>
-      
-    <!-- Organization Info -->
+      <!-- Organization Info -->
       <div class="mt-16 px-8">
         <h1 class="text-3xl font-bold">{@organization.name}</h1>
         
-        <p class="text-gray-600">{@organization.description}</p>
-        
-    <!-- Action Buttons -->
+        <p>{@organization.description}</p>
+        <!-- Action Buttons -->
         <div class="mt-4 flex space-x-2">
           <%= if @current_user do %>
             <%= if is_owner?(@organization, @current_user) do %>
@@ -62,12 +59,11 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.Show do
           <% end %>
         </div>
       </div>
-      
-    <!-- Tab Content -->
+      <!-- Tab Content -->
       <div class="container mx-auto mt-4">
         <%= case @active_tab do %>
           <% :about -> %>
-            <div class="bg-white mx-5 p-6 rounded-lg shadow">
+            <div class="bg-white dark:bg-gray-700 mx-5 p-6 rounded-lg shadow">
               <h3 class="text-xl font-semibold mb-4">About</h3>
               
               <p class="text-gray-700">{@organization.description}</p>
@@ -93,7 +89,7 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.Show do
               </div>
             </div>
           <% :members -> %>
-            <div class="bg-white p-6 rounded-lg shadow">
+            <div class="bg-white dark:bg-gray-700 p-6 rounded-lg shadow">
               <h3 class="text-xl font-semibold mb-4">Members</h3>
               
               <table class="min-w-full">
@@ -134,10 +130,8 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.Show do
   end
 
   def mount(%{"slug" => slug}, session, socket) do
-    current_user = socket.assigns.current_user || session["current_user"]
+    current_user = socket.assigns.current_scope.user || session["current_user"]
     organization = Orgs.get_organization_by_slug(slug)
-
-    dbg(Orgs.get_user_role(organization, current_user))
 
     {:ok,
      socket

@@ -1,31 +1,32 @@
 <main>
   <.flash_group flash={@flash} />
   <section class="flex">
-    <div class="bg-white w-full min-h-screen max-w-56 p-5">
+    <div class="bg-white dark:bg-gray-700 w-full min-h-screen max-w-56 p-5">
       <div class="flex flex-col items-center justify-center mb-10">
         <.link href="/dashboard" class="no-underline">
           <h5>Curatorian</h5>
         </.link>
-
         <div class="flex flex-col items-center my-2">
-          <%= if @current_user.profile.user_image do %>
+          <%= if !match?(%Ecto.Association.NotLoaded{}, @current_scope.user.profile) and @current_scope.user.profile && @current_scope.user.profile.user_image do %>
             <img
-              src={@current_user.profile.user_image}
+              src={@current_scope.user.profile.user_image}
               class="w-16 h-16 object-cover rounded-xl"
               referrerPolicy="no-referrer"
-              alt={@current_user.username}
+              alt={@current_scope.user.username}
             />
           <% else %>
             <img
               src={~p"/images/default.png"}
               class="w-16 h-16 object-cover rounded-xl"
               referrerPolicy="no-referrer"
-              alt={@current_user.username}
+              alt={@current_scope.user.username}
             />
           <% end %>
-
-          <p class="text-xs text-violet-500">{@current_user.username}</p>
-
+          
+          <p class="text-xs text-violet-500 dark:text-violet-300">
+            {@current_scope.user.username}
+          </p>
+          
           <div class="mt-2 grid grid-cols-1 lg:grid-cols-2 gap-1 w-full">
             <.link
               href="/users/settings"
@@ -33,7 +34,6 @@
             >
               <.icon name="hero-cog-6-tooth" class="h-4 w-4" /> <span>Setting</span>
             </.link>
-
             <.link
               href="/users/log_out"
               method="delete"
@@ -42,9 +42,11 @@
               <.icon name="hero-x-mark" class="h-4 w-4" /> <span>Logout</span>
             </.link>
           </div>
+          
+          <div class="my-4"><.theme_toggle /></div>
         </div>
       </div>
-
+      
       <div>
         <.link
           class="btn-primary no-underline text-xs flex items-center justify-center gap-1"
@@ -53,7 +55,7 @@
           <.icon name="hero-plus" class="h-4 w-4" /> <span>Buat Post Baru</span>
         </.link>
       </div>
-
+      
       <div class="flex flex-col gap-5 my-5 text-black">
         <.link
           class={[
@@ -91,8 +93,7 @@
         >
           <.icon name="hero-pencil-square-solid" class="h-6 w-6 mr-3" /> <span>Blog Saya</span>
         </.link>
-
-        <%= if @current_user.user_role in ["manager", "admin", "coordinator"] do %>
+        <%= if @current_scope.user.user_role in ["manager", "admin", "coordinator"] do %>
           <.link
             class={[
               "no-underline",
@@ -106,8 +107,8 @@
             <.icon name="hero-user-group-solid" class="h-6 w-6 mr-3" /> <span>User Manager</span>
           </.link>
         <% end %>
-
-        <%= if @current_user.user_role in ["manager", "admin", "coordinator"] do %>
+        
+        <%= if @current_scope.user.user_role in ["manager", "admin", "coordinator"] do %>
           <.link
             class={[
               "no-underline",
@@ -123,23 +124,16 @@
           </.link>
         <% end %>
       </div>
-
+      
       <div class="mt-20">
         <.link class="no-underline" href="/">
-          <.icon name="hero-arrow-left" class="h-6 w-6" />
-          <span>
-            Curatorian
-          </span>
+          <.icon name="hero-arrow-left" class="h-6 w-6" /> <span>Curatorian</span>
         </.link>
       </div>
     </div>
-
-    <div class="p-5 bg-violet-100 w-full">
-      {@inner_content}
-    </div>
+    
+    <div class="p-5 bg-violet-100 dark:bg-gray-600 w-full">{@inner_content}</div>
   </section>
-
-  <footer>
-    <.footer_layout />
-  </footer>
+  
+  <footer><.footer_layout /></footer>
 </main>

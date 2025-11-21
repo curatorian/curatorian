@@ -4,7 +4,7 @@
 @import "tailwindcss";
 @source "../css";
 @source "../js";
-@source "../../lib/newver_web";
+@source "../../lib/curatorian_web";
 
 /* A Tailwind plugin that makes "hero-#{ICON}" classes available.
    The heroicons installation itself is managed by your mix.exs */
@@ -14,7 +14,7 @@
    curl -sLO https://github.com/saadeghi/daisyui/releases/latest/download/daisyui.js
    Make sure to look at the daisyUI changelog: https://daisyui.com/docs/changelog/ */
 @plugin "../vendor/daisyui" {
-  themes: false;
+  themes: light --default, dark --prefersdark;
 }
 
 /* daisyUI theme plugin. You can update this file by fetching the latest version with:
@@ -159,7 +159,7 @@ h6 {
 }
 
 a {
-  @apply text-violet-500 underline;
+  @apply text-violet-500 dark:text-violet-300 cursor-pointer;
 }
 
 .code-snippet {
@@ -196,7 +196,7 @@ a {
   font-family: "Parkinsans", system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
     sans-serif;
-  @apply text-7xl md:text-8xl lg:text-9xl text-red-500;
+  @apply text-7xl md:text-8xl lg:text-9xl text-red-400;
 }
 
 #trix-content > h1 {
@@ -265,11 +265,11 @@ a {
 }
 
 .active-menu-dashboard {
-  @apply text-violet-500 font-bold;
+  @apply text-violet-500 dark:text-violet-300 font-bold;
 }
 
 .inactive-menu-dashboard {
-  @apply text-gray-500;
+  @apply text-gray-500 dark:text-gray-300;
 }
 
 .user-profile {
@@ -332,3 +332,70 @@ blockquote {
     @apply border-l-4 border-gray-300 bg-gray-100 p-2 text-gray-500 italic;
   } */
 }
+
+/* Native LiveView file input styling
+   Targets the inputs emitted by `.live_file_input` (data-phx-hook / data-phx-upload-ref)
+   Uses modern ::file-selector-button / ::-webkit-file-upload-button to style the button
+*/
+
+input[type="file"][data-phx-hook="Phoenix.LiveFileUpload"],
+input[type="file"][data-phx-upload-ref] {
+  @apply w-full rounded-md border border-gray-200 bg-white dark:bg-gray-500 px-4 py-3 text-sm text-gray-700 shadow-sm;
+  appearance: none;
+  cursor: pointer;
+}
+
+[data-theme="dark"] input[type="file"][data-phx-hook="Phoenix.LiveFileUpload"],
+.dark input[type="file"][data-phx-hook="Phoenix.LiveFileUpload"],
+[data-theme="dark"] input[type="file"][data-phx-upload-ref],
+.dark input[type="file"][data-phx-upload-ref] {
+  @apply border-gray-700 text-white;
+}
+
+input[type="file"][data-phx-hook="Phoenix.LiveFileUpload"]:focus,
+input[type="file"][data-phx-upload-ref]:focus {
+  @apply ring-2 ring-violet-400 outline-none;
+}
+
+/* Style the file selector button (modern browsers) */
+input[type="file"]::file-selector-button,
+input[type="file"]::-webkit-file-upload-button {
+  @apply bg-violet-600 text-white px-3 py-2 rounded-md border-none cursor-pointer;
+  transition: background-color 0.15s ease-in-out, transform 0.08s ease;
+}
+
+input[type="file"]::file-selector-button:hover,
+input[type="file"]::-webkit-file-upload-button:hover {
+  @apply bg-violet-700;
+}
+
+/* Smaller variant for compact upload entries */
+.phx-upload-entry input[type="file"] {
+  @apply px-2 py-1 text-sm;
+}
+
+/* Progress bar styling for native <progress> used alongside uploads */
+progress {
+  @apply w-full h-2 rounded bg-gray-200 overflow-hidden;
+  appearance: none;
+}
+
+progress::-webkit-progress-bar {
+  @apply bg-gray-200;
+}
+
+progress::-webkit-progress-value {
+  @apply bg-violet-600;
+}
+
+progress::-moz-progress-bar {
+  @apply bg-violet-600;
+}
+
+/* Preview images inserted by LiveView helpers */
+.phx-upload-preview img,
+.live-img-preview img {
+  @apply w-24 h-24 rounded-md object-cover border border-gray-200 dark:border-gray-700;
+}
+
+/* End native file input styles */

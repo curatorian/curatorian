@@ -1,30 +1,35 @@
-<div class="container mx-auto px-4 py-8">
-  <h1 class="text-3xl font-bold mb-6">Posts by {@profile.username}</h1>
-  
-  <%= if Enum.empty?(@posts) do %>
-    <p class="text-gray-600">No posts yet.</p>
-  <% else %>
-    <div class="space-y-6">
-      <%= for post <- @posts do %>
-        <div class="border rounded-lg p-4 shadow hover:shadow-lg transition">
-          <h2 class="text-xl font-semibold mb-2">
-            <a
-              href={~p"/#{@profile.username}/posts/#{post.id}"}
-              class="text-blue-600 hover:underline"
-            >
-              {post.title}
-            </a>
-          </h2>
-          
-          <p class="text-gray-700 mb-2">
-            {post.excerpt || String.slice(post.body, 0, 120) <> "..."}
-          </p>
-          
-          <div class="text-sm text-gray-500">
-            Posted on {convert_time_zone_to_indonesia(post.inserted_at)}
+<Layouts.app
+  flash={@flash}
+  current_scope={@current_scope}
+>
+  <div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-6">Posts by {@profile.username}</h1>
+    
+    <%= if Enum.empty?(@posts) do %>
+      <p class="text-gray-600">No posts yet.</p>
+    <% else %>
+      <div class="space-y-6">
+        <%= for post <- @posts do %>
+          <div class="border rounded-lg p-4 shadow hover:shadow-lg transition">
+            <h2 class="text-xl font-semibold mb-2">
+              <a
+                href={~p"/#{@profile.username}/posts/#{post.id}"}
+                class="text-blue-600 hover:underline"
+              >
+                {post.title}
+              </a>
+            </h2>
+            
+            <p class="text-gray-700 mb-2">
+              {post.excerpt || String.slice(post.body, 0, 120) <> "..."}
+            </p>
+            
+            <div class="text-sm text-gray-500">
+              Posted on {convert_time_zone_to_indonesia(post.inserted_at)}
+            </div>
           </div>
-        </div>
-      <% end %>
-    </div>
-  <% end %>
-</div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</Layouts.app>

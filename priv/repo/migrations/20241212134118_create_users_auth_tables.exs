@@ -9,7 +9,7 @@ defmodule Curatorian.Repo.Migrations.CreateUsersAuthTables do
       add :email, :citext, null: false
       add :username, :citext, null: false
       add :user_type, :string
-      add :hashed_password, :string, null: false
+      add :hashed_password, :string
       add :confirmed_at, :utc_datetime
       add :last_login, :utc_datetime
       add :last_login_ip, :string
@@ -32,7 +32,7 @@ defmodule Curatorian.Repo.Migrations.CreateUsersAuthTables do
     end
 
     create table(:users_tokens) do
-      add :user_id, references(:users, on_delete: :delete_all), null: false
+      add :user_id, references(:users, type: :binary_id, on_delete: :delete_all), null: false
       add :token, :binary, null: false
       add :context, :string, null: false
       add :sent_to, :string

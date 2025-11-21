@@ -7,30 +7,13 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.Index do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="bg-white shadow rounded-lg p-6">
+    <div class="bg-white dark:bg-gray-700 shadow rounded-lg p-6">
       <.header>
-        <h1 class="text-2xl font-bold text-gray-800">Organizations</h1>
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100">Organizations</h1>
         
         <:actions>
-          <.link patch={~p"/dashboard/orgs/new"} class="ml-3">
-            <.button class="bg-indigo-600 hover:bg-indigo-700">
-              <span class="flex items-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-5 w-5 mr-2"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M10 3a1 1 0 00-1 1v5H4a1 1 0 100 2h5v5a1 1 0 102 0v-5h5a1 1 0 100-2h-5V4a1 1 0 00-1-1z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
-                New Organization
-              </span>
-            </.button>
-          </.link>
+          <.link patch={~p"/dashboard/orgs/new"} class="ml-3"><.button class="btn btn-primary">+
+              New Organization</.button></.link>
         </:actions>
       </.header>
       
@@ -76,8 +59,8 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.Index do
   end
 
   @impl true
-  def mount(_params, session, socket) do
-    current_user = socket.assigns.current_user || session["current_user"]
+  def mount(_params, _session, socket) do
+    current_user = socket.assigns.current_scope.user
     organizations = Orgs.list_organizations()
 
     {:ok,
@@ -107,9 +90,9 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.Index do
   def handle_event("delete", %{"id" => id}, socket) do
     organization = Orgs.get_organization!(id)
 
-    dbg(Orgs.get_user_role(organization, socket.assigns.current_user))
+    dbg(Orgs.get_user_role(organization, socket.assigns.current_scope.user))
 
-    if Orgs.has_permission?(organization, socket.assigns.current_user, :manage_all) do
+    if Orgs.has_permission?(organization, socket.assigns.current_scope.user, :manage_all) do
       {:ok, _} = Orgs.delete_organization(organization)
       organizations = Orgs.list_organizations()
 

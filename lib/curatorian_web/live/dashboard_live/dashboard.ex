@@ -33,7 +33,7 @@ defmodule CuratorianWeb.DashboardLive do
   end
 
   def mount(_params, _session, socket) do
-    user = socket.assigns.current_user
+    user = socket.assigns.current_scope.user
     count_blogs = Blogs.count_blogs_by_user(user.id)
     count_users = Accounts.count_users()
 

@@ -1,8 +1,8 @@
 defmodule CuratorianWeb.UserLive.Settings do
   use CuratorianWeb, :live_view_dashboard
 
+  alias Curatorian.Repo
   alias Curatorian.Accounts
-  # alias CuratorianWeb.Utils.Basic.ReadSocmed
 
   @impl Phoenix.LiveView
   def render(assigns) do
@@ -14,7 +14,7 @@ defmodule CuratorianWeb.UserLive.Settings do
       </.header>
       
       <section class="flex flex-col gap-5 lg:flex-row items-center lg:items-start justify-center min-h-screen h-full">
-        <div class="bg-white p-10 rounded-lg w-full sm:max-w-80">
+        <div class="bg-white dark:bg-gray-700 p-10 rounded-lg w-full sm:max-w-80">
           <%= if length(@uploads.avatar.entries) === 0 do %>
             <div id="user-image">
               <%= if @current_user_profile.user_image do %>
@@ -93,18 +93,22 @@ defmodule CuratorianWeb.UserLive.Settings do
                 
                 <div class="flex items-center w-full gap-2 py-2">
                   <.icon name="hero-user-solid" class="w-6 h-6 max-w-8" />
-                  <p class="max-w-48">{@current_user.profile.fullname}</p>
+                  <p class="max-w-48">
+                    {if @user.profile != nil,
+                      do: @user.profile.fullname,
+                      else: "No Name"}
+                  </p>
                 </div>
                 
                 <div class="flex items-center w-full gap-2 py-2">
                   <.icon name="hero-envelope-solid" class="w-6 h-6 max-w-8" />
-                  <a href={"mailto:#{@current_user.email}"} class="max-w-48">{@current_user.email}</a>
+                  <a href={"mailto:#{@user.email}"} class="max-w-48">{@user.email}</a>
                 </div>
                 
                 <div class="flex items-center w-full gap-2 py-2">
                   <.icon name="hero-at-symbol-solid" class="w-6 h-6 max-w-8" />
                   <p class="max-w-48">
-                    <%!-- {ReadSocmed.create_handler(@current_user_profile.social_media["twitter"])} --%> {@current_user.username}
+                    <%!-- {ReadSocmed.create_handler(@current_user_profile.social_media["twitter"])} --%> {@user.username}
                   </p>
                 </div>
               </div>
@@ -322,7 +326,7 @@ defmodule CuratorianWeb.UserLive.Settings do
   @impl Phoenix.LiveView
   def mount(%{"token" => token}, _session, socket) do
     socket =
-      case Accounts.update_user_email(socket.assigns.current_user, token) do
+      case Accounts.update_user_email(socket.assigns.current_scope.user, token) do
         :ok ->
           put_flash(socket, :info, "Email changed successfully.")
 
@@ -335,7 +339,7 @@ defmodule CuratorianWeb.UserLive.Settings do
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
-    user = socket.assigns.current_user
+    user = socket.assigns.current_scope.user |> Repo.preload(:profile)
     user_profile = Accounts.get_user_profile_by_user_id(user.id)
     educations = Accounts.get_user_educations(user_profile.id)
 
@@ -411,7 +415,7 @@ defmodule CuratorianWeb.UserLive.Settings do
 
   @impl Phoenix.LiveView
   def handle_event("delete_education", %{"education-id" => id}, socket) do
-    changeset = Accounts.change_user_profile(socket.assigns.current_user_profile)
+    changeset = Accounts.change_user_profile(socket.assigns.current_scope.user_profile)
 
     updated_educations =
       Ecto.Changeset.get_field(changeset, :educations)
@@ -443,7 +447,7 @@ defmodule CuratorianWeb.UserLive.Settings do
 
   @impl Phoenix.LiveView
   def handle_event("upload_image", _params, socket) do
-    user = socket.assigns.current_user
+    user = socket.assigns.current_scope.user
 
     uploaded_files =
       consume_uploaded_entries(socket, :avatar, fn %{path: path}, _entry ->
@@ -485,7 +489,7 @@ defmodule CuratorianWeb.UserLive.Settings do
     %{"current_password" => password, "user" => user_params} = params
 
     email_form =
-      socket.assigns.current_user
+      socket.assigns.current_scope.user
       |> Accounts.change_user_email(user_params)
       |> Map.put(:action, :validate)
       |> to_form()
@@ -496,7 +500,7 @@ defmodule CuratorianWeb.UserLive.Settings do
   @impl Phoenix.LiveView
   def handle_event("validate_profile", %{"user_profile" => params}, socket) do
     changeset =
-      socket.assigns.current_user_profile
+      socket.assigns.current_scope.user.profile
       |> Accounts.change_user_profile(params)
       |> Map.put(:action, :validate)
 
@@ -505,7 +509,7 @@ defmodule CuratorianWeb.UserLive.Settings do
 
   @impl Phoenix.LiveView
   def handle_event("update_profile", %{"user_profile" => params}, socket) do
-    user = socket.assigns.current_user
+    user = socket.assigns.current_scope.user
 
     case Accounts.update_user_profile(user, params) do
       {:ok, profile} ->

@@ -67,6 +67,8 @@ defmodule CuratorianWeb.UserAuth do
   def fetch_current_scope_for_user(conn, _opts) do
     with {token, conn} <- ensure_user_token(conn),
          {user, token_inserted_at} <- Accounts.get_user_by_session_token(token) do
+      user = Curatorian.Repo.preload(user, profile: [:educations])
+
       conn
       |> assign(:current_scope, Scope.for_user(user))
       |> maybe_reissue_user_session_token(user, token_inserted_at)
@@ -224,7 +226,7 @@ defmodule CuratorianWeb.UserAuth do
       socket =
         socket
         |> Phoenix.LiveView.put_flash(:error, "You must log in to access this page.")
-        |> Phoenix.LiveView.redirect(to: ~p"/users/log-in")
+        |> Phoenix.LiveView.redirect(to: ~p"/login")
 
       {:halt, socket}
     end
@@ -249,7 +251,7 @@ defmodule CuratorianWeb.UserAuth do
       socket =
         socket
         |> Phoenix.LiveView.put_flash(:error, "You must re-authenticate to access this page.")
-        |> Phoenix.LiveView.redirect(to: ~p"/users/log-in")
+        |> Phoenix.LiveView.redirect(to: ~p"/login")
 
       {:halt, socket}
     end
@@ -273,10 +275,21 @@ defmodule CuratorianWeb.UserAuth do
 
   defp mount_current_scope(socket, session) do
     Phoenix.Component.assign_new(socket, :current_scope, fn ->
-      {user, _} =
+      user =
         if user_token = session["user_token"] do
-          Accounts.get_user_by_session_token(user_token)
-        end || {nil, nil}
+          case Accounts.get_user_by_session_token(user_token) do
+            {u, _token_inserted_at} when is_map(u) ->
+              Curatorian.Repo.preload(u, profile: [:educations])
+
+            u when is_map(u) ->
+              Curatorian.Repo.preload(u, profile: [:educations])
+
+            _ ->
+              nil
+          end
+        else
+          nil
+        end
 
       Scope.for_user(user)
     end)
@@ -313,7 +326,7 @@ defmodule CuratorianWeb.UserAuth do
       conn
       |> put_flash(:error, "You must log in to access this page.")
       |> maybe_store_return_to()
-      |> redirect(to: ~p"/users/log-in")
+      |> redirect(to: ~p"/login")
       |> halt()
     end
   end
