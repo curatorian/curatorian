@@ -1,6 +1,5 @@
 <div class="container mx-auto px-4 py-8">
-  <.back navigate={~p"/orgs/#{@organization.slug}"}>Back to organization</.back>
-  
+  <.button navigate={~p"/orgs/#{@organization.slug}"}>Back to organization</.button>
   <h1 class="text-3xl font-bold my-6">Edit Organization</h1>
   
   <div class="relative">
@@ -45,11 +44,7 @@
   </div>
   
   <div class="bg-white rounded-b-lg shadow p-6 pt-32">
-    <.simple_form :let={f} for={@changeset} action={~p"/orgs/#{@organization.slug}"} method="put">
-      <.error :if={@changeset.action}>
-        Oops, something went wrong! Please check the errors below.
-      </.error>
-      
+    <.form :let={f} for={@changeset} action={~p"/orgs/#{@organization.slug}"} method="put">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <.input field={f[:name]} type="text" label="Name" required />
@@ -86,9 +81,9 @@
         </div>
       </div>
       
-      <:actions>
+      <footer>
         <.button type="submit" class="w-full md:w-auto">Update Organization</.button>
-      </:actions>
-    </.simple_form>
+      </footer>
+    </.form>
   </div>
 </div>

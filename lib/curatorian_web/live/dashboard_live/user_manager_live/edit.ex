@@ -5,14 +5,10 @@ defmodule CuratorianWeb.DashboardLive.UserManagerLive.Edit do
 
   def render(assigns) do
     ~H"""
-    <.header>
-      Edit User Profile
-    </.header>
-
-    <.back navigate={"/dashboard/user_manager/#{@user.username}"}>Kembali</.back>
-
+    <.header>Edit User Profile</.header>
+     <.button navigate={"/dashboard/user_manager/#{@user.username}"}>Kembali</.button>
     <section>
-      <.simple_form for={@form} phx-submit="save">
+      <.form for={@form} phx-submit="save">
         <.input field={@form[:fullname]} label="Full Name" type="text" />
         <.input field={@form[:bio]} label="Bio" type="textarea" />
         <.input field={@form[:job_title]} label="Pekerjaan" type="text" id="phone-number" />
@@ -35,9 +31,8 @@ defmodule CuratorianWeb.DashboardLive.UserManagerLive.Edit do
           label="Role"
           type="select"
           options={[{"Curator", "curator"}, {"Manager", "manager"}]}
-        />
-        <.button>Save Changes</.button>
-      </.simple_form>
+        /> <.button>Save Changes</.button>
+      </.form>
     </section>
     """
   end

@@ -10,9 +10,7 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.Edit do
       Edit Organization
       <:subtitle>Use this form to manage organization records in your database.</:subtitle>
     </.header>
-
-    <.back navigate="/dashboard/orgs">Kembali</.back>
-
+     <.button navigate="/dashboard/orgs">Kembali</.button>
     <section>
       <.live_component
         module={CuratorianWeb.DashboardLive.OrgsLive.OrganizationForm}
@@ -22,8 +20,7 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.Edit do
         title="Edit Organization"
         navigate={~p"/dashboard/orgs"}
         action={:edit}
-      />
-      <.back navigate="/dashboard/orgs">Kembali</.back>
+      /> <.button navigate="/dashboard/orgs">Kembali</.button>
     </section>
     """
   end

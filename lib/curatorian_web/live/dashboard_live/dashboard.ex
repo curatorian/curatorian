@@ -9,14 +9,11 @@ defmodule CuratorianWeb.DashboardLive do
   def render(assigns) do
     ~H"""
     <section class="w-full">
-      <.header class="text-center">
-        Welcome to Curatorian Dashboard
-      </.header>
-
+      <.header>Welcome to Curatorian Dashboard</.header>
+      
       <div>
-        <p>
-          Halo, {@user.username}
-        </p>
+        <p>Halo, {@user.username}</p>
+        
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 my-10">
           <.stat_cards
             icon="hero-pencil-square-solid"

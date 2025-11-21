@@ -8,7 +8,7 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.OrganizationForm do
   def render(assigns) do
     ~H"""
     <div>
-      <.simple_form
+      <.form
         for={@form}
         id="organization-form"
         phx-change="validate"
@@ -84,9 +84,7 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.OrganizationForm do
               <.live_file_input upload={@uploads.image_logo} />
               <%= if Enum.any?(@uploads.image_logo.entries) do %>
                 <%= for entry <- @uploads.image_logo.entries do %>
-                  <div class="mt-2">
-                    <.live_img_preview entry={entry} width="100" />
-                  </div>
+                  <div class="mt-2"><.live_img_preview entry={entry} width="100" /></div>
                    <progress value={entry.progress} max="100">{entry.progress}%</progress>
                   <button
                     type="button"
@@ -134,10 +132,8 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.OrganizationForm do
           </div>
         </div>
          <.input field={@form[:description]} type="textarea" label="Description" />
-        <:actions>
-          <.button type="submit" phx-disable-with="Saving...">Save</.button>
-        </:actions>
-      </.simple_form>
+        <.button type="submit" phx-disable-with="Saving...">Save</.button>
+      </.form>
     </div>
     """
   end

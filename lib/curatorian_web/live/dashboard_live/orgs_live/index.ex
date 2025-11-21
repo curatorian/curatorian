@@ -8,7 +8,7 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.Index do
   def render(assigns) do
     ~H"""
     <div class="bg-white shadow rounded-lg p-6">
-      <.header class="mb-6">
+      <.header>
         <h1 class="text-2xl font-bold text-gray-800">Organizations</h1>
         
         <:actions>
@@ -55,14 +55,12 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.Index do
             >
               Show
             </.link>
-            
             <.link
               patch={~p"/dashboard/orgs/#{org.slug}/edit"}
               class="btn-default text-indigo-600 hover:text-indigo-900 font-medium no-underline"
             >
               Edit
             </.link>
-            
             <.link
               phx-click={JS.push("delete", value: %{id: org.id}) |> hide("##{org.id}")}
               data-confirm="Are you sure?"

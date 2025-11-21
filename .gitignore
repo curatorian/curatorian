@@ -38,3 +38,6 @@ npm-debug.log
 
 .env
 *.bat
+
+# Language Server
+.elixir_ls/

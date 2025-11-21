@@ -11,9 +11,7 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.New do
       Create New Organization
       <:subtitle>Use this form to manage organization records in your database.</:subtitle>
     </.header>
-
-    <.back navigate="/dashboard/orgs">Kembali</.back>
-
+     <.button navigate="/dashboard/orgs">Kembali</.button>
     <section>
       <.live_component
         module={CuratorianWeb.DashboardLive.OrgsLive.OrganizationForm}
@@ -23,8 +21,7 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.New do
         navigate={~p"/dashboard/orgs"}
         current_user={@current_user}
         action={:new}
-      />
-      <.back navigate="/dashboard/orgs">Kembali</.back>
+      /> <.button navigate="/dashboard/orgs">Kembali</.button>
     </section>
     """
   end

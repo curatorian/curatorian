@@ -1,7 +1,6 @@
 <article class="max-w-4xl mx-auto px-4 py-8">
   <div class="flex justify-between items-center mb-4">
-    <.back navigate={~p"/#{@blog.user.username}"}>Kembali</.back>
-    
+    <.button navigate={~p"/#{@blog.user.username}"}>Kembali</.button>
     <%= if @current_user && @current_user.id == @user.id do %>
       <.link navigate={~p"/dashboard/blog/#{@blog.slug}/edit"} class="btn-primary no-underline">
         Edit Blog
@@ -21,8 +20,6 @@
       <p class="text-gray-500 mt-2">{convert_time_zone_to_indonesia(@blog.inserted_at)}</p>
     </div>
     
-    <div id="trix-content" class="text-justify">
-      {raw(@blog.content)}
-    </div>
+    <div id="trix-content" class="text-justify">{raw(@blog.content)}</div>
   </div>
 </article>

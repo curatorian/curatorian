@@ -7,15 +7,35 @@
     <.live_title suffix=" · Where the Curators Meet">
       {assigns[:page_title] || "Curatorian"}
     </.live_title>
-    <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
+     <link phx-track-static rel="stylesheet" href={~p"/assets/css/app.css"} />
     <link rel="shortcut icon" type="image/x-icon" href={~p"/images/icon.png"} />
     <link rel="stylesheet" type="text/css" href="https://unpkg.com/trix@2.1.12/dist/trix.css" />
     <script type="text/javascript" src="https://unpkg.com/trix@2.1.12/dist/trix.umd.min.js">
     </script>
-    <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
+    
+    <script defer phx-track-static type="text/javascript" src={~p"/assets/js/app.js"}>
+    </script>
+    
+    <script>
+      (() => {
+        const setTheme = (theme) => {
+          if (theme === "system") {
+            localStorage.removeItem("phx:theme");
+            document.documentElement.removeAttribute("data-theme");
+          } else {
+            localStorage.setItem("phx:theme", theme);
+            document.documentElement.setAttribute("data-theme", theme);
+          }
+        };
+        if (!document.documentElement.hasAttribute("data-theme")) {
+          setTheme(localStorage.getItem("phx:theme") || "system");
+        }
+        window.addEventListener("storage", (e) => e.key === "phx:theme" && setTheme(e.newValue || "system"));
+        
+        window.addEventListener("phx:set-theme", (e) => setTheme(e.target.dataset.phxTheme));
+      })();
     </script>
   </head>
-  <body class="bg-white w-full">
-    {@inner_content}
-  </body>
+  
+  <body class="bg-white w-full">{@inner_content}</body>
 </html>

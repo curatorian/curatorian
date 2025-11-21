@@ -2,39 +2,53 @@ defmodule CuratorianWeb.CommentLive.Index do
   use CuratorianWeb, :live_view
 
   alias Curatorian.Comments
-  alias Curatorian.Comments.Comment
+
+  @impl true
+  def render(assigns) do
+    ~H"""
+    <Layouts.app flash={@flash}>
+      <.header>
+        Listing Comments
+        <:actions>
+          <.button variant="primary" navigate={~p"/comments/new"}>
+            <.icon name="hero-plus" /> New Comment
+          </.button>
+        </:actions>
+      </.header>
+      
+      <.table
+        id="comments"
+        rows={@streams.comments}
+        row_click={fn {_id, comment} -> JS.navigate(~p"/comments/#{comment}") end}
+      >
+        <:col :let={{_id, comment}} label="Content">{comment.content}</:col>
+        
+        <:action :let={{_id, comment}}>
+          <div class="sr-only"><.link navigate={~p"/comments/#{comment}"}>Show</.link></div>
+           <.link navigate={~p"/comments/#{comment}/edit"}>Edit</.link>
+        </:action>
+        
+        <:action :let={{id, comment}}>
+          <.link
+            phx-click={JS.push("delete", value: %{id: comment.id}) |> hide("##{id}")}
+            data-confirm="Are you sure?"
+          >
+            Delete
+          </.link>
+        </:action>
+      </.table>
+    </Layouts.app>
+    """
+  end
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, stream(socket, :comments, Comments.list_comments())}
-  end
+    socket =
+      socket
+      |> assign(page_title: "Listing Comments")
+      |> stream(:comments, list_comments())
 
-  @impl true
-  def handle_params(params, _url, socket) do
-    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
-  end
-
-  defp apply_action(socket, :edit, %{"id" => id}) do
-    socket
-    |> assign(:page_title, "Edit Comment")
-    |> assign(:comment, Comments.get_comment!(id))
-  end
-
-  defp apply_action(socket, :new, _params) do
-    socket
-    |> assign(:page_title, "New Comment")
-    |> assign(:comment, %Comment{})
-  end
-
-  defp apply_action(socket, :index, _params) do
-    socket
-    |> assign(:page_title, "Listing Comments")
-    |> assign(:comment, nil)
-  end
-
-  @impl true
-  def handle_info({CuratorianWeb.CommentLive.FormComponent, {:saved, comment}}, socket) do
-    {:noreply, stream_insert(socket, :comments, comment)}
+    {:ok, socket}
   end
 
   @impl true
@@ -43,5 +57,9 @@ defmodule CuratorianWeb.CommentLive.Index do
     {:ok, _} = Comments.delete_comment(comment)
 
     {:noreply, stream_delete(socket, :comments, comment)}
+  end
+
+  defp list_comments do
+    Comments.list_comments()
   end
 end

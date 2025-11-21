@@ -8,36 +8,31 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Show do
     ~H"""
     <.modal id="confirm-delete">
       <h2>Delete Blog</h2>
-
+      
       <p class="my-5">Are you sure you want to delete this blog?</p>
-
+      
       <div class="modal-footer">
         <.button phx-click="delete-blog" phx-value-id={@blog.id}>Delete</.button>
         <.button phx-click={hide_modal("confirm-delete")}>Cancel</.button>
       </div>
     </.modal>
+
     <.header>
       <div class="flex items-center justify-between">
+        <div>Blog {@blog.title}</div>
+        
         <div>
-          Blog {@blog.title}
-        </div>
-
-        <div>
-          <.link href={~p"/dashboard/blog/#{@blog.slug}/edit"}>
-            <.button>Edit</.button>
-          </.link>
+          <.link href={~p"/dashboard/blog/#{@blog.slug}/edit"}><.button>Edit</.button></.link>
           <.button phx-click={show_modal("confirm-delete")}>Delete</.button>
         </div>
       </div>
     </.header>
-
-    <.back navigate="/dashboard/blog">Kembali</.back>
-
+     <.button navigate="/dashboard/blog">Kembali</.button>
     <article class="my-10">
       <h2>{@blog.title}</h2>
-
+      
       <p class="my-5">By: {@user_profile.fullname}</p>
-
+      
       <div>
         <img class="w-full my-5" src={@blog.image_url} />
         <p>{raw(@blog.content)}</p>

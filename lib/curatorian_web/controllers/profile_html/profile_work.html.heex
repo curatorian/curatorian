@@ -3,8 +3,7 @@
     <div class="flex items-center justify-between mb-4">
       <div>
         <h3>{@user.username}'s Profile</h3>
-        
-        <.back navigate={~p"/kurator"}>Kembali</.back>
+         <.button navigate={~p"/kurator"}>Kembali</.button>
       </div>
     </div>
     
@@ -67,13 +66,11 @@
             Blogs
           </button>
         </.link>
-        
         <.link navigate={~p"/#{@user.username}/posts"}>
           <button class={"px-4 py-2 focus:outline-none hover:text-violet-500 #{if @active_tab == "posts", do: "border-b-2 border-violet-500 text-violet-500", else: "text-gray-500"}"}>
             Posts
           </button>
         </.link>
-        
         <.link navigate={~p"/#{@user.username}/works"}>
           <button
             phx-click="show_tab"
@@ -110,7 +107,6 @@
                 >
                   <h4 class="text-violet-500 -mb-2">{work.title}</h4>
                 </.link>
-                
                 <p class="mt-5 text-gray-500 text-justify">
                   {trim_description(work.content, 120)}
                 </p>

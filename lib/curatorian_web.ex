@@ -39,8 +39,7 @@ defmodule CuratorianWeb do
   def controller do
     quote do
       use Phoenix.Controller,
-        formats: [:html, :json],
-        layouts: [html: CuratorianWeb.Layouts]
+        formats: [:html, :json]
 
       use Gettext, backend: CuratorianWeb.Gettext
 
@@ -52,8 +51,7 @@ defmodule CuratorianWeb do
 
   def live_view do
     quote do
-      use Phoenix.LiveView,
-        layout: {CuratorianWeb.Layouts, :app}
+      use Phoenix.LiveView
 
       unquote(html_helpers())
     end
@@ -95,7 +93,7 @@ defmodule CuratorianWeb do
       import Phoenix.HTML
       # Core UI components and translation
       import CuratorianWeb.CoreComponents
-      import CuratorianWeb.LayoutComponents
+      # import CuratorianWeb.LayoutComponents
       use Gettext, backend: CuratorianWeb.Gettext
 
       # Shortcut for generating JS commands

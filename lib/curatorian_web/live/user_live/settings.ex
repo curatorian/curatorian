@@ -1,4 +1,4 @@
-defmodule CuratorianWeb.UserSettingsLive do
+defmodule CuratorianWeb.UserLive.Settings do
   use CuratorianWeb, :live_view_dashboard
 
   alias Curatorian.Accounts
@@ -8,7 +8,7 @@ defmodule CuratorianWeb.UserSettingsLive do
   def render(assigns) do
     ~H"""
     <div class="container mx-auto px-5">
-      <.header class="text-center mb-5">
+      <.header>
         Profil Anda
         <:subtitle>Kelola Profil dan Akun anda disini.</:subtitle>
       </.header>
@@ -113,7 +113,7 @@ defmodule CuratorianWeb.UserSettingsLive do
         </div>
         
         <div class="w-full">
-          <.simple_form for={@update_profile_form} as="user_profile" phx-submit="update_profile">
+          <.form for={@update_profile_form} phx-change="validate_profile" phx-submit="update_profile">
             <h6>Biodata</h6>
             
             <.input
@@ -278,9 +278,41 @@ defmodule CuratorianWeb.UserSettingsLive do
                 id="website"
               />
             </div>
-            
-            <:actions><.button class="">Update Profile</.button></:actions>
-          </.simple_form>
+             <.button phx-disable-with="Updating...">Update Profile</.button>
+          </.form>
+        </div>
+        
+        <div class="w-full">
+          <.form
+            for={@password_form}
+            id="password_form"
+            action={~p"/users/update-password"}
+            method="post"
+            phx-change="validate_password"
+            phx-submit="update_password"
+            phx-trigger-action={@trigger_submit}
+          >
+            <input
+              name={@password_form[:email].name}
+              type="hidden"
+              id="hidden_user_email"
+              autocomplete="username"
+              value={@current_email}
+            />
+            <.input
+              field={@password_form[:password]}
+              type="password"
+              label="New password"
+              autocomplete="new-password"
+              required
+            />
+            <.input
+              field={@password_form[:password_confirmation]}
+              type="password"
+              label="Confirm new password"
+              autocomplete="new-password"
+            /> <.button variant="primary" phx-disable-with="Saving...">Save Password</.button>
+          </.form>
         </div>
       </section>
     </div>
@@ -326,6 +358,7 @@ defmodule CuratorianWeb.UserSettingsLive do
       |> assign(:trigger_submit, false)
       |> assign(:show_add_education, true)
       |> assign(:uploaded_files, [])
+      |> assign(:trigger_submit, false)
       |> allow_upload(:avatar,
         accept: ~w(.jpg .jpeg),
         max_file_size: 3_000_000,
@@ -461,6 +494,16 @@ defmodule CuratorianWeb.UserSettingsLive do
   end
 
   @impl Phoenix.LiveView
+  def handle_event("validate_profile", %{"user_profile" => params}, socket) do
+    changeset =
+      socket.assigns.current_user_profile
+      |> Accounts.change_user_profile(params)
+      |> Map.put(:action, :validate)
+
+    {:noreply, assign(socket, update_profile_form: to_form(changeset))}
+  end
+
+  @impl Phoenix.LiveView
   def handle_event("update_profile", %{"user_profile" => params}, socket) do
     user = socket.assigns.current_user
 
@@ -482,6 +525,32 @@ defmodule CuratorianWeb.UserSettingsLive do
 
       _ ->
         {:noreply, socket}
+    end
+  end
+
+  def handle_event("validate_password", params, socket) do
+    %{"user" => user_params} = params
+
+    password_form =
+      socket.assigns.current_scope.user
+      |> Accounts.change_user_password(user_params, hash_password: false)
+      |> Map.put(:action, :validate)
+      |> to_form()
+
+    {:noreply, assign(socket, password_form: password_form)}
+  end
+
+  def handle_event("update_password", params, socket) do
+    %{"user" => user_params} = params
+    user = socket.assigns.current_scope.user
+    true = Accounts.sudo_mode?(user)
+
+    case Accounts.change_user_password(user, user_params) do
+      %{valid?: true} = changeset ->
+        {:noreply, assign(socket, trigger_submit: true, password_form: to_form(changeset))}
+
+      changeset ->
+        {:noreply, assign(socket, password_form: to_form(changeset, action: :insert))}
     end
   end
 

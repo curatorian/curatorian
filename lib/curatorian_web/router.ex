@@ -11,7 +11,7 @@ defmodule CuratorianWeb.Router do
     plug :put_root_layout, html: {CuratorianWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
-    plug :fetch_current_user
+    plug :fetch_current_scope_for_user
     plug CuratorianWeb.Plugs.GetCurrentPath
   end
 
@@ -60,20 +60,19 @@ defmodule CuratorianWeb.Router do
   ## Authentication routes
 
   scope "/", CuratorianWeb do
-    pipe_through [:browser, :redirect_if_user_is_authenticated]
+    pipe_through [:browser]
 
-    live_session :redirect_if_user_is_authenticated,
-      on_mount: [{CuratorianWeb.UserAuth, :redirect_if_user_is_authenticated}] do
-      live "/login", MemberLoginLive, :new
-      live "/users/register", UserRegistrationLive, :new
-      # live "/users/log_in", UserLoginLive, :new
-      live "/users/reset_password", UserForgotPasswordLive, :new
+    live_session :current_user,
+      on_mount: [
+        {CuratorianWeb.UserAuth, :mount_current_user}
+      ] do
+      live "/register", UserLive.Registration, :new
+      live "/login", UserLive.Login, :new
+      live "/login/:token", UserLive.Confirmation, :new
     end
 
-    post "/users/log_in", UserSessionController, :create
-    live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email
-
-    live "/users/reset_password/:token", UserResetPasswordLive, :edit
+    post "/users/log-in", UserSessionController, :create
+    delete "/users/log-out", UserSessionController, :delete
   end
 
   scope "/", CuratorianWeb do
@@ -85,16 +84,16 @@ defmodule CuratorianWeb.Router do
     live_session :require_authenticated_user,
       on_mount: [
         {CuratorianWeb.Utils.SaveRequestUri, :save_request_uri},
-        {CuratorianWeb.UserAuth, :ensure_authenticated}
+        {CuratorianWeb.UserAuth, :require_authenticated}
       ] do
       scope "/dashboard" do
         live "/", DashboardLive, :show
 
         scope "/blog" do
           live "/", DashboardLive.BlogsLive.Index, :index
-          live "/new", DashboardLive.BlogsLive.New, :new
+          live "/new", DashboardLive.BlogsLive.Form, :new
           live "/:slug", DashboardLive.BlogsLive.Show, :show
-          live "/:slug/edit", DashboardLive.BlogsLive.Edit, :edit
+          live "/:slug/edit", DashboardLive.BlogsLive.Form, :edit
         end
 
         scope "/orgs" do
@@ -105,19 +104,32 @@ defmodule CuratorianWeb.Router do
         end
       end
 
-      live "/users/settings", UserSettingsLive, :edit
-      live "/users/settings/change_password", UserLive.UserChangePassword, :edit
+      # live "/users/settings", UserSettingsLive, :edit
+      # live "/users/settings/change_password", UserLive.UserChangePassword, :edit
+
+      live "/users/settings", UserLive.Settings, :edit
+      live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
 
       live "/comments", CommentLive.Index, :index
       live "/comments/new", CommentLive.Index, :new
       live "/comments/:id", CommentLive.Show, :show
       live "/comments/:id/edit", CommentLive.Show, :edit
+
+      # Protected organization routes
+      resources "/orgs", OrgsController,
+        param: "slug",
+        only: [:new, :create, :edit, :update, :delete]
+
+      post "/orgs/:slug/join", OrgsController, :join
+      post "/orgs/:slug/leave", OrgsController, :leave
     end
+
+    post "/users/update-password", UserSessionController, :update_password
 
     live_session :require_manager_role,
       on_mount: [
         {CuratorianWeb.Utils.SaveRequestUri, :save_request_uri},
-        {CuratorianWeb.UserAuth, :ensure_authenticated},
+        {CuratorianWeb.UserAuth, :require_authenticated},
         {CuratorianWeb.UserAuth, :ensure_user_is_manager}
       ] do
       scope "/dashboard" do
@@ -148,27 +160,5 @@ defmodule CuratorianWeb.Router do
     get "/:username/posts/:id", ProfileController, :show_posts
     get "/:username/works", ProfileController, :works
     get "/:username/works/:id", ProfileController, :show_works
-
-    delete "/users/log_out", UserSessionController, :delete
-
-    live_session :current_user,
-      on_mount: [
-        {CuratorianWeb.UserAuth, :mount_current_user}
-      ] do
-      live "/users/confirm/:token", UserConfirmationLive, :edit
-      live "/users/confirm", UserConfirmationInstructionsLive, :new
-    end
-  end
-
-  scope "/", CuratorianWeb do
-    pipe_through [:browser, :require_authenticated_user]
-
-    # Protected organization routes
-    resources "/orgs", OrgsController,
-      param: "slug",
-      only: [:new, :create, :edit, :update, :delete]
-
-    post "/orgs/:slug/join", OrgsController, :join
-    post "/orgs/:slug/leave", OrgsController, :leave
   end
 end

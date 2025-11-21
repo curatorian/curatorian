@@ -5,12 +5,8 @@ defmodule CuratorianWeb.DashboardLive.UserManagerLive.Show do
 
   def render(assigns) do
     ~H"""
-    <.header>
-      User Profile
-    </.header>
-
-    <.back navigate="/dashboard/user_manager">Kembali</.back>
-
+    <.header>User Profile</.header>
+     <.button navigate="/dashboard/user_manager">Kembali</.button>
     <div class="user-profile">
       <div class="profile-header">
         <h2>{@user.profile.fullname}</h2>
@@ -84,8 +80,7 @@ defmodule CuratorianWeb.DashboardLive.UserManagerLive.Show do
           class="btn btn-primary no-underline"
         >
           Edit Profile
-        </.link>
-         <button class="btn btn-cancel">Delete User</button>
+        </.link> <button class="btn btn-cancel">Delete User</button>
       </div>
     </div>
     """

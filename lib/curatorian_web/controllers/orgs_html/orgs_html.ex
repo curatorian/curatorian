@@ -3,6 +3,18 @@ defmodule CuratorianWeb.OrgsHTML do
 
   embed_templates "*"
 
+  @doc """
+  Renders a orgs form.
+
+  The form is defined in the template at
+  orgs_html/orgs_form.html.heex
+  """
+  attr :changeset, Ecto.Changeset, required: true
+  attr :action, :string, required: true
+  attr :return_to, :string, default: nil
+
+  def orgs_form(assigns)
+
   # Helper functions for organization views
   def organization_status_badge(status) do
     case status do
