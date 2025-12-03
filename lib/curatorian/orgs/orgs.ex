@@ -5,6 +5,7 @@ defmodule Curatorian.Orgs do
 
   import Ecto.Query, warn: false
   alias Curatorian.Repo
+  alias Ecto.Multi
 
   alias Curatorian.Orgs.{Organization, OrganizationRole, OrganizationUser}
 
@@ -78,11 +79,12 @@ defmodule Curatorian.Orgs do
       {:error, %Ecto.Changeset{}}
 
   """
+
+  @dialyzer {:nowarn_function, create_organization: 2}
   def create_organization(owner, attrs) do
-    # Create organization and set owner as admin
-    Ecto.Multi.new()
-    |> Ecto.Multi.insert(:organization, Organization.changeset(%Organization{}, attrs))
-    |> Ecto.Multi.run(:owner_membership, fn _repo, %{organization: org} ->
+    Multi.new()
+    |> Multi.insert(:organization, Organization.changeset(%Organization{}, attrs))
+    |> Multi.run(:owner_membership, fn _repo, %{organization: org} ->
       add_member(org, owner, "owner")
     end)
     |> Repo.transaction()

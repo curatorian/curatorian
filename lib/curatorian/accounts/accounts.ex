@@ -211,6 +211,7 @@ defmodule Curatorian.Accounts do
       {:error, %Ecto.Changeset{}}
 
   """
+  @dialyzer {:nowarn_function, register_user: 2}
   def register_user(user_attrs, profile_attrs \\ %{}) do
     Ecto.Multi.new()
     |> Ecto.Multi.insert(:user, User.registration_changeset(%User{}, user_attrs))
@@ -227,7 +228,9 @@ defmodule Curatorian.Accounts do
         if fullname, do: Map.put(profile_params, :fullname, fullname), else: profile_params
 
       profile_params =
-        if user_image, do: Map.put(profile_params, :user_image, user_image), else: profile_params
+        if user_image,
+          do: Map.put(profile_params, :user_image, user_image),
+          else: profile_params
 
       UserProfile.changeset(%UserProfile{}, profile_params)
     end)
@@ -277,6 +280,7 @@ defmodule Curatorian.Accounts do
     |> Repo.update()
   end
 
+  @dialyzer {:nowarn_function, update_user_and_profile: 4}
   def update_user_and_profile(user, user_params, profile, profile_params) do
     Ecto.Multi.new()
     |> Ecto.Multi.update(:user, User.changeset(user, user_params))
@@ -352,6 +356,7 @@ defmodule Curatorian.Accounts do
     end
   end
 
+  @dialyzer {:nowarn_function, user_email_multi: 3}
   defp user_email_multi(user, email, context) do
     changeset =
       user

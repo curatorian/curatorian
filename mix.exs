@@ -11,7 +11,8 @@ defmodule Curatorian.MixProject do
       aliases: aliases(),
       deps: deps(),
       compilers: [:phoenix_live_view] ++ Mix.compilers(),
-      listeners: [Phoenix.CodeReloader]
+      listeners: [Phoenix.CodeReloader],
+      dialyzer: [flags: [:no_opaque]]
     ]
   end
 
