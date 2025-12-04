@@ -179,6 +179,10 @@ defmodule CuratorianWeb.UserLive.Login do
     {:noreply, assign(socket, :trigger_submit, true)}
   end
 
+  def handle_event("google_auth", _params, socket) do
+    {:noreply, push_navigate(socket, to: "/auth/google")}
+  end
+
   def handle_event("submit_magic", %{"user" => %{"email" => email}}, socket) do
     if user = Accounts.get_user_by_email(email) do
       Accounts.deliver_login_instructions(

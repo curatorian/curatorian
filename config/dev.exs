@@ -97,5 +97,15 @@ config :phoenix_live_view,
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
 
+config :curatorian, Curatorian.Mailer,
+  adapter: Swoosh.Adapters.SMTP,
+  relay: "smtp.gmail.com",
+  username: System.get_env("CURATORIAN_SMTP_USERNAME"),
+  password: System.get_env("CURATORIAN_SMTP_PASSWORD"),
+  ssl: false,
+  tls: :always,
+  auth: :always,
+  port: 587
+
 # Configure the TrixUploadsController to use the local storage adapter
 config :curatorian, :uploader, Clients.Storage.Local
