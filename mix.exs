@@ -36,6 +36,7 @@ defmodule Curatorian.MixProject do
   defp deps do
     [
       {:assent, "~> 0.3.1"},
+      {:aws, "~> 1.0.0"},
       {:bandit, "~> 1.5"},
       {:dns_cluster, "~> 0.2.0"},
       {:ecto_sql, "~> 3.13"},
@@ -43,6 +44,7 @@ defmodule Curatorian.MixProject do
       {:finch, "~> 0.13"},
       {:floki, ">= 0.30.0", only: :test},
       {:gettext, "~> 0.26"},
+      {:hackney, "~> 1.18"},
       {:heroicons,
        github: "tailwindlabs/heroicons",
        tag: "v2.2.0",

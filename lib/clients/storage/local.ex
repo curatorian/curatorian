@@ -3,19 +3,20 @@ defmodule Clients.Storage.Local do
   Storage module to store files locally with dynamic directory support
   """
 
+  @behaviour Clients.Storage
+
   @default_context "contents"
 
-  def upload(
-        %{"file" => %Plug.Upload{path: tmp_path, content_type: content_type}},
-        context \\ @default_context
-      ) do
+  def upload_from_path(tmp_path, content_type, context \\ @default_context) do
     # Create upload dir if not exists
     create_uploads_dir(context)
 
     # Generate a unique filename
     file_name = "#{Ecto.UUID.generate()}.#{ext(content_type)}"
 
-    case File.cp(tmp_path, Path.join(upload_dir(context), file_name)) do
+    dest_path = Path.join(upload_dir(context), file_name)
+
+    case File.cp(tmp_path, dest_path) do
       :ok -> {:ok, Path.join("/uploads/#{context}", file_name)}
       error -> {:error, error}
     end

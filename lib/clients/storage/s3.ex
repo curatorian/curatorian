@@ -1,40 +1,69 @@
-# defmodule Clients.Storage.S3 do
-#   @moduledoc false
+defmodule Clients.Storage.S3 do
+  @moduledoc """
+  Storage module for S3-compatible storage
+  """
 
-#   @b2_region Application.compile_env!(:my_app, :b2_region)
-#   @b2_access_key_id Application.compile_env!(:my_app, :b2_access_key_id)
-#   @b2_secret_key_access Application.compile_env!(:my_app, :b2_secret_key_access)
-#   @b2_bucket_name Application.compile_env!(:my_app, :b2_bucket_name)
+  @behaviour Clients.Storage
 
-#   def upload(%{"Content-Type" => content_type, "file" => %Plug.Upload{path: tmp_path}}) do
-#     file_path = "public/#{Ecto.UUID.generate()}.#{ext(content_type)}"
+  @impl true
+  def upload_from_path(tmp_path, content_type, context) do
+    file_path = "#{context}/#{Ecto.UUID.generate()}.#{ext(content_type)}"
 
-#     file = File.read!(tmp_path)
-#     md5 = :md5 |> :crypto.hash(file) |> Base.encode64()
+    file = File.read!(tmp_path)
+    md5 = :md5 |> :crypto.hash(file) |> Base.encode64()
 
-#     get_client()
-#     |> AWS.S3.put_object(@b2_bucket_name, file_path, %{
-#       "Body" => file,
-#       "ContentMD5" => md5,
-#       "Content-Type" => content_type
-#     })
-#     |> case do
-#       {:ok, _, %{status_code: 200}} ->
-#         {:ok, "#{endpoint()}/#{@b2_bucket_name}/#{file_path}"}
+    get_client()
+    |> AWS.S3.put_object(bucket_name(), file_path, %{
+      "Body" => file,
+      "ContentMD5" => md5,
+      "Content-Type" => content_type
+    })
+    |> case do
+      {:ok, _, %{status_code: 200}} ->
+        {:ok, "#{endpoint()}/#{bucket_name()}/#{file_path}"}
 
-#       _ = response ->
-#         {:error, "Unable to upload file, please try again later."}
-#     end
-#   end
+      _ ->
+        {:error, "Unable to upload file, please try again later."}
+    end
+  end
 
-#   defp get_client do
-#     @b2_application_key_id
-#     |> AWS.Client.create(@b2_application_key, @b2_region)
-#     # This line might be irrelevant for you if you are not using backblaze
-#     |> AWS.Client.put_endpoint("s3.#{@b2_region}.backblazeb2.com")
-#   end
+  @impl true
+  def delete(file_url) do
+    key = extract_key(file_url)
 
-#   defp endpoint do
-#     "https://s3.#{@b2_region}.backblazeb2.com"
-#   end
-# end
+    get_client()
+    |> AWS.S3.delete_object(bucket_name(), key, %{})
+    |> case do
+      {:ok, _, %{status_code: 204}} ->
+        :ok
+
+      _ ->
+        {:error, "Unable to delete file"}
+    end
+  end
+
+  defp get_client do
+    access_key_id()
+    |> AWS.Client.create(secret_key_access(), region())
+    |> AWS.Client.put_endpoint("s3.#{region()}.backblazeb2.com")
+  end
+
+  defp endpoint do
+    "https://s3.#{region()}.backblazeb2.com"
+  end
+
+  defp region, do: System.get_env("CURATORIAN_S3_REGION") || "us-west-002"
+  defp access_key_id, do: System.get_env("CURATORIAN_S3_ACCESS_KEY_ID")
+  defp secret_key_access, do: System.get_env("CURATORIAN_S3_SECRET_KEY_ACCESS")
+  defp bucket_name, do: System.get_env("CURATORIAN_S3_BUCKET_NAME")
+
+  defp extract_key(file_url) do
+    prefix = "#{endpoint()}/#{bucket_name()}/"
+    String.replace(file_url, prefix, "")
+  end
+
+  defp ext(content_type) do
+    [ext | _] = MIME.extensions(content_type)
+    ext
+  end
+end

@@ -110,6 +110,17 @@ defmodule Curatorian.Blogs do
 
   """
   def delete_blog(%Blog{} = blog) do
+    blog =
+      blog
+      |> Repo.preload([:tags, :categories])
+
+    # Remove associations before deleting
+    blog
+    |> Ecto.Changeset.change()
+    |> Ecto.Changeset.put_assoc(:tags, [])
+    |> Ecto.Changeset.put_assoc(:categories, [])
+    |> Repo.update()
+
     Repo.delete(blog)
   end
 

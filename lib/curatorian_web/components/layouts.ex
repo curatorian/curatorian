@@ -256,37 +256,45 @@ defmodule CuratorianWeb.Layouts do
           </div>
           
           <div class="pt-6">
-            <%= if @current_user.profile && @current_user.profile.user_image do %>
-              <div class="flex flex-col items-center justify-center my-5 gap-3">
-                <div class="flex gap-3">
-                  <.link href={"/#{@current_user.username}"}>
-                    <img
-                      src={@current_user.profile.user_image}
-                      class="w-12 h-12 object-cover rounded-full"
-                      referrerPolicy="no-referrer"
-                      alt={@current_user.username}
-                    />
-                  </.link>
-                  <div class="flex flex-col gap-0">
-                    <p class="font-semibold">{@current_user.profile.fullname}</p>
-                    
-                    <.link
-                      href={"/#{@current_user.username}"}
-                      class="text-xs font-semibold no-underline"
-                    >
-                      @{@current_user.username}
+            <%= if @current_user != nil do %>
+              <%= if @current_user.profile && @current_user.profile.user_image do %>
+                <div class="flex flex-col items-center justify-center my-5 gap-3">
+                  <div class="flex gap-3">
+                    <.link href={"/#{@current_user.username}"}>
+                      <img
+                        src={@current_user.profile.user_image}
+                        class="w-12 h-12 object-cover rounded-full"
+                        referrerPolicy="no-referrer"
+                        alt={@current_user.username}
+                      />
                     </.link>
-                    <p class="text-xs text-gray-400">{@current_user.email}</p>
+                    <div class="flex flex-col gap-0">
+                      <p class="font-semibold">{@current_user.profile.fullname}</p>
+                      
+                      <.link
+                        href={"/#{@current_user.username}"}
+                        class="text-xs font-semibold no-underline"
+                      >
+                        @{@current_user.username}
+                      </.link>
+                      <p class="text-xs text-gray-400">{@current_user.email}</p>
+                    </div>
+                  </div>
+                  
+                  <div class="flex gap-3">
+                    <.link href="/dashboard" class="btn-primary no-underline text-xs">
+                      Dashboard
+                    </.link>
+                    <.link
+                      href="/users/log_out"
+                      method="delete"
+                      class="no-underline btn-cancel text-xs"
+                    >
+                      Log out
+                    </.link>
                   </div>
                 </div>
-                
-                <div class="flex gap-3">
-                  <.link href="/dashboard" class="btn-primary no-underline text-xs">Dashboard</.link>
-                  <.link href="/users/log_out" method="delete" class="no-underline btn-cancel text-xs">
-                    Log out
-                  </.link>
-                </div>
-              </div>
+              <% end %>
             <% else %>
               <.link class="no-underline" href="/login">
                 <button class="btn-primary bg-violet-1 text-violet-6">Masuk</button>

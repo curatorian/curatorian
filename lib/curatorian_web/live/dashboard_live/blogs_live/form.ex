@@ -227,21 +227,11 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Form do
   @impl true
   def handle_event("save", %{"blog" => blog_params}, socket) do
     uploaded_files =
-      consume_uploaded_entries(socket, :thumbnail, fn %{path: path}, _entry ->
-        dest_dir = Application.app_dir(:curatorian, "priv/static/uploads/thumbnail")
-
-        dest =
-          Path.join(
-            dest_dir,
-            Path.basename(path)
-          )
-
-        File.mkdir_p!(dest_dir)
-
-        File.cp!(path, dest)
-
-        image_path = "/uploads/thumbnail/#{Path.basename(path)}"
-        {:ok, image_path}
+      consume_uploaded_entries(socket, :thumbnail, fn %{path: path}, entry ->
+        case Clients.Storage.adapter().upload_from_path(path, entry.client_type, "thumbnail") do
+          {:ok, image_path} -> {:ok, image_path}
+          {:error, _} -> {:error, "Failed to upload"}
+        end
       end)
 
     tags = socket.assigns.tags

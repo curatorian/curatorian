@@ -58,13 +58,33 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Show do
 
   def handle_event("delete-blog", %{"id" => id}, socket) do
     blog = Blogs.get_blog!(id)
-    {:ok, _blog} = Blogs.delete_blog(blog)
 
-    socket =
-      socket
-      |> put_flash(:info, "Blog deleted successfully.")
-      |> redirect(to: "/dashboard/blog")
+    # Authorization: only the blog owner or privileged users can delete
+    user_id = socket.assigns.current_scope.user.id
+    user_profile = socket.assigns.current_scope.user.profile || socket.assigns.current_scope.user
 
-    {:noreply, socket}
+    privileged_roles = ["manager", "admin", "coordinator"]
+
+    authorized =
+      (user_id && blog.user_id == user_id) or
+        (user_profile && Map.get(user_profile, :user_role) in privileged_roles)
+
+    if authorized do
+      {:ok, _blog} = Blogs.delete_blog(blog)
+
+      socket =
+        socket
+        |> put_flash(:info, "Blog deleted successfully.")
+        |> redirect(to: "/dashboard/blog")
+
+      {:noreply, socket}
+    else
+      socket =
+        socket
+        |> put_flash(:error, "You are not authorized to delete this blog.")
+        |> redirect(to: "/dashboard/blog")
+
+      {:noreply, socket}
+    end
   end
 end
