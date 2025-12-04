@@ -178,16 +178,19 @@ defmodule Curatorian.Accounts do
 
     curatorian_query =
       from c in User,
+        join: p in assoc(c, :profile),
         order_by: [desc: c.inserted_at],
         limit: ^per_page,
-        offset: ^offset
+        offset: ^offset,
+        select: c
 
     curatorians =
       curatorian_query
       |> Repo.all()
       |> Repo.preload(:profile)
 
-    total_count = Repo.aggregate(User, :count, :id)
+    total_query = from c in User, join: p in assoc(c, :profile), select: count(c.id)
+    total_count = Repo.one(total_query)
     total_pages = div(total_count + per_page - 1, per_page)
 
     %{
