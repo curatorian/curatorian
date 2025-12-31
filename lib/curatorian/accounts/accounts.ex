@@ -23,7 +23,7 @@ defmodule Curatorian.Accounts do
 
   """
   def get_user_by_email(email) when is_binary(email) do
-    Repo.get_by(User, email: email) |> Repo.preload(:profile)
+    Repo.get_by(User, email: email) |> Repo.preload([:profile, :role])
   end
 
   @doc """
@@ -40,7 +40,7 @@ defmodule Curatorian.Accounts do
   """
   def get_user_by_email_and_password(email, password)
       when is_binary(email) and is_binary(password) do
-    user = Repo.get_by(User, email: email) |> Repo.preload(:profile)
+    user = Repo.get_by(User, email: email) |> Repo.preload([:profile, :role])
     if User.valid_password?(user, password), do: user
   end
 
@@ -58,7 +58,7 @@ defmodule Curatorian.Accounts do
       ** (Ecto.NoResultsError)
 
   """
-  def get_user!(id), do: Repo.get!(User, id) |> Repo.preload(:profile)
+  def get_user!(id), do: Repo.get!(User, id) |> Repo.preload([:profile, :role])
 
   @doc """
   Gets a user profile by user_id.
@@ -104,7 +104,7 @@ defmodule Curatorian.Accounts do
   def get_user_profile_by_username(username) do
     User
     |> Repo.get_by(username: username)
-    |> Repo.preload(profile: [:educations])
+    |> Repo.preload([:role, profile: [:educations]])
   end
 
   @doc """
@@ -159,26 +159,86 @@ defmodule Curatorian.Accounts do
   end
 
   @doc """
-  Gets all Curatorian users.
+  Gets all Curatorian users with search, filters and pagination.
 
   ## Examples
 
-      iex> list_all_curatorian()
-      [%User{}, ...]
+      iex> list_all_curatorian(%{})
+      %{curatorians: [%User{}, ...], page: 1, total_pages: 5, total_users: 50}
+
+      iex> list_all_curatorian(%{"search" => "john", "role_filter" => "curator"})
+      %{curatorians: [%User{}, ...], page: 1, total_pages: 2, total_users: 15}
   """
   def list_all_curatorian(params) do
     page =
       case Map.get(params, "page") do
         nil -> 1
+        value when is_integer(value) -> value
         value -> String.to_integer(value)
       end
+
+    search = Map.get(params, "search", "")
+    role_filter = Map.get(params, "role_filter", "")
+    status_filter = Map.get(params, "status_filter", "")
 
     per_page = 12
     offset = (page - 1) * per_page
 
-    curatorian_query =
+    # Build base query
+    base_query =
       from c in User,
         join: p in assoc(c, :profile),
+        left_join: r in assoc(c, :role)
+
+    # Apply search filter
+    search_query =
+      if search != "" do
+        search_term = "%#{search}%"
+
+        from [c, p, r] in base_query,
+          where:
+            ilike(c.username, ^search_term) or
+              ilike(c.email, ^search_term) or
+              ilike(p.fullname, ^search_term)
+      else
+        base_query
+      end
+
+    # Apply role filter
+    role_query =
+      if role_filter != "" do
+        from [c, p, r] in search_query,
+          where: r.slug == ^role_filter
+      else
+        search_query
+      end
+
+    # Apply status filter
+    status_query =
+      case status_filter do
+        "active" ->
+          thirty_days_ago = DateTime.add(DateTime.utc_now(), -30, :day)
+
+          from [c, p, r] in role_query,
+            where: c.last_login >= ^thirty_days_ago
+
+        "inactive" ->
+          thirty_days_ago = DateTime.add(DateTime.utc_now(), -30, :day)
+
+          from [c, p, r] in role_query,
+            where: is_nil(c.last_login) or c.last_login < ^thirty_days_ago
+
+        "verified" ->
+          from [c, p, r] in role_query,
+            where: c.is_verified == true
+
+        _ ->
+          role_query
+      end
+
+    # Final query with pagination
+    curatorian_query =
+      from [c, p, r] in status_query,
         order_by: [desc: c.inserted_at],
         limit: ^per_page,
         offset: ^offset,
@@ -187,9 +247,10 @@ defmodule Curatorian.Accounts do
     curatorians =
       curatorian_query
       |> Repo.all()
-      |> Repo.preload(:profile)
+      |> Repo.preload([:profile, :role])
 
-    total_query = from c in User, join: p in assoc(c, :profile), select: count(c.id)
+    # Count total matching users
+    total_query = from [c, p, r] in status_query, select: count(c.id)
     total_count = Repo.one(total_query)
     total_pages = div(total_count + per_page - 1, per_page)
 
@@ -197,7 +258,7 @@ defmodule Curatorian.Accounts do
       curatorians: curatorians,
       page: page,
       per_page: per_page,
-      total_count: total_count,
+      total_users: total_count,
       total_pages: total_pages
     }
   end
@@ -216,6 +277,17 @@ defmodule Curatorian.Accounts do
   """
   @dialyzer {:nowarn_function, register_user: 2}
   def register_user(user_attrs, profile_attrs \\ %{}) do
+    # Get the default role for new users
+    default_role = Curatorian.Authorization.get_default_role()
+
+    # Add role_id to user_attrs if a default role exists
+    user_attrs =
+      if default_role do
+        Map.put(user_attrs, :role_id, default_role.id)
+      else
+        user_attrs
+      end
+
     Ecto.Multi.new()
     |> Ecto.Multi.insert(:user, User.registration_changeset(%User{}, user_attrs))
     |> Ecto.Multi.insert(:user_profile, fn %{user: user} ->
@@ -601,5 +673,51 @@ defmodule Curatorian.Accounts do
     user
     |> Repo.preload(:followers)
     |> Map.get(:followers)
+  end
+
+  @doc """
+  Bulk update user roles.
+
+  ## Examples
+
+      iex> bulk_update_user_roles(["user_id_1", "user_id_2"], "role_id")
+      {:ok, 2}
+
+      iex> bulk_update_user_roles([], "role_id")
+      {:error, "No users selected"}
+  """
+  def bulk_update_user_roles([], _role_id), do: {:error, "No users selected"}
+
+  def bulk_update_user_roles(user_ids, role_id) when is_list(user_ids) do
+    {count, _} =
+      from(u in User, where: u.id in ^user_ids)
+      |> Repo.update_all(set: [role_id: role_id, updated_at: DateTime.utc_now()])
+
+    {:ok, count}
+  rescue
+    _ -> {:error, "Failed to update users"}
+  end
+
+  @doc """
+  Delete a user by ID.
+
+  ## Examples
+
+      iex> delete_user("user_id")
+      {:ok, %User{}}
+
+      iex> delete_user("invalid_id")
+      {:error, "User not found"}
+  """
+  def delete_user(user_id) do
+    case Repo.get(User, user_id) do
+      nil ->
+        {:error, "User not found"}
+
+      user ->
+        Repo.delete(user)
+    end
+  rescue
+    _ -> {:error, "Failed to delete user"}
   end
 end

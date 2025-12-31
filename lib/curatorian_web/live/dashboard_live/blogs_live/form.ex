@@ -9,96 +9,170 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Form do
   @impl true
   def render(assigns) do
     ~H"""
-    <div>
-      <.form
-        for={@form}
-        id="blog-form"
-        phx-change="validate"
-        phx-submit="save"
-      >
-        <.input
-          field={@form[:status]}
-          type="select"
-          label="Status"
-          prompt="Pilih Status Publikasi"
-          options={@status_input}
-        /> <.input field={@form[:title]} type="text" label="Title" />
-        <.input field={@form[:slug]} type="text" label="Slug" phx-hook="Slugify" id="slug" />
-        <.input field={@form[:summary]} type="text" label="Summary" />
-        <.input
-          type="text"
-          label="Tags"
-          placeholder="e.g. Art, History, Tech"
-          field={@form[:tag_name]}
-          phx-hook="ChooseTag"
-          autocomplete="off"
-        />
-        <div class="flex gap-2">
-          <%= for tag <- @tags do %>
-            <div
-              class="bg-purple-500 text-white px-4 py-1 rounded-lg my-3 text-sm cursor-pointer"
-              phx-click="delete_tag"
-              phx-value-tag-slug={tag.slug}
-            >
-              {tag.name}
+    <div class="max-w-5xl mx-auto">
+      <.header>
+        {@title}
+        <:subtitle>
+          {if @action == :new, do: "Create a new blog post", else: "Update your blog post"}
+        </:subtitle>
+      </.header>
+      
+      <div class="mt-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 md:p-8">
+        <.form
+          for={@form}
+          id="blog-form"
+          phx-change="validate"
+          phx-submit="save"
+          class="space-y-8"
+        >
+          <%!-- Basic Information --%>
+          <section>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+              Basic Information
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="md:col-span-2">
+                <.input field={@form[:title]} type="text" label="Title" required />
+              </div>
+               <.input field={@form[:slug]} type="text" label="Slug" phx-hook="Slugify" id="slug" />
+              <.input
+                field={@form[:status]}
+                type="select"
+                label="Status"
+                prompt="Select publication status"
+                options={@status_input}
+              />
+              <div class="md:col-span-2">
+                <.input field={@form[:summary]} type="textarea" label="Summary" rows="3" />
+              </div>
             </div>
-          <% end %>
-        </div>
-        
-        <div>
-          <label>Konten</label>
-          <.input
-            field={@form[:content]}
-            id="article-content"
-            type="hidden"
-            phx-hook="Trix"
-            phx-debounce="blur"
-          />
-          <div id="trix-editor-container" phx-update="ignore">
-            <trix-editor input="article-content"></trix-editor>
-          </div>
-        </div>
-        
-        <div>
-          <.input field={@form[:image_url]} type="hidden" label="Thumbnail" />
-          <section phx-drop-target={@uploads.thumbnail.ref}>
-            <%= if length(@uploads.thumbnail.entries) === 0 do %>
-              <img src={@blog.image_url} class="max-h-[320px] object-cover" />
+          </section>
+           <%!-- Tags --%>
+          <section>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Tags</h3>
+            
+            <.input
+              type="text"
+              label="Add Tags"
+              placeholder="e.g. Art, History, Tech"
+              field={@form[:tag_name]}
+              phx-hook="ChooseTag"
+              autocomplete="off"
+            />
+            <%= if @tags != [] do %>
+              <div class="flex flex-wrap gap-2 mt-3">
+                <%= for tag <- @tags do %>
+                  <span
+                    class="inline-flex items-center gap-2 bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 px-3 py-1 rounded-full text-sm font-medium cursor-pointer hover:bg-purple-200 dark:hover:bg-purple-800 transition-colors"
+                    phx-click="delete_tag"
+                    phx-value-tag-slug={tag.slug}
+                  >
+                    {tag.name} <.icon name="hero-x-mark" class="w-4 h-4" />
+                  </span>
+                <% end %>
+              </div>
             <% end %>
-             <%!-- render each thumbnail entry --%>
-            <article :for={entry <- @uploads.thumbnail.entries} class="upload-entry">
-              <figure>
-                <.live_img_preview entry={entry} class="w-full max-h-[120px] object-cover" />
-                <figcaption>{entry.client_name}</figcaption>
-              </figure>
-               <%!-- entry.progress will update automatically for in-flight entries --%>
-              <progress value={entry.progress} max="100">{entry.progress}%</progress>
-              <%!-- a regular click event whose handler will invoke Phoenix.LiveView.cancel_upload/3 --%>
-              <button
-                type="button"
-                phx-click="cancel-upload"
-                phx-value-ref={entry.ref}
-                aria-label="cancel"
-              >
-                &times;
-              </button> <%!-- Phoenix.Component.upload_errors/2 returns a list of error atoms --%>
-              <p :for={err <- upload_errors(@uploads.thumbnail, entry)} class="alert alert-danger">
+          </section>
+           <%!-- Thumbnail --%>
+          <section>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+              Thumbnail Image
+            </h3>
+             <.input field={@form[:image_url]} type="hidden" />
+            <div
+              phx-drop-target={@uploads.thumbnail.ref}
+              class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 hover:border-gray-400 dark:hover:border-gray-500 transition-colors"
+            >
+              <%= if length(@uploads.thumbnail.entries) === 0 do %>
+                <%= if @blog.image_url do %>
+                  <div class="relative group">
+                    <img src={@blog.image_url} class="w-full max-h-64 object-cover rounded-lg" />
+                    <div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                      <p class="text-white text-sm">Click or drag to replace</p>
+                    </div>
+                  </div>
+                <% else %>
+                  <div class="text-center py-8">
+                    <.icon name="hero-photo" class="w-12 h-12 mx-auto text-gray-400 mb-3" />
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                      Drop your image here or click to browse
+                    </p>
+                    
+                    <p class="text-xs text-gray-500 dark:text-gray-500">JPG, JPEG or PNG (max 3MB)</p>
+                  </div>
+                <% end %>
+              <% end %>
+              
+              <%= for entry <- @uploads.thumbnail.entries do %>
+                <div class="relative">
+                  <.live_img_preview entry={entry} class="w-full max-h-64 object-cover rounded-lg" />
+                  <div class="mt-2 flex items-center justify-between">
+                    <span class="text-sm text-gray-600 dark:text-gray-400">{entry.client_name}</span>
+                    <button
+                      type="button"
+                      phx-click="cancel-upload"
+                      phx-value-ref={entry.ref}
+                      class="text-red-600 hover:text-red-700 dark:text-red-400"
+                    >
+                      <.icon name="hero-x-mark" class="w-5 h-5" />
+                    </button>
+                  </div>
+                  
+                  <progress value={entry.progress} max="100" class="w-full mt-2">
+                    {entry.progress}%
+                  </progress>
+                  <p
+                    :for={err <- upload_errors(@uploads.thumbnail, entry)}
+                    class="text-sm text-red-600 mt-1"
+                  >
+                    {error_to_string(err)}
+                  </p>
+                </div>
+              <% end %>
+              
+              <p :for={err <- upload_errors(@uploads.thumbnail)} class="text-sm text-red-600 mt-2">
                 {error_to_string(err)}
               </p>
-            </article>
-             <%!-- Phoenix.Component.upload_errors/1 returns a list of error atoms --%>
-            <p :for={err <- upload_errors(@uploads.thumbnail)} class="alert alert-danger">
-              {error_to_string(err)}
-            </p>
+            </div>
+             <.live_file_input upload={@uploads.thumbnail} class="mt-3" />
           </section>
-           <.live_file_input upload={@uploads.thumbnail} />
-        </div>
-        
-        <footer>
-          <.button phx-disable-with="Saving..." variant="primary">Save Blog</.button>
-          <.button navigate={return_path(@return_to, @blog)}>Cancel</.button>
-        </footer>
-      </.form>
+           <%!-- Content Editor --%>
+          <section>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Content</h3>
+            
+            <.input
+              field={@form[:content]}
+              id="article-content"
+              type="hidden"
+              phx-hook="Trix"
+              phx-debounce="blur"
+            />
+            <div
+              id="trix-editor-container"
+              phx-update="ignore"
+              class="border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden"
+            >
+              <trix-editor input="article-content" class="min-h-[400px]"></trix-editor>
+            </div>
+          </section>
+           <%!-- Action Buttons --%>
+          <div class="flex items-center justify-between pt-6 border-t border-gray-200 dark:border-gray-700">
+            <.button
+              type="button"
+              navigate={return_path(@return_to, @blog)}
+              class="btn-secondary"
+            >
+              <.icon name="hero-x-mark" class="w-4 h-4 mr-2" /> Cancel
+            </.button>
+            <.button type="submit" phx-disable-with="Saving...">
+              <.icon name="hero-check" class="w-4 h-4 mr-2" /> {if @action == :new,
+                do: "Create Blog",
+                else: "Update Blog"}
+            </.button>
+          </div>
+        </.form>
+      </div>
     </div>
     """
   end

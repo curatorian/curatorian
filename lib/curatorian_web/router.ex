@@ -130,7 +130,7 @@ defmodule CuratorianWeb.Router do
       on_mount: [
         {CuratorianWeb.Utils.SaveRequestUri, :save_request_uri},
         {CuratorianWeb.UserAuth, :require_authenticated},
-        {CuratorianWeb.UserAuth, :ensure_user_is_manager}
+        {CuratorianWeb.Authorization, :require_manager}
       ] do
       scope "/dashboard" do
         scope "/user_manager" do
@@ -139,6 +139,22 @@ defmodule CuratorianWeb.Router do
           live "/:username/edit", DashboardLive.UserManagerLive.Edit, :edit
           # live "/:username/delete", DashboardLive.UserManagerLive.Delete, :delete
         end
+      end
+    end
+
+    # Super Admin Routes - RBAC Management
+    live_session :require_super_admin,
+      on_mount: [
+        {CuratorianWeb.Utils.SaveRequestUri, :save_request_uri},
+        {CuratorianWeb.UserAuth, :require_authenticated},
+        {CuratorianWeb.Authorization, :require_super_admin}
+      ] do
+      scope "/dashboard/admin" do
+        live "/roles", DashboardLive.RolesLive.Index, :index
+        live "/roles/new", DashboardLive.RolesLive.Form, :new
+        live "/roles/:id/edit", DashboardLive.RolesLive.Form, :edit
+
+        live "/permissions", DashboardLive.PermissionsLive.Index, :index
       end
     end
   end

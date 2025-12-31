@@ -19,6 +19,7 @@ defmodule Curatorian.Accounts.User do
     field :last_login, :utc_datetime
     field :last_login_ip, :string
 
+    belongs_to :role, Curatorian.Authorization.Role, type: :binary_id
     has_one :profile, Curatorian.Accounts.UserProfile
 
     timestamps(type: :utc_datetime)
@@ -26,10 +27,11 @@ defmodule Curatorian.Accounts.User do
 
   def changeset(user, attrs) do
     user
-    |> cast(attrs, [:email, :username, :user_type, :user_role, :password])
+    |> cast(attrs, [:email, :username, :user_type, :user_role, :password, :role_id, :is_verified])
     |> validate_length(:username, min: 3, max: 30)
     |> unique_constraint(:email)
     |> unique_constraint(:username)
+    |> foreign_key_constraint(:role_id)
   end
 
   @doc """

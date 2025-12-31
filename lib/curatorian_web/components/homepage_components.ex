@@ -198,20 +198,6 @@ defmodule CuratorianWeb.HomepageComponents do
         <% end %>
       </div>
     </div>
-
-    <div class="p-5">
-      <div class="bg-violet-500 text-white text-center rounded-lg p-5 max-w-5xl mx-auto flex flex-col gap-5">
-        <h6 class="text-center">Coming Soon</h6>
-        
-        <h2>Q2 2025</h2>
-        
-        <p>April ~ Juni 2025</p>
-        
-        <a href="https://www.figma.com/design/zuTAgw55YphtJ5F8QzHmt3/Curatorian" target="_blank">
-          <button class="btn bg-white dark:bg-gray-600 text-violet-5">Roadmap &rightarrow;</button>
-        </a>
-      </div>
-    </div>
     """
   end
 

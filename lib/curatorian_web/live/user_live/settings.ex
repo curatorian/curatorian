@@ -7,318 +7,436 @@ defmodule CuratorianWeb.UserLive.Settings do
   @impl Phoenix.LiveView
   def render(assigns) do
     ~H"""
-    <div class="container mx-auto px-5">
-      <.header>
-        Profil Anda
-        <:subtitle>Kelola Profil dan Akun anda disini.</:subtitle>
-      </.header>
-      
-      <section class="flex flex-col gap-5 lg:flex-row items-center lg:items-start justify-center min-h-screen h-full">
-        <div class="bg-white dark:bg-gray-700 p-10 rounded-lg w-full sm:max-w-80">
-          <%= if length(@uploads.avatar.entries) === 0 do %>
-            <div id="user-image">
-              <%= if @current_user_profile.user_image do %>
-                <img
-                  phx-track-static
-                  src={@current_user_profile.user_image}
-                  class="profile-pic"
-                  alt="User Image"
-                />
-              <% else %>
-                <img
-                  phx-track-static
-                  src={~p"/images/default.png"}
-                  class="profile-pic"
-                  alt="User Image"
-                />
-              <% end %>
-            </div>
-          <% end %>
+    <div class="w-full px-5 py-8">
+      <div class="w-full">
+        <.header>
+          <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Pengaturan Profil</h1>
           
-          <div phx-drop-target={@uploads.avatar.ref}>
-            <div class="container" phx-drop-target={@uploads.avatar.ref}>
-              <form id="upload-form" phx-submit="upload_image" phx-change="validate" class="hidden">
-                <.live_file_input upload={@uploads.avatar} />
-                <.button type="submit" id="submit-image">Upload</.button>
-              </form>
-            </div>
-            
-            <div>
-              <%= if length(@uploads.avatar.entries) === 0 do %>
-                <div class="mt-3">
-                  <.button
-                    type="click"
-                    class="w-full btn-primary"
-                    phx-click={JS.dispatch("click", to: "##{@uploads.avatar.ref}")}
-                  >
-                    Ganti Foto
-                  </.button>
-                </div>
-              <% end %>
-               <%!-- render each avatar entry --%>
-              <article :for={entry <- @uploads.avatar.entries} class="upload-entry">
-                <figure><.live_img_preview entry={entry} class="profile-pic" /></figure>
+          <:subtitle>
+            <p class="text-gray-600 dark:text-gray-400 mt-2">
+              Kelola informasi profil dan keamanan akun Anda
+            </p>
+          </:subtitle>
+        </.header>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Sidebar Profile Card -->
+          <div class="lg:col-span-1">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 sticky top-6">
+              <!-- Profile Image Section -->
+              <div class="text-center mb-6">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Foto Profil</h3>
                 
-                <%!-- a regular click event whose handler will invoke Phoenix.LiveView.cancel_upload/3 --%>
-                <div class="w-full flex gap-2 mt-3">
-                  <.button
-                    type="button"
-                    phx-click="cancel-upload"
-                    phx-value-ref={entry.ref}
-                    aria-label="cancel"
-                    class="w-full btn-cancel"
-                  >
-                    Batal
-                  </.button>
-                  <.button type="button" phx-click="upload_image" class="w-full btn-confirm">
-                    Simpan
-                  </.button>
-                </div>
-                 <%!-- entry.progress will update automatically for in-flight entries --%>
-                <%!-- <progress value={entry.progress} max="100">{entry.progress}%</progress> --%>
-                <%!-- Phoenix.Component.upload_errors/2 returns a list of error atoms --%>
-                <p :for={err <- upload_errors(@uploads.avatar, entry)} class="alert alert-danger">
-                  {error_to_string(err)}
-                </p>
-              </article>
-               <%!-- Phoenix.Component.upload_errors/1 returns a list of error atoms --%>
-              <p :for={err <- upload_errors(@uploads.avatar)} class="alert alert-danger">
-                {error_to_string(err)}
-              </p>
-               <hr class="border-t-1 border-violet-500 my-8" />
-              <div class="my-5">
-                <div class="w-full bg-violet-600 text-center text-white mb-2 rounded">
-                  <h5>Profil</h5>
-                </div>
+                <%= if length(@uploads.avatar.entries) === 0 do %>
+                  <div id="user-image" class="mb-4">
+                    <%= if @current_user_profile.user_image do %>
+                      <img
+                        phx-track-static
+                        src={@current_user_profile.user_image}
+                        class="w-32 h-32 rounded-full mx-auto object-cover border-4 border-violet-200 dark:border-violet-600 shadow-lg"
+                        alt="User Image"
+                      />
+                    <% else %>
+                      <img
+                        phx-track-static
+                        src={~p"/images/default.png"}
+                        class="w-32 h-32 rounded-full mx-auto object-cover border-4 border-gray-200 dark:border-gray-600 shadow-lg"
+                        alt="User Image"
+                      />
+                    <% end %>
+                  </div>
+                <% end %>
                 
-                <div class="flex items-center w-full gap-2 py-2">
-                  <.icon name="hero-user-solid" class="w-6 h-6 max-w-8" />
-                  <p class="max-w-48">
-                    {if @user.profile != nil,
-                      do: @user.profile.fullname,
-                      else: "No Name"}
+                <div phx-drop-target={@uploads.avatar.ref}>
+                  <form
+                    id="upload-form"
+                    phx-submit="upload_image"
+                    phx-change="validate"
+                    class="hidden"
+                  >
+                    <.live_file_input upload={@uploads.avatar} />
+                    <.button type="submit" id="submit-image">Upload</.button>
+                  </form>
+                  
+                  <%= if length(@uploads.avatar.entries) === 0 do %>
+                    <.button
+                      type="click"
+                      class="w-full btn-primary"
+                      phx-click={JS.dispatch("click", to: "##{@uploads.avatar.ref}")}
+                    >
+                      <.icon name="hero-camera" class="w-4 h-4 mr-2" /> Ganti Foto
+                    </.button>
+                  <% end %>
+                  
+                  <article
+                    :for={entry <- @uploads.avatar.entries}
+                    class="upload-entry mt-4"
+                  >
+                    <figure>
+                      <.live_img_preview
+                        entry={entry}
+                        class="w-32 h-32 rounded-full mx-auto object-cover border-4 border-violet-300 dark:border-violet-500"
+                      />
+                    </figure>
+                    
+                    <div class="flex gap-2 mt-4">
+                      <.button
+                        type="button"
+                        phx-click="cancel-upload"
+                        phx-value-ref={entry.ref}
+                        aria-label="cancel"
+                        class="flex-1 btn-cancel"
+                      >
+                        Batal
+                      </.button>
+                      <.button type="button" phx-click="upload_image" class="flex-1 btn-confirm">
+                        Simpan
+                      </.button>
+                    </div>
+                    
+                    <p
+                      :for={err <- upload_errors(@uploads.avatar, entry)}
+                      class="alert alert-danger mt-2"
+                    >
+                      {error_to_string(err)}
+                    </p>
+                  </article>
+                  
+                  <p :for={err <- upload_errors(@uploads.avatar)} class="alert alert-danger">
+                    {error_to_string(err)}
                   </p>
                 </div>
-                
-                <div class="flex items-center w-full gap-2 py-2">
-                  <.icon name="hero-envelope-solid" class="w-6 h-6 max-w-8" />
-                  <a href={"mailto:#{@user.email}"} class="max-w-48">{@user.email}</a>
+              </div>
+              <!-- Profile Info -->
+              <div class="border-t border-gray-200 dark:border-gray-700 pt-6 space-y-4">
+                <div class="flex items-start gap-3">
+                  <.icon name="hero-user" class="w-5 h-5 text-gray-500 dark:text-gray-400 mt-0.5" />
+                  <div class="flex-1 min-w-0">
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Nama Lengkap</p>
+                    
+                    <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
+                      {if @user.profile != nil, do: @user.profile.fullname, else: "Belum diisi"}
+                    </p>
+                  </div>
                 </div>
                 
-                <div class="flex items-center w-full gap-2 py-2">
-                  <.icon name="hero-at-symbol-solid" class="w-6 h-6 max-w-8" />
-                  <p class="max-w-48">
-                    <%!-- {ReadSocmed.create_handler(@current_user_profile.social_media["twitter"])} --%> {@user.username}
-                  </p>
+                <div class="flex items-start gap-3">
+                  <.icon
+                    name="hero-envelope"
+                    class="w-5 h-5 text-gray-500 dark:text-gray-400 mt-0.5"
+                  />
+                  <div class="flex-1 min-w-0">
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Email</p>
+                    
+                    <a
+                      href={"mailto:#{@user.email}"}
+                      class="text-sm text-violet-600 dark:text-violet-400 truncate block hover:underline"
+                    >
+                      {@user.email}
+                    </a>
+                  </div>
+                </div>
+                
+                <div class="flex items-start gap-3">
+                  <.icon
+                    name="hero-at-symbol"
+                    class="w-5 h-5 text-gray-500 dark:text-gray-400 mt-0.5"
+                  />
+                  <div class="flex-1 min-w-0">
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Username</p>
+                    
+                    <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
+                      @{@user.username}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-        
-        <div class="w-full">
-          <.form for={@update_profile_form} phx-change="validate_profile" phx-submit="update_profile">
-            <h6>Biodata</h6>
-            
-            <.input
-              field={@update_profile_form[:fullname]}
-              value={@current_user_profile.fullname}
-              label="Full Name"
-              type="text"
-              id="fullname"
-            />
-            <.input
-              field={@update_profile_form[:bio]}
-              value={@current_user_profile.bio}
-              label="Bio"
-              type="textarea"
-              id="bio"
-            />
-            <.input
-              field={@update_profile_form[:job_title]}
-              value={@current_user_profile.job_title}
-              label="Pekerjaan"
-              type="text"
-              id="phone-number"
-            />
-            <.input
-              field={@update_profile_form[:company]}
-              value={@current_user_profile.company}
-              label="Perusahaan / Lembaga"
-              type="text"
-              id="company"
-            />
-            <.input
-              field={@update_profile_form[:location]}
-              value={@current_user_profile.location}
-              label="Alamat / Lokasi"
-              type="textarea"
-              id="location"
-            />
-            <.input
-              field={@update_profile_form[:birthday]}
-              value={@current_user_profile.birthday}
-              label="Tanggal Lahir"
-              type="date"
-              id="birthday"
-            />
-            <.input
-              field={@update_profile_form[:gender]}
-              value={@current_user_profile.gender}
-              label="Jenis Kelamin"
-              type="select"
-              options={[
-                {"Pilih Jenis Kelamin", nil},
-                {"Laki-laki", "laki-laki"},
-                {"Perempuan", "perempuan"}
-              ]}
-              id="gender"
-            />
-            <h6>Pendidikan</h6>
-            
-            <.inputs_for :let={edu} field={@update_profile_form[:educations]}>
-              <p>Pendidikan Ke-{edu.index + 1}</p>
-               <.input field={edu[:id] || ""} type="hidden" id={"education-id-#{edu.index}"} />
-              <div class="flex w-full items-end gap-4">
-                <div class="grid grid-cols-4 gap-4 w-full -mt-8">
+          <!-- Main Content Area -->
+          <div class="lg:col-span-2 space-y-6">
+            <!-- Biodata Section -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+              <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
+                <.icon
+                  name="hero-identification"
+                  class="w-6 h-6 text-violet-600 dark:text-violet-400"
+                />
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white">Biodata</h2>
+              </div>
+              
+              <.form
+                for={@update_profile_form}
+                phx-change="validate_profile"
+                phx-submit="update_profile"
+              >
+                <div class="space-y-4">
                   <.input
-                    field={edu[:school]}
-                    label="Sekolah / Universitas :"
+                    field={@update_profile_form[:fullname]}
+                    value={@current_user_profile.fullname}
+                    label="Nama Lengkap"
                     type="text"
-                    id={"school-#{edu.index}"}
+                    id="fullname"
+                    placeholder="Masukkan nama lengkap Anda"
                   />
                   <.input
-                    field={edu[:degree]}
-                    label="Jenjang :"
-                    type="select"
-                    id={"degree-#{edu.index}"}
-                    options={[
-                      {"Sekolah", "Sekolah"},
-                      {"Diploma", "Diploma"},
-                      {"Sarjana", "Sarjana"},
-                      {"Magister", "Magister"},
-                      {"Doktor", "Doktor"}
-                    ]}
+                    field={@update_profile_form[:bio]}
+                    value={@current_user_profile.bio}
+                    label="Bio"
+                    type="textarea"
+                    id="bio"
+                    placeholder="Ceritakan tentang diri Anda"
+                  />
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <.input
+                      field={@update_profile_form[:job_title]}
+                      value={@current_user_profile.job_title}
+                      label="Pekerjaan"
+                      type="text"
+                      id="job-title"
+                      placeholder="Posisi/Jabatan"
+                    />
+                    <.input
+                      field={@update_profile_form[:company]}
+                      value={@current_user_profile.company}
+                      label="Perusahaan / Lembaga"
+                      type="text"
+                      id="company"
+                      placeholder="Nama perusahaan"
+                    />
+                  </div>
+                  
+                  <.input
+                    field={@update_profile_form[:location]}
+                    value={@current_user_profile.location}
+                    label="Alamat / Lokasi"
+                    type="textarea"
+                    id="location"
+                    placeholder="Kota, Negara"
+                  />
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <.input
+                      field={@update_profile_form[:birthday]}
+                      value={@current_user_profile.birthday}
+                      label="Tanggal Lahir"
+                      type="date"
+                      id="birthday"
+                    />
+                    <.input
+                      field={@update_profile_form[:gender]}
+                      value={@current_user_profile.gender}
+                      label="Jenis Kelamin"
+                      type="select"
+                      options={[
+                        {"Pilih Jenis Kelamin", nil},
+                        {"Laki-laki", "laki-laki"},
+                        {"Perempuan", "perempuan"}
+                      ]}
+                      id="gender"
+                    />
+                  </div>
+                </div>
+                <!-- Education Section within form -->
+                <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+                  <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                      <.icon
+                        name="hero-academic-cap"
+                        class="w-6 h-6 text-violet-600 dark:text-violet-400"
+                      />
+                      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                        Riwayat Pendidikan
+                      </h3>
+                    </div>
+                    
+                    <%= if @show_add_education do %>
+                      <button type="button" class="btn-primary text-sm" phx-click="add_education">
+                        <.icon name="hero-plus" class="w-4 h-4 mr-1" /> Tambah
+                      </button>
+                    <% end %>
+                  </div>
+                  
+                  <div class="space-y-4">
+                    <.inputs_for :let={edu} field={@update_profile_form[:educations]}>
+                      <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+                        <div class="flex items-center justify-between mb-3">
+                          <p class="text-sm font-semibold text-violet-600 dark:text-violet-400">
+                            Pendidikan #{edu.index + 1}
+                          </p>
+                          
+                          <%= if edu.data.id do %>
+                            <button
+                              type="button"
+                              class="btn-cancel text-xs px-2 py-1"
+                              phx-click="delete_education"
+                              phx-value-education-id={edu.data.id}
+                            >
+                              <.icon name="hero-trash" class="w-4 h-4" />
+                            </button>
+                          <% else %>
+                            <button
+                              type="button"
+                              class="btn-warning text-xs px-2 py-1"
+                              phx-click="delete_unsaved_education"
+                              phx-value-index={edu.index}
+                            >
+                              <.icon name="hero-trash" class="w-4 h-4" />
+                            </button>
+                          <% end %>
+                        </div>
+                        
+                        <.input field={edu[:id] || ""} type="hidden" id={"education-id-#{edu.index}"} />
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <.input
+                            field={edu[:school]}
+                            label="Sekolah / Universitas"
+                            type="text"
+                            id={"school-#{edu.index}"}
+                            placeholder="Nama institusi"
+                          />
+                          <.input
+                            field={edu[:degree]}
+                            label="Jenjang"
+                            type="select"
+                            id={"degree-#{edu.index}"}
+                            options={[
+                              {"Pilih Jenjang", ""},
+                              {"Sekolah", "Sekolah"},
+                              {"Diploma", "Diploma"},
+                              {"Sarjana", "Sarjana"},
+                              {"Magister", "Magister"},
+                              {"Doktor", "Doktor"}
+                            ]}
+                          />
+                          <.input
+                            field={edu[:field_of_study]}
+                            label="Jurusan / Program Studi"
+                            type="text"
+                            id={"field-of-study-#{edu.index}"}
+                            placeholder="Nama jurusan"
+                          />
+                          <.input
+                            field={edu[:graduation_year]}
+                            label="Tahun Lulus"
+                            type="number"
+                            id={"graduation-year-#{edu.index}"}
+                            placeholder="2020"
+                          />
+                        </div>
+                      </div>
+                    </.inputs_for>
+                  </div>
+                </div>
+                <!-- Social Media Section within form -->
+                <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+                  <div class="flex items-center gap-3 mb-4">
+                    <.icon name="hero-share" class="w-6 h-6 text-violet-600 dark:text-violet-400" />
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Media Sosial</h3>
+                  </div>
+                  
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <.input
+                      field={@update_profile_form[:twitter]}
+                      value={@current_user_profile.social_media["twitter"]}
+                      label="Twitter"
+                      type="text"
+                      id="twitter"
+                      placeholder="@username"
+                    />
+                    <.input
+                      field={@update_profile_form[:facebook]}
+                      value={@current_user_profile.social_media["facebook"]}
+                      label="Facebook"
+                      type="text"
+                      id="facebook"
+                      placeholder="profile.url"
+                    />
+                    <.input
+                      field={@update_profile_form[:linkedin]}
+                      value={@current_user_profile.social_media["linkedin"]}
+                      label="LinkedIn"
+                      type="text"
+                      id="linkedin"
+                      placeholder="linkedin.com/in/username"
+                    />
+                    <.input
+                      field={@update_profile_form[:instagram]}
+                      value={@current_user_profile.social_media["instagram"]}
+                      label="Instagram"
+                      type="text"
+                      id="instagram"
+                      placeholder="@username"
+                    />
+                    <.input
+                      field={@update_profile_form[:website]}
+                      value={@current_user_profile.social_media["website"]}
+                      label="Website"
+                      type="text"
+                      id="website"
+                      placeholder="https://yourwebsite.com"
+                      class="md:col-span-2"
+                    />
+                  </div>
+                </div>
+                
+                <div class="flex justify-end pt-6 mt-6 border-t border-gray-200 dark:border-gray-700">
+                  <.button phx-disable-with="Menyimpan..." class="btn-primary px-8">
+                    <.icon name="hero-check" class="w-4 h-4 mr-2" /> Simpan Perubahan
+                  </.button>
+                </div>
+              </.form>
+            </div>
+            <!-- Password Section -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+              <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
+                <.icon name="hero-lock-closed" class="w-6 h-6 text-violet-600 dark:text-violet-400" />
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white">Keamanan Akun</h2>
+              </div>
+              
+              <.form
+                for={@password_form}
+                id="password_form"
+                action={~p"/users/update-password"}
+                method="post"
+                phx-change="validate_password"
+                phx-submit="update_password"
+                phx-trigger-action={@trigger_submit}
+              >
+                <input
+                  name={@password_form[:email].name}
+                  type="hidden"
+                  id="hidden_user_email"
+                  autocomplete="username"
+                  value={@current_email}
+                />
+                <div class="space-y-4">
+                  <.input
+                    field={@password_form[:password]}
+                    type="password"
+                    label="Kata Sandi Baru"
+                    autocomplete="new-password"
+                    placeholder="Minimal 8 karakter"
+                    required
                   />
                   <.input
-                    field={edu[:field_of_study]}
-                    label="Jurusan / Prog. Studi :"
-                    type="text"
-                    id={"field-of-study-#{edu.index}"}
-                  />
-                  <.input
-                    field={edu[:graduation_year]}
-                    label="Angkatan :"
-                    type="number"
-                    id={"graduation-year-#{edu.index}"}
+                    field={@password_form[:password_confirmation]}
+                    type="password"
+                    label="Konfirmasi Kata Sandi Baru"
+                    autocomplete="new-password"
+                    placeholder="Ulangi kata sandi baru"
                   />
                 </div>
                 
-                <%= if edu.data.id do %>
-                  <button
-                    type="button"
-                    class="btn-cancel"
-                    phx-click="delete_education"
-                    phx-value-education-id={edu.data.id}
-                  >
-                    <.icon name="hero-trash-solid" class="bg-white w-4 h-4" />
-                  </button>
-                <% else %>
-                  <!-- For unsaved entries, remove it from the changeset -->
-                  <button
-                    type="button"
-                    class="btn-warning"
-                    phx-click="delete_unsaved_education"
-                    phx-value-index={edu.index}
-                  >
-                    <.icon name="hero-trash-solid" class="bg-white w-4 h-4" />
-                  </button>
-                <% end %>
-              </div>
-            </.inputs_for>
-            
-            <%= if @show_add_education do %>
-              <button type="button" class="btn-primary text-xs" phx-click="add_education">
-                Add Education
-              </button>
-            <% end %>
-            
-            <h6>Media Sosial</h6>
-            
-            <div class="grid grid-cols-3 gap-4">
-              <.input
-                field={@update_profile_form[:twitter]}
-                value={@current_user_profile.social_media["twitter"]}
-                label="Twitter"
-                type="text"
-                id="twitter"
-              />
-              <.input
-                field={@update_profile_form[:facebook]}
-                value={@current_user_profile.social_media["facebook"]}
-                label="Facebook"
-                type="text"
-                id="facebook"
-              />
-              <.input
-                field={@update_profile_form[:linkedin]}
-                value={@current_user_profile.social_media["linkedin"]}
-                label="LinkedIn"
-                type="text"
-                id="linkedin"
-              />
-              <.input
-                field={@update_profile_form[:instagram]}
-                value={@current_user_profile.social_media["instagram"]}
-                label="Instagram"
-                type="text"
-                id="instagram"
-              />
-              <.input
-                field={@update_profile_form[:website]}
-                value={@current_user_profile.social_media["website"]}
-                label="Website"
-                type="text"
-                id="website"
-              />
+                <div class="flex justify-end pt-6 mt-6 border-t border-gray-200 dark:border-gray-700">
+                  <.button variant="primary" phx-disable-with="Menyimpan..." class="btn-primary px-8">
+                    <.icon name="hero-shield-check" class="w-4 h-4 mr-2" /> Ubah Kata Sandi
+                  </.button>
+                </div>
+              </.form>
             </div>
-             <.button phx-disable-with="Updating...">Update Profile</.button>
-          </.form>
+          </div>
         </div>
-        
-        <div class="w-full">
-          <.form
-            for={@password_form}
-            id="password_form"
-            action={~p"/users/update-password"}
-            method="post"
-            phx-change="validate_password"
-            phx-submit="update_password"
-            phx-trigger-action={@trigger_submit}
-          >
-            <input
-              name={@password_form[:email].name}
-              type="hidden"
-              id="hidden_user_email"
-              autocomplete="username"
-              value={@current_email}
-            />
-            <.input
-              field={@password_form[:password]}
-              type="password"
-              label="New password"
-              autocomplete="new-password"
-              required
-            />
-            <.input
-              field={@password_form[:password_confirmation]}
-              type="password"
-              label="Confirm new password"
-              autocomplete="new-password"
-            /> <.button variant="primary" phx-disable-with="Saving...">Save Password</.button>
-          </.form>
-        </div>
-      </section>
+      </div>
     </div>
     """
   end

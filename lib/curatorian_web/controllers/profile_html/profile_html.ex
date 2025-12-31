@@ -1,6 +1,7 @@
 defmodule CuratorianWeb.ProfileHTML do
   use CuratorianWeb, :html
 
+  alias CuratorianWeb.ProfileLayouts
   import CuratorianWeb.Utils.Basic.FormatIndonesiaTime
 
   embed_templates "*"

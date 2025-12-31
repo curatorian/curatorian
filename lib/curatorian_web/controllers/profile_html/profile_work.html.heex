@@ -2,149 +2,58 @@
   flash={@flash}
   current_scope={@current_scope}
 >
-  <div class="container mx-auto p-4 flex flex-col xl:flex-row gap-10">
-    <div class=" w-full xl:max-w-sm">
-      <div class="flex items-center justify-between mb-4">
-        <div>
-          <h3>{@user.username}'s Profile</h3>
-           <.button navigate={~p"/kurator"}>Kembali</.button>
-        </div>
-      </div>
-      
-      <div>
-        <img
-          src={~p"/images/lib.webp"}
-          alt="Background"
-          class="w-full h-64 object-cover rounded-t-lg"
-        />
-        <div class="bg-white shadow-md rounded-lg p-6">
-          <div class="flex justify-between">
-            <%= if @user.profile && @user.profile.user_image do %>
-              <img
-                src={@user.profile.user_image}
-                alt="Profile Picture"
-                class="main-profile-pic"
-                referrerPolicy="no-referrer"
-              />
-            <% else %>
-              <img
-                src={~p"/images/default.png"}
-                alt="Default Profile Picture"
-                class="main-profile-pic"
-                referrerPolicy="no-referrer"
-              />
-            <% end %>
-            
-            <%= if @current_scope.user && @current_scope.user.id == @user.id do %>
-              <.link
-                navigate={~p"/users/settings"}
-                class="btn-primary w-full max-w-24 text-xs no-underline"
-              >
-                Edit Profile
-              </.link>
-            <% end %>
-          </div>
-          
-          <div class="flex items-center space-x-4 my-5">
-            <div>
-              <h2 class="text-xl font-semibold">
-                {if @user.profile == nil, do: @user.username, else: @user.profile.fullname}
-              </h2>
-              
-              <p class="text-gray-500">@{@user.username}</p>
-            </div>
-          </div>
-          
-          <div class="my-4">
-            <h3 class="text-lg font-medium">About</h3>
-            
-            <%= if @user.profile && @user.profile.bio do %>
-              <p class="text-gray-500 mt-2">{@user.profile.bio}</p>
-            <% else %>
-              <p class="text-gray-500 mt-2">Curatorian baru! Silahkan sapa saya.</p>
-            <% end %>
-          </div>
-          
-          <div class="my-4">
-            <h3 class="text-lg font-medium">Email</h3>
-            
-            <p class="text-gray-500 mt-2">{@user.email}</p>
-          </div>
-        </div>
-      </div>
-    </div>
+  <ProfileLayouts.profile_layout
+    user={@user}
+    current_scope={@current_scope}
+    active_tab={@active_tab}
+  >
+    <h5 class="text-right dark:text-white">
+      Semua Work dari {if @user.profile == nil, do: @user.username, else: @user.profile.fullname}
+    </h5>
     
-    <div class="min-h-screen w-full">
-      <div class="flex justify-start mb-6">
-        <div class="flex space-x-4 border-b-2 border-gray-200">
-          <.link navigate={~p"/#{@user.username}/blogs"}>
-            <button class={"px-4 py-2 focus:outline-none hover:text-violet-500 #{if @active_tab == "blogs", do: "border-b-2 border-violet-500 text-violet-500", else: "text-gray-500"}"}>
-              Blogs
-            </button>
-          </.link>
-          <.link navigate={~p"/#{@user.username}/posts"}>
-            <button class={"px-4 py-2 focus:outline-none hover:text-violet-500 #{if @active_tab == "posts", do: "border-b-2 border-violet-500 text-violet-500", else: "text-gray-500"}"}>
-              Posts
-            </button>
-          </.link>
-          <.link navigate={~p"/#{@user.username}/works"}>
-            <button
-              phx-click="show_tab"
-              phx-value-tab="works"
-              class={"px-4 py-2 focus:outline-none hover:text-violet-500 #{if @active_tab == "works", do: "border-b-2 border-violet-500 text-violet-500", else: "text-gray-500"}"}
-            >
-              Works
-            </button>
-          </.link>
-        </div>
-      </div>
-      
-      <h5 class="text-right">
-        Semua Work dari {if @user.profile == nil, do: @user.username, else: @user.profile.fullname}
-      </h5>
-      
-      <section class="mt-7">
-        <%= if length(@works) > 0 do %>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <%= for work <- @works do %>
-              <div class="bg-white rounded-2xl p-5 h-full">
-                <img
-                  src={if work.image_url, do: work.image_url, else: "/images/lib.webp"}
-                  class="w-full max-h-56 object-cover shadow-lg rounded-xl"
-                />
-                <div class="flex justify-between items-center my-8 px-7 text-gray-500 text-xs">
-                  <p>by {work.user.profile.fullname}</p>
-                  
-                  <p>{convert_time_zone_to_indonesia(work.inserted_at)}</p>
-                </div>
+    <section class="mt-7">
+      <%= if length(@works) > 0 do %>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <%= for work <- @works do %>
+            <div class="bg-white dark:bg-gray-700 rounded-2xl p-5 h-full">
+              <img
+                src={if work.image_url, do: work.image_url, else: "/images/lib.webp"}
+                class="w-full max-h-56 object-cover shadow-lg rounded-xl"
+              />
+              <div class="flex justify-between items-center my-8 px-7 text-gray-500 dark:text-gray-400 text-xs">
+                <p>by {work.user.profile.fullname}</p>
                 
-                <div class="px-7 h-full">
+                <p>{convert_time_zone_to_indonesia(work.inserted_at)}</p>
+              </div>
+              
+              <div class="px-7 h-full">
+                <.link
+                  navigate={~p"/#{work.user.username}/posts/#{work.slug}"}
+                  class="no-underline hover:underline"
+                >
+                  <h4 class="text-violet-500 dark:text-violet-300 -mb-2">{work.title}</h4>
+                </.link>
+                <p class="mt-5 text-gray-500 dark:text-gray-400 text-justify">
+                  {trim_description(work.content, 120)}
+                </p>
+                
+                <div class="my-10">
                   <.link
                     navigate={~p"/#{work.user.username}/posts/#{work.slug}"}
-                    class="no-underline hover:underline"
+                    class="btn-primary no-underline"
                   >
-                    <h4 class="text-violet-500 -mb-2">{work.title}</h4>
+                    Baca &rightarrow;
                   </.link>
-                  <p class="mt-5 text-gray-500 text-justify">
-                    {trim_description(work.content, 120)}
-                  </p>
-                  
-                  <div class="my-10">
-                    <.link
-                      navigate={~p"/#{work.user.username}/posts/#{work.slug}"}
-                      class="btn-primary no-underline"
-                    >
-                      Baca &rightarrow;
-                    </.link>
-                  </div>
                 </div>
               </div>
-            <% end %>
-          </div>
-        <% else %>
-          <p class="text-right text-gray-500 italic">Curatorian ini belum menulis work.</p>
-        <% end %>
-      </section>
-    </div>
-  </div>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="text-right text-gray-500 dark:text-gray-400 italic">
+          Curatorian ini belum menulis work.
+        </p>
+      <% end %>
+    </section>
+  </ProfileLayouts.profile_layout>
 </Layouts.app>

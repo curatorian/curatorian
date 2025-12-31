@@ -209,31 +209,31 @@ a {
 
 /* This file is for your main application CSS */
 .btn {
-  @apply px-4 py-2 rounded-md;
+  @apply px-4 py-2 rounded-md cursor-pointer;
 }
 
 .btn-primary {
-  @apply bg-violet-500 text-white px-4 py-2 rounded-md hover:bg-violet-600;
+  @apply bg-violet-500 text-white px-4 py-2 rounded-md hover:bg-violet-600 cursor-pointer;
 }
 
 .btn-secondary {
-  @apply bg-violet-100 text-violet-600 px-4 py-2 rounded-md hover:bg-violet-200;
+  @apply bg-violet-100 text-violet-600 px-4 py-2 rounded-md hover:bg-violet-200 cursor-pointer;
 }
 
 .btn-confirm {
-  @apply bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600;
+  @apply bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 cursor-pointer;
 }
 
 .btn-cancel {
-  @apply bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600;
+  @apply bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 cursor-pointer;
 }
 
 .btn-warning {
-  @apply bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600;
+  @apply bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 cursor-pointer;
 }
 
 .btn-default {
-  @apply bg-[--main-color] text-white px-4 py-2 rounded-md hover:bg-[--hover-color];
+  @apply bg-[--main-color] text-white px-4 py-2 rounded-md hover:bg-[--hover-color] cursor-pointer;
 }
 
 .btn-disabled {

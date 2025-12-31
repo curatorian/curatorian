@@ -204,7 +204,7 @@ defmodule CuratorianWeb.Layouts do
                   <% end %>
                 </.link>
                 <.link href="/dashboard" class="btn-primary no-underline text-xs">Dashboard</.link>
-                <.link href="/users/log_out" method="delete" class="no-underline btn-cancel text-xs">
+                <.link href="/logout" method="delete" class="no-underline btn-cancel text-xs">
                   Log out
                 </.link>
               </div>
@@ -231,11 +231,50 @@ defmodule CuratorianWeb.Layouts do
         
         <div
           id="mobile-menu"
-          class="lg:hidden hidden h-screen bg-white/90 bg-gray-800/90 rounded-xl shadow-md p-6 space-y-4 font-semibold transition-all duration-300"
+          class="lg:hidden hidden h-screen bg-white/90 dark:bg-gray-800/90 rounded-xl shadow-md p-6 space-y-4 font-semibold transition-all duration-300"
         >
-          <div>
+          <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
+            <%= if @current_user != nil do %>
+              <div class="flex items-center gap-3">
+                <.link href={"/#{@current_user.username}"}>
+                  <%= if @current_user.profile && @current_user.profile.user_image do %>
+                    <img
+                      src={@current_user.profile.user_image}
+                      class="w-10 h-10 object-cover rounded-full"
+                      referrerPolicy="no-referrer"
+                      alt={@current_user.username}
+                    />
+                  <% else %>
+                    <img
+                      src="/images/default.png"
+                      class="w-10 h-10 object-cover rounded-full"
+                      alt="Default Avatar"
+                    />
+                  <% end %>
+                </.link>
+                <div class="flex flex-col">
+                  <p class="font-semibold text-sm dark:text-white">
+                    <%= if @current_user.profile && @current_user.profile.fullname do %>
+                      {@current_user.profile.fullname}
+                    <% else %>
+                      {@current_user.username}
+                    <% end %>
+                  </p>
+                  
+                  <.link
+                    href={"/#{@current_user.username}"}
+                    class="text-xs font-normal no-underline text-gray-600 dark:text-gray-400"
+                  >
+                    @{@current_user.username}
+                  </.link>
+                </div>
+              </div>
+            <% else %>
+              <div class="flex items-center gap-2"><.theme_toggle /></div>
+            <% end %>
+            
             <button
-              class="absolute right-0 pr-6 text-4xl font-bold text-gray-500 "
+              class="text-4xl font-bold text-gray-500 dark:text-gray-400"
               id="close-menu"
               aria-label="Close"
               phx-hook="NavbarToggle"
@@ -247,7 +286,7 @@ defmodule CuratorianWeb.Layouts do
           <div class="flex flex-col space-y-4">
             <%= for menu <- @menus do %>
               <.link
-                class="block nav-link hover:font-black transition-all duration-500"
+                class="block nav-link hover:font-black transition-all duration-500 dark:text-white"
                 navigate={menu.url}
               >
                 {menu.title}
@@ -255,50 +294,30 @@ defmodule CuratorianWeb.Layouts do
             <% end %>
           </div>
           
-          <div class="pt-6">
+          <div class="pt-6 mt-auto border-t border-gray-200 dark:border-gray-700">
             <%= if @current_user != nil do %>
-              <%= if @current_user.profile && @current_user.profile.user_image do %>
-                <div class="flex flex-col items-center justify-center my-5 gap-3">
-                  <div class="flex gap-3">
-                    <.link href={"/#{@current_user.username}"}>
-                      <img
-                        src={@current_user.profile.user_image}
-                        class="w-12 h-12 object-cover rounded-full"
-                        referrerPolicy="no-referrer"
-                        alt={@current_user.username}
-                      />
-                    </.link>
-                    <div class="flex flex-col gap-0">
-                      <p class="font-semibold">{@current_user.profile.fullname}</p>
-                      
-                      <.link
-                        href={"/#{@current_user.username}"}
-                        class="text-xs font-semibold no-underline"
-                      >
-                        @{@current_user.username}
-                      </.link>
-                      <p class="text-xs text-gray-400">{@current_user.email}</p>
-                    </div>
-                  </div>
-                  
-                  <div class="flex gap-3">
-                    <.link href="/dashboard" class="btn-primary no-underline text-xs">
-                      Dashboard
-                    </.link>
-                    <.link
-                      href="/users/log_out"
-                      method="delete"
-                      class="no-underline btn-cancel text-xs"
-                    >
-                      Log out
-                    </.link>
-                  </div>
+              <div class="flex flex-col items-center justify-center gap-4 pt-4">
+                <div class="flex gap-3 w-full"><.theme_toggle /></div>
+                
+                <div class="flex flex-col gap-3 w-full">
+                  <.link href="/dashboard" class="btn-primary no-underline text-sm text-center w-full">
+                    Dashboard
+                  </.link>
+                  <.link
+                    href="/logout"
+                    method="delete"
+                    class="no-underline btn-cancel text-sm text-center w-full"
+                  >
+                    Log out
+                  </.link>
                 </div>
-              <% end %>
+              </div>
             <% else %>
-              <.link class="no-underline" href="/login">
-                <button class="btn-primary bg-violet-1 text-violet-6">Masuk</button>
-              </.link>
+              <div class="flex flex-col gap-4 pt-4">
+                <.link class="no-underline w-full" href="/login">
+                  <button class="btn-primary bg-violet-1 text-violet-6 w-full">Masuk</button>
+                </.link>
+              </div>
             <% end %>
           </div>
         </div>

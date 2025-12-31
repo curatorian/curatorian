@@ -100,6 +100,16 @@ defmodule CuratorianWeb do
       alias Phoenix.LiveView.JS
       alias CuratorianWeb.Layouts
 
+      # Authorization helpers
+      import CuratorianWeb.Authorization,
+        only: [
+          can?: 2,
+          can?: 3,
+          has_role?: 2,
+          is_super_admin?: 1,
+          is_manager?: 1
+        ]
+
       # Routes generation with the ~p sigil
       unquote(verified_routes())
     end

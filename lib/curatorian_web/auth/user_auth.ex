@@ -67,7 +67,7 @@ defmodule CuratorianWeb.UserAuth do
   def fetch_current_scope_for_user(conn, _opts) do
     with {token, conn} <- ensure_user_token(conn),
          {user, token_inserted_at} <- Accounts.get_user_by_session_token(token) do
-      user = Curatorian.Repo.preload(user, profile: [:educations])
+      user = Curatorian.Repo.preload(user, [:role, profile: [:educations]])
 
       conn
       |> assign(:current_scope, Scope.for_user(user))
@@ -279,10 +279,10 @@ defmodule CuratorianWeb.UserAuth do
         if user_token = session["user_token"] do
           case Accounts.get_user_by_session_token(user_token) do
             {u, _token_inserted_at} when is_map(u) ->
-              Curatorian.Repo.preload(u, profile: [:educations])
+              Curatorian.Repo.preload(u, [:role, profile: [:educations]])
 
             u when is_map(u) ->
-              Curatorian.Repo.preload(u, profile: [:educations])
+              Curatorian.Repo.preload(u, [:role, profile: [:educations]])
 
             _ ->
               nil

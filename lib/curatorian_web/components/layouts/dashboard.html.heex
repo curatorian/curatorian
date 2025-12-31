@@ -93,7 +93,7 @@
         >
           <.icon name="hero-pencil-square-solid" class="h-6 w-6 mr-3" /> <span>Blog Saya</span>
         </.link>
-        <%= if @current_scope.user.user_role in ["manager", "admin", "coordinator"] do %>
+        <%= if is_manager?(@current_scope.user) do %>
           <.link
             class={[
               "no-underline",
@@ -108,7 +108,7 @@
           </.link>
         <% end %>
         
-        <%= if @current_scope.user.user_role in ["manager", "admin", "coordinator"] do %>
+        <%= if is_manager?(@current_scope.user) do %>
           <.link
             class={[
               "no-underline",
@@ -122,6 +122,37 @@
             <.icon name="hero-identification-solid" class="h-6 w-6 mr-3" />
             <span>Organization</span>
           </.link>
+        <% end %>
+        
+        <%= if is_super_admin?(@current_scope.user) do %>
+          <div class="mt-4 pt-4 border-t border-gray-300 dark:border-gray-500">
+            <p class="text-xs text-gray-500 dark:text-gray-400 mb-2 px-2">ADMIN</p>
+            
+            <.link
+              class={[
+                "no-underline",
+                if(@current_uri |> String.starts_with?("/dashboard/admin/roles"),
+                  do: "active-menu-dashboard",
+                  else: "inactive-menu-dashboard"
+                )
+              ]}
+              href="/dashboard/admin/roles"
+            >
+              <.icon name="hero-shield-check-solid" class="h-6 w-6 mr-3" /> <span>Roles</span>
+            </.link>
+            <.link
+              class={[
+                "no-underline",
+                if(@current_uri |> String.starts_with?("/dashboard/admin/permissions"),
+                  do: "active-menu-dashboard",
+                  else: "inactive-menu-dashboard"
+                )
+              ]}
+              href="/dashboard/admin/permissions"
+            >
+              <.icon name="hero-key-solid" class="h-6 w-6 mr-3" /> <span>Permissions</span>
+            </.link>
+          </div>
         <% end %>
       </div>
       
