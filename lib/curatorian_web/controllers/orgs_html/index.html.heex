@@ -2,11 +2,13 @@
   <div class="container mx-auto px-4 py-8">
     <div class="flex justify-between items-center mb-8">
       <div>
-        <h1 class="text-3xl font-bold">Organizations</h1>
-        
-        <p class="mt-1">Discover and join organizations on Curatorian</p>
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Organizations</h1>
+
+        <p class="mt-1 text-gray-600 dark:text-gray-300">
+          Discover and join organizations on Curatorian
+        </p>
       </div>
-      
+
       <%= if @current_scope && @current_scope.user do %>
         <.link href={~p"/dashboard/orgs/new"} class="btn-primary no-underline">
           <span class="flex items-center">
@@ -25,9 +27,9 @@
         </.link>
       <% end %>
     </div>
-    
+
     <%= if Enum.empty?(@organizations) do %>
-      <div class="bg-white dark:bg-gray-700 rounded-lg shadow p-12 text-center">
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-12 text-center">
         <div class="flex justify-center mb-4">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -35,18 +37,20 @@
             viewBox="0 0 24 24"
             stroke-width="1.5"
             stroke="currentColor"
-            class="w-16 h-16"
+            class="w-16 h-16 text-gray-400 dark:text-gray-500"
           >
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
-              d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"
+              d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037 .666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"
             />
           </svg>
         </div>
-        
-        <p class="text-lg">No organizations have been created yet.</p>
-        
+
+        <p class="text-lg text-gray-900 dark:text-white">
+          No organizations have been created yet.
+        </p>
+
         <%= if @current_scope && @current_scope.user do %>
           <div class="mt-4 w-full">
             <.link href={~p"/dashboard/orgs/new"} class="btn-primary no-underline">+
@@ -57,16 +61,16 @@
     <% else %>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <%= for org <- @organizations do %>
-          <div class="bg-white dark:bg-gray-700 rounded-lg shadow hover:shadow-md transition-shadow duration-300 overflow-hidden flex flex-col h-full">
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-md transition-shadow duration-300 overflow-hidden flex flex-col h-full">
             <!-- Cover image banner if available -->
             <%= if org.image_cover do %>
-              <div class="h-32 bg-gray-100 relative overflow-hidden">
+              <div class="h-32 bg-gray-100 dark:bg-gray-700 relative overflow-hidden">
                 <img src={org.image_cover} alt={org.name} class="w-full h-full object-cover" />
               </div>
             <% else %>
               <div class="h-8 bg-gradient-to-r from-blue-500 to-indigo-600"></div>
             <% end %>
-            
+
             <div class="p-6 flex-1 flex flex-col">
               <div class="flex items-start mb-4">
                 <!-- Logo -->
@@ -75,17 +79,17 @@
                     <img
                       src={org.image_logo}
                       alt={org.name}
-                      class="w-16 h-16 rounded-lg border-2 border-white shadow object-cover"
+                      class="w-16 h-16 rounded-lg border-2 border-white dark:border-gray-700 shadow object-cover"
                     />
                   <% else %>
-                    <div class="w-16 h-16 rounded-lg border-2 border-white shadow bg-gray-200 flex items-center justify-center">
+                    <div class="w-16 h-16 rounded-lg border-2 border-white dark:border-gray-700 shadow bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke-width="1.5"
                         stroke="currentColor"
-                        class="w-8 h-8"
+                        class="w-8 h-8 text-gray-500 dark:text-gray-400"
                       >
                         <path
                           stroke-linecap="round"
@@ -96,22 +100,22 @@
                     </div>
                   <% end %>
                 </div>
-                
+
                 <div class="flex-1">
-                  <h2 class="text-xl font-semibold mb-1 truncate">
+                  <h2 class="text-xl font-semibold mb-1 truncate text-gray-900 dark:text-white">
                     <.link
                       href={~p"/orgs/#{org.slug}"}
-                      class="hover:text-blue-600 transition-colors"
+                      class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                     >
                       {org.name}
                     </.link>
                   </h2>
-                  
+
                   <div class="flex flex-wrap gap-2 items-center">
                     <span class={"inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium #{organization_status_badge(org.status)}"}>
                       {org.status}
                     </span>
-                    <span class="text-xs inline-flex items-center">
+                    <span class="text-xs inline-flex items-center text-gray-600 dark:text-gray-300">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -125,25 +129,28 @@
                           stroke-linejoin="round"
                           d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"
                         />
-                      </svg> {organization_type_label(org.type)}
+                      </svg>
+                       {organization_type_label(org.type)}
                     </span>
                   </div>
                 </div>
               </div>
-              
+
               <div class="flex-1 mb-4">
-                <p class="line-clamp-3 text-sm">
+                <p class="line-clamp-3 text-sm text-gray-700 dark:text-gray-300">
                   <%= if org.description do %>
                     {org.description}
                   <% else %>
-                    <span class="italic">No description available.</span>
+                    <span class="italic text-gray-500 dark:text-gray-400">
+                      No description available.
+                    </span>
                   <% end %>
                 </p>
               </div>
-              
-              <div class="border-t border-gray-100 pt-4 mt-2">
+
+              <div class="border-t border-gray-100 dark:border-gray-600 pt-4 mt-2">
                 <!-- Created date -->
-                <div class="flex items-center text-xs mb-4">
+                <div class="flex items-center text-xs mb-4 text-gray-600 dark:text-gray-300">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -160,7 +167,7 @@
                   </svg>
                   Created {format_date(org.inserted_at)}
                 </div>
-                
+
                 <div>
                   <!-- View details button -->
                   <.link

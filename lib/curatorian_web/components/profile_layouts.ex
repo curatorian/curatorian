@@ -13,10 +13,10 @@ defmodule CuratorianWeb.ProfileLayouts do
         <div class="flex items-center justify-between mb-4">
           <div>
             <h3 class="dark:text-white">{@user.username}'s Profile</h3>
-             <.button navigate={~p"/kurator"}>Kembali</.button>
+            <.button navigate={~p"/kurator"}>Kembali</.button>
           </div>
         </div>
-        
+
         <div>
           <img
             src={~p"/images/lib.webp"}
@@ -40,7 +40,7 @@ defmodule CuratorianWeb.ProfileLayouts do
                   referrerPolicy="no-referrer"
                 />
               <% end %>
-              
+
               <%= if @current_scope.user && @current_scope.user.id == @user.id do %>
                 <.link
                   navigate={~p"/users/settings"}
@@ -50,20 +50,28 @@ defmodule CuratorianWeb.ProfileLayouts do
                 </.link>
               <% end %>
             </div>
-            
+
             <div class="flex items-center space-x-4 my-5">
               <div>
-                <h2 class="text-xl font-semibold dark:text-white">
-                  {if @user.profile == nil, do: @user.username, else: @user.profile.fullname}
-                </h2>
-                
+                <div class="flex items-center gap-2">
+                  <h2 class="text-xl font-semibold dark:text-white">
+                    {if @user.profile == nil, do: @user.username, else: @user.profile.fullname}
+                  </h2>
+
+                  <%= if @user.is_verified do %>
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                      <.icon name="hero-check-circle" class="w-3 h-3 mr-1" /> Verified
+                    </span>
+                  <% end %>
+                </div>
+
                 <p class="text-gray-500 dark:text-gray-400">@{@user.username}</p>
               </div>
             </div>
-            
+
             <div class="my-4">
               <h3 class="text-lg font-medium dark:text-white">About</h3>
-              
+
               <%= if @user.profile && @user.profile.bio do %>
                 <p class="text-gray-500 dark:text-gray-400 mt-2">{@user.profile.bio}</p>
               <% else %>
@@ -72,16 +80,16 @@ defmodule CuratorianWeb.ProfileLayouts do
                 </p>
               <% end %>
             </div>
-            
+
             <div class="my-4">
               <h3 class="text-lg font-medium dark:text-white">Email</h3>
-              
+
               <p class="text-gray-500 dark:text-gray-400 mt-2">{@user.email}</p>
             </div>
           </div>
         </div>
       </div>
-      
+
       <div class="min-h-screen w-full">
         <div class="flex justify-start mb-6">
           <div class="flex space-x-4 border-b-2 border-gray-200 dark:border-gray-600">
@@ -102,7 +110,7 @@ defmodule CuratorianWeb.ProfileLayouts do
             </.link>
           </div>
         </div>
-         {render_slot(@inner_block)}
+        {render_slot(@inner_block)}
       </div>
     </div>
     """

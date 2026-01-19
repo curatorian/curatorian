@@ -5,7 +5,8 @@ defmodule CuratorianWeb.OrgsController do
   alias Curatorian.Orgs
 
   def index(conn, _params) do
-    organizations = Orgs.list_organizations()
+    current_user = conn.assigns[:current_scope] && conn.assigns.current_scope.user
+    organizations = Orgs.list_organizations(current_user)
 
     conn
     |> assign(:organizations, organizations)
@@ -17,11 +18,26 @@ defmodule CuratorianWeb.OrgsController do
     member_count = Orgs.get_member_count_by_slug(slug)
 
     with {:ok, organization} <- safe_get_organization(slug) do
-      conn
-      |> assign(:organization, organization)
-      |> assign(:page_title, organization.name)
-      |> assign(:member_count, member_count)
-      |> render(:show)
+      current_user = conn.assigns[:current_scope] && conn.assigns.current_scope.user
+      current_user = if current_user, do: Repo.preload(current_user, :role), else: nil
+
+      can_view? =
+        organization.status == "approved" or
+          (current_user &&
+             (organization.owner_id == current_user.id or
+                (current_user.role && current_user.role.slug == "super_admin")))
+
+      if can_view? do
+        conn
+        |> assign(:organization, organization)
+        |> assign(:page_title, organization.name)
+        |> assign(:member_count, member_count)
+        |> render(:show)
+      else
+        conn
+        |> put_flash(:error, "Organization not found")
+        |> redirect(to: ~p"/orgs")
+      end
     else
       {:error, :not_found} ->
         conn

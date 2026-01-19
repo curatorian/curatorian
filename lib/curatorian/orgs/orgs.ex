@@ -18,8 +18,27 @@ defmodule Curatorian.Orgs do
       [%Organization{}, ...]
 
   """
-  def list_organizations do
-    Repo.all(Organization) |> Repo.preload([:owner, :organization_users])
+  def list_organizations(user \\ nil) do
+    user = if user, do: Repo.preload(user, :role), else: nil
+
+    query =
+      if user && user.role && user.role.slug == "super_admin" do
+        from(o in Organization)
+      else
+        approved_query = from(o in Organization, where: o.status == "approved")
+
+        if user do
+          from(o in Organization,
+            where: o.status == "approved" or (o.status == "draft" and o.owner_id == ^user.id)
+          )
+        else
+          approved_query
+        end
+      end
+
+    query
+    |> Repo.all()
+    |> Repo.preload([:owner, :organization_users])
   end
 
   @doc """

@@ -44,7 +44,7 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.OrganizationForm do
                     class="rounded w-full h-full max-h-[480px] object-cover"
                   />
                 </div>
-                 <progress value={entry.progress} max="100">{entry.progress}%</progress>
+                <progress value={entry.progress} max="100">{entry.progress}%</progress>
                 <button
                   type="button"
                   phx-click="cancel-upload"
@@ -59,7 +59,7 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.OrganizationForm do
             <% end %>
           <% end %>
         </div>
-        
+
         <div class="grid items-center justify-center grid-cols-1 md:grid-cols-5 gap-4">
           <div class="space-y-3">
             <label class="block text-sm font-medium">Profile Image</label>
@@ -85,7 +85,7 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.OrganizationForm do
               <%= if Enum.any?(@uploads.image_logo.entries) do %>
                 <%= for entry <- @uploads.image_logo.entries do %>
                   <div class="mt-2"><.live_img_preview entry={entry} width="100" /></div>
-                   <progress value={entry.progress} max="100">{entry.progress}%</progress>
+                  <progress value={entry.progress} max="100">{entry.progress}%</progress>
                   <button
                     type="button"
                     phx-click="cancel-upload"
@@ -100,7 +100,7 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.OrganizationForm do
               <% end %>
             <% end %>
           </div>
-          
+
           <div class="col-span-4 flex flex-col justify-evenly h-full">
             <.input field={@form[:name]} type="text" label="Name" />
             <.input field={@form[:slug]} type="text" label="Slug" phx-hook="Slugify" id="slug" />
@@ -115,7 +115,7 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.OrganizationForm do
                 {"Archived", "archived"}
               ]}
               prompt="Select status of organization"
-              disabled={@current_user.user_role != "manager"}
+              disabled={not (@current_user.role && @current_user.role.slug == "super_admin")}
             />
             <.input
               field={@form[:type]}
@@ -131,7 +131,7 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.OrganizationForm do
             />
           </div>
         </div>
-         <.input field={@form[:description]} type="textarea" label="Description" />
+        <.input field={@form[:description]} type="textarea" label="Description" />
         <.button type="submit" phx-disable-with="Saving...">Save</.button>
       </.form>
     </div>

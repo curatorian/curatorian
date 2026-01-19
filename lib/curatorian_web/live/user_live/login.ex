@@ -14,12 +14,12 @@ defmodule CuratorianWeb.UserLive.Login do
             <h1 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3">
               Selamat Datang Kembali di Curatorian
             </h1>
-            
+
             <p class="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
               Masuk untuk mengakses koleksi kurasi Anda, mengelola profil, dan terhubung dengan komunitas kurator.
             </p>
           </div>
-          
+
           <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             <div
               id="login-card"
@@ -29,7 +29,7 @@ defmodule CuratorianWeb.UserLive.Login do
               <div class="text-center mb-6">
                 <.header>
                   <p class="text-2xl dark:text-white">Masuk</p>
-                  
+
                   <:subtitle>
                     <%= if @current_scope do %>
                       Anda perlu mengautentikasi ulang untuk melakukan tindakan sensitif pada akun Anda.
@@ -43,12 +43,12 @@ defmodule CuratorianWeb.UserLive.Login do
                   </:subtitle>
                 </.header>
               </div>
-              
+
               <div :if={local_mail_adapter?()} class="alert alert-info mb-4">
                 <.icon name="hero-information-circle" class="size-6 shrink-0" />
                 <div>
                   <p class="font-medium">Anda menggunakan adaptor email lokal.</p>
-                  
+
                   <p class="mt-1 text-sm">
                     Untuk melihat email yang terkirim, kunjungi <.link
                       href="/dev/mailbox"
@@ -57,7 +57,6 @@ defmodule CuratorianWeb.UserLive.Login do
                   </p>
                 </div>
               </div>
-               {local_mail_adapter?()}
               <.form
                 :let={f}
                 for={@form}
@@ -79,9 +78,9 @@ defmodule CuratorianWeb.UserLive.Login do
                   Masuk dengan email <span aria-hidden="true">→</span>
                 </.button>
               </.form>
-              
+
               <div class="divider">atau</div>
-              
+
               <.form
                 :let={f}
                 for={@form}
@@ -118,19 +117,19 @@ defmodule CuratorianWeb.UserLive.Login do
                   <div class="absolute inset-0 flex items-center" aria-hidden="true">
                     <div class="w-full border-t border-gray-300 dark:border-gray-600"></div>
                   </div>
-                  
+
                   <div class="relative flex justify-center text-sm">
                     <span class="px-4 bg-gradient-to-br from-violet-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 text-gray-500 dark:text-gray-400 font-medium">
                       Masuk Cepat
                     </span>
                   </div>
                 </div>
-                
+
                 <div class="mt-6 p-4 bg-gradient-to-br from-violet-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-xl border-2 border-violet-100 dark:border-gray-600">
                   <p class="text-xs text-center text-gray-600 dark:text-gray-300 mb-3 font-medium">
                     🚀 Autentikasi sekali klik dengan akun Google Anda
                   </p>
-                  
+
                   <button
                     phx-click="google_auth"
                     type="button"
@@ -156,29 +155,29 @@ defmodule CuratorianWeb.UserLive.Login do
                 </div>
               </div>
             </div>
-            
+
             <div class="hidden md:flex flex-col items-center justify-center gap-6">
               <div class="text-center mb-4">
                 <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                   Autentikasi Aman
                 </h2>
-                
+
                 <p class="text-gray-600 dark:text-gray-400 max-w-sm mx-auto">
                   Pilih metode login pilihan Anda—baik melalui tautan ajaib email atau Google OAuth—untuk pengalaman yang lancar dan aman.
                 </p>
               </div>
-              
+
               <div class="w-full max-w-md p-6 bg-gradient-to-br from-violet-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-2xl border-2 border-violet-100 dark:border-gray-600 shadow-lg">
                 <div class="text-center mb-4">
                   <p class="text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                     ⚡ Masuk Cepat & Mudah
                   </p>
-                  
+
                   <p class="text-xs text-gray-600 dark:text-gray-400">
                     Gunakan akun Google Anda yang sudah ada
                   </p>
                 </div>
-                
+
                 <button
                   phx-click="google_auth"
                   type="button"
@@ -206,7 +205,8 @@ defmodule CuratorianWeb.UserLive.Login do
                       fill="#EA4335"
                       d="M272 107.5c38.6 0 73.4 13.3 100.8 39.3l75.5-75.5C406.8 24.9 345.5 0 272 0 168.6 0 76.6 53.1 32.1 154.2l87.2 70.5C140.8 155.4 201 107.5 272 107.5z"
                     />
-                  </svg> <span class="font-semibold">Lanjutkan dengan Google</span>
+                  </svg>
+                   <span class="font-semibold">Lanjutkan dengan Google</span>
                 </button>
                 <p class="text-xs text-center text-gray-500 dark:text-gray-400 mt-4">
                   🔒 Diamankan oleh sistem autentikasi Google

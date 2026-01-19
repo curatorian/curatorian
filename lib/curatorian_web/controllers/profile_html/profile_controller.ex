@@ -21,14 +21,22 @@ defmodule CuratorianWeb.ProfileController do
         |> render(:"404")
 
       %Accounts.User{} ->
-        blogs = Blogs.list_blogs_by_user(user.id)
+        if user.is_verified do
+          blogs = Blogs.list_blogs_by_user(user.id)
 
-        conn =
+          conn =
+            conn
+            |> assign(:user, user)
+            |> assign(:blogs, blogs)
+
+          render(conn, :index)
+        else
           conn
-          |> assign(:user, user)
-          |> assign(:blogs, blogs)
-
-        render(conn, :index)
+          |> assign(:info, "User not found")
+          |> put_status(:not_found)
+          |> put_view(CuratorianWeb.ErrorHTML)
+          |> render(:"404")
+        end
     end
   end
 
@@ -42,14 +50,22 @@ defmodule CuratorianWeb.ProfileController do
       |> assign(:active_tab, active_tab)
 
     with %Accounts.User{} <- user do
-      blogs = Blogs.list_blogs_by_user(user.id)
+      if user.is_verified do
+        blogs = Blogs.list_blogs_by_user(user.id)
 
-      conn =
+        conn =
+          conn
+          |> assign(:user, user)
+          |> assign(:blogs, blogs)
+
+        render(conn, :profile_blog)
+      else
         conn
-        |> assign(:user, user)
-        |> assign(:blogs, blogs)
-
-      render(conn, :profile_blog)
+        |> assign(:info, "User not found")
+        |> put_status(:not_found)
+        |> put_view(CuratorianWeb.ErrorHTML)
+        |> render(:"404")
+      end
     else
       _ ->
         conn
@@ -66,12 +82,20 @@ defmodule CuratorianWeb.ProfileController do
 
     with %Accounts.User{} <- user,
          %Blogs.Blog{} <- blog do
-      conn =
-        conn
-        |> assign(:user, user)
-        |> assign(:blog, blog)
+      if user.is_verified do
+        conn =
+          conn
+          |> assign(:user, user)
+          |> assign(:blog, blog)
 
-      render(conn, :show_blog)
+        render(conn, :show_blog)
+      else
+        conn
+        |> assign(:info, "Content not found")
+        |> put_status(:not_found)
+        |> put_view(CuratorianWeb.ErrorHTML)
+        |> render(:"404")
+      end
     else
       _ ->
         conn
@@ -92,14 +116,22 @@ defmodule CuratorianWeb.ProfileController do
       |> assign(:active_tab, active_tab)
 
     with %Accounts.User{} <- user do
-      posts = []
+      if user.is_verified do
+        posts = []
 
-      conn =
+        conn =
+          conn
+          |> assign(:user, user)
+          |> assign(:posts, posts)
+
+        render(conn, :profile_post)
+      else
         conn
-        |> assign(:user, user)
-        |> assign(:posts, posts)
-
-      render(conn, :profile_post)
+        |> assign(:info, "User not found")
+        |> put_status(:not_found)
+        |> put_view(CuratorianWeb.ErrorHTML)
+        |> render(:"404")
+      end
     else
       _ ->
         conn
@@ -114,11 +146,19 @@ defmodule CuratorianWeb.ProfileController do
     user = Accounts.get_user_profile_by_username(username)
 
     with %Accounts.User{} <- user do
-      conn =
-        conn
-        |> assign(:user, user)
+      if user.is_verified do
+        conn =
+          conn
+          |> assign(:user, user)
 
-      render(conn, :show_posts)
+        render(conn, :show_posts)
+      else
+        conn
+        |> assign(:info, "User not found")
+        |> put_status(:not_found)
+        |> put_view(CuratorianWeb.ErrorHTML)
+        |> render(:"404")
+      end
     else
       _ ->
         conn
@@ -139,14 +179,22 @@ defmodule CuratorianWeb.ProfileController do
       |> assign(:active_tab, active_tab)
 
     with %Accounts.User{} <- user do
-      works = []
+      if user.is_verified do
+        works = []
 
-      conn =
+        conn =
+          conn
+          |> assign(:user, user)
+          |> assign(:works, works)
+
+        render(conn, :profile_work)
+      else
         conn
-        |> assign(:user, user)
-        |> assign(:works, works)
-
-      render(conn, :profile_work)
+        |> assign(:info, "User not found")
+        |> put_status(:not_found)
+        |> put_view(CuratorianWeb.ErrorHTML)
+        |> render(:"404")
+      end
     else
       _ ->
         conn

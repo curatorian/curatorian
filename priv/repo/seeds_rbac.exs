@@ -5,8 +5,6 @@ alias Curatorian.Repo
 alias Curatorian.Authorization
 alias Curatorian.Authorization.{Role, Permission}
 
-import Ecto.Query
-
 IO.puts("🌱 Seeding RBAC data...")
 
 # ============================================================================
@@ -288,7 +286,7 @@ IO.puts("  ✓ Super Admin: #{length(super_admin_permission_ids)} permissions")
 manager_permissions =
   created_permissions
   |> Enum.reject(fn p ->
-    p.slug in ["roles:manage", "permissions:manage"]
+    p.slug in ["roles:manage", "permissions:manage", "organizations:delete", "organizations:manage"]
   end)
   |> Enum.map(& &1.id)
 

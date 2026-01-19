@@ -10,7 +10,7 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.Edit do
       Edit Organization
       <:subtitle>Use this form to manage organization records in your database.</:subtitle>
     </.header>
-     <.button navigate="/dashboard/orgs">Kembali</.button>
+    <.button navigate="/dashboard/orgs">Kembali</.button>
     <section>
       <.live_component
         module={CuratorianWeb.DashboardLive.OrgsLive.OrganizationForm}
@@ -28,6 +28,7 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.Edit do
   @impl Phoenix.LiveView
   def mount(%{"slug" => slug}, session, socket) do
     current_user = socket.assigns.current_scope.user || session["current_user"]
+    current_user = Curatorian.Repo.preload(current_user, :role)
     organization = Orgs.get_organization_by_slug(slug)
 
     if Orgs.has_permission?(organization, current_user, :manage_all) do

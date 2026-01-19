@@ -1,7 +1,7 @@
 <Layouts.app flash={@flash} current_scope={@current_scope}>
   <section class="container mx-auto">
     <h4>List Kurator</h4>
-    
+
     <%= if length(@curatorians) > 0 do %>
       <%= if @page <= @total_pages do %>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -21,14 +21,22 @@
                     referrerPolicy="no-referrer"
                   />
                 <% end %>
-                
+
                 <div class="flex flex-col justify-between">
                   <div>
-                    <p class="font-semibold">{curator.profile.fullname}</p>
-                    
+                    <div class="flex items-center gap-2">
+                      <p class="font-semibold">{curator.profile.fullname}</p>
+
+                      <%= if curator.is_verified do %>
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                          <.icon name="hero-check-circle" class="w-3 h-3 mr-1" /> Verified
+                        </span>
+                      <% end %>
+                    </div>
+
                     <p class="text-xs">{curator.email}</p>
                   </div>
-                  
+
                   <div>
                     <.link
                       href={~p"/#{curator.username}"}
@@ -42,14 +50,14 @@
             </div>
           <% end %>
         </div>
-        
+
         <div class="flex items-center justify-center mt-4 gap-2">
           <%= if @page > 1 do %>
             <.link href={~p"/kurator?page=#{@page - 1}"} class="btn-primary">Previous</.link>
           <% else %>
             <span class="btn-disabled">Previous</span>
           <% end %>
-           <span>{@page} / {@total_pages}</span>
+          <span>{@page} / {@total_pages}</span>
           <%= if @page < @total_pages do %>
             <.link href={~p"/kurator?page=#{@page + 1}"} class="btn-primary">Next</.link>
           <% else %>

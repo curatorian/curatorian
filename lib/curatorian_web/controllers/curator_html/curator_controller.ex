@@ -4,6 +4,8 @@ defmodule CuratorianWeb.CuratorController do
   alias Curatorian.Accounts
 
   def index(conn, params) do
+    # Always filter to show only verified users in public list
+    params = Map.put(params, "status_filter", "verified")
     pagination = Accounts.list_all_curatorian(params)
 
     conn

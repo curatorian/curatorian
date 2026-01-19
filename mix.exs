@@ -83,7 +83,8 @@ defmodule Curatorian.MixProject do
         "deps.get",
         "ecto.setup",
         "assets.setup",
-        "assets.build"
+        "assets.build",
+        "run priv/repo/seeds_rbac.exs"
       ],
       start: ["cmd call env.bat", "phx.server"],
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
