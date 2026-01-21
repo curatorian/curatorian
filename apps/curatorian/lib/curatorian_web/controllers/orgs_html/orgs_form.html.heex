@@ -1,0 +1,42 @@
+<.form :let={f} for={@changeset} action={@action}>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div>
+      <.input field={f[:name]} type="text" label="Name" required />
+      <.input field={f[:slug]} type="text" label="Slug" required />
+      <.input
+        field={f[:type]}
+        type="select"
+        label="Type"
+        options={[
+          {"Company", "company"},
+          {"Institution", "institution"},
+          {"Community", "community"},
+          {"Non-profit", "non_profit"}
+        ]}
+      />
+      <!-- Hidden fields for images -->
+      <.input field={f[:image_logo]} type="hidden" />
+      <.input field={f[:image_cover]} type="hidden" />
+    </div>
+
+    <div>
+      <.input field={f[:description]} type="textarea" label="Description" rows={8} />
+      <.input
+        field={f[:status]}
+        type="select"
+        label="Status"
+        options={[
+          {"Draft", "draft"},
+          {"Pending", "pending"},
+          {"Approved", "approved"},
+          {"Archived", "archived"}
+        ]}
+      />
+    </div>
+  </div>
+
+  <footer>
+    <.button type="submit" class="w-full md:w-auto">Save Organization</.button>
+    <.button :if={@return_to} href={@return_to}>Cancel</.button>
+  </footer>
+</.form>

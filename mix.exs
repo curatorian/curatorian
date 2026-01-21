@@ -1,50 +1,45 @@
-defmodule Curatorian.MixProject do
+defmodule CuratorianUmbrella.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :curatorian,
+      apps_path: "apps",
       version: "0.1.0",
-      elixir: "~> 1.18",
-      elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
-      aliases: aliases(),
       deps: deps(),
-      compilers: [:phoenix_live_view] ++ Mix.compilers(),
-      listeners: [Phoenix.CodeReloader],
-      dialyzer: [flags: [:no_opaque]]
+      aliases: aliases(),
+      releases: releases(),
+      # Use consistent Elixir version across all apps
+      elixir: "~> 1.18"
     ]
   end
 
-  # Configuration for the OTP application.
+  # Dependencies listed here are available only for this
+  # project and cannot be accessed from applications inside
+  # the apps folder.
   #
-  # Type `mix help compile.app` for more information.
-  def application do
-    [
-      mod: {Curatorian.Application, []},
-      extra_applications: [:logger, :runtime_tools]
-    ]
-  end
-
-  # Specifies which paths to compile per environment.
-  defp elixirc_paths(:test), do: ["lib", "test/support"]
-  defp elixirc_paths(_), do: ["lib"]
-
-  # Specifies your project dependencies.
-  #
-  # Type `mix help deps` for examples and options.
+  # Run "mix help deps" for examples and options.
   defp deps do
     [
-      {:assent, "~> 0.3.1"},
-      {:aws, "~> 1.0.0"},
+      # Core Phoenix & Web
+      {:phoenix, "~> 1.8.1"},
+      {:phoenix_ecto, "~> 4.5"},
+      {:phoenix_html, "~> 4.1"},
+      {:phoenix_live_view, "~> 1.1.0"},
+      {:phoenix_live_dashboard, "~> 0.8.3"},
+      {:phoenix_live_reload, "~> 1.2", only: :dev},
+
+      # Database
+      {:ecto_sql, "~> 3.13"},
+      {:postgrex, ">= 0.0.0"},
+
+      # Server
       {:bandit, "~> 1.5"},
       {:dns_cluster, "~> 0.2.0"},
-      {:ecto_sql, "~> 3.13"},
+
+      # Assets
       {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},
-      {:finch, "~> 0.13"},
-      {:floki, ">= 0.30.0", only: :test},
-      {:gettext, "~> 0.26"},
-      {:hackney, "~> 1.18"},
+      {:tailwind, "~> 0.3", runtime: Mix.env() == :dev},
       {:heroicons,
        github: "tailwindlabs/heroicons",
        tag: "v2.2.0",
@@ -52,50 +47,85 @@ defmodule Curatorian.MixProject do
        app: false,
        compile: false,
        depth: 1},
-      {:html_sanitize_ex, "~> 1.4"},
-      {:jason, "~> 1.2"},
+
+      # Auth & Security
       {:pbkdf2_elixir, "~> 2.0"},
-      {:phoenix, "~> 1.8.1"},
-      {:phoenix_ecto, "~> 4.5"},
-      {:phoenix_html, "~> 4.1"},
-      {:phoenix_live_reload, "~> 1.2", only: :dev},
-      {:phoenix_live_view, "~> 1.1.0"},
-      {:phoenix_live_dashboard, "~> 0.8.3"},
-      {:postgrex, ">= 0.0.0"},
-      {:swoosh, "~> 1.16"},
+      {:assent, "~> 0.3.1"},
+
+      # Utilities
+      {:jason, "~> 1.2"},
+      {:gettext, "~> 0.26"},
+      {:finch, "~> 0.13"},
+      {:hackney, "~> 1.18"},
       {:req, "~> 0.5"},
-      {:tailwind, "~> 0.3", runtime: Mix.env() == :dev},
+      {:swoosh, "~> 1.16"},
+      {:tzdata, "~> 1.1"},
+      {:html_sanitize_ex, "~> 1.4"},
+
+      # AWS
+      {:aws, "~> 1.0.0"},
+
+      # Monitoring
       {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.0"},
-      {:tzdata, "~> 1.1"}
+
+      # Testing
+      {:floki, ">= 0.30.0", only: :test}
     ]
   end
 
-  # Aliases are shortcuts or tasks specific to the current project.
-  # For example, to install project dependencies and perform other setup tasks, run:
-  #
-  #     $ mix setup
-  #
-  # See the documentation for `Mix` for more info on aliases.
   defp aliases do
     [
+      # Setup everything
       setup: [
         "deps.get",
-        "ecto.setup",
-        "assets.setup",
-        "assets.build",
-        "run priv/repo/seeds_rbac.exs"
+        "cmd --app voile mix ecto.setup",
+        "cmd --app curatorian mix ecto.setup",
+        "cmd --app voile mix assets.setup",
+        "cmd --app curatorian mix assets.setup",
+        "cmd --app voile mix assets.build",
+        "cmd --app curatorian mix assets.build"
       ],
-      start: ["cmd call env.bat", "phx.server"],
-      "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
-      "ecto.reset": ["ecto.drop", "ecto.setup"],
-      test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
-      "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
-      "assets.build": ["tailwind curatorian", "esbuild curatorian"],
-      "assets.deploy": [
-        "tailwind curatorian --minify",
-        "esbuild curatorian --minify",
-        "phx.digest"
+
+      # Database operations
+      "ecto.setup": [
+        "cmd --app voile mix ecto.setup",
+        "cmd --app curatorian mix ecto.setup"
+      ],
+      "ecto.reset": [
+        "cmd --app voile mix ecto.reset",
+        "cmd --app curatorian mix ecto.reset"
+      ],
+      "ecto.migrate": [
+        "cmd --app voile mix ecto.migrate",
+        "cmd --app curatorian mix ecto.migrate"
+      ],
+
+      # Testing
+      test: [
+        "cmd --app voile mix test",
+        "cmd --app curatorian mix test"
+      ],
+
+      # Code quality
+      format: [
+        "format",
+        "cmd --app voile mix format",
+        "cmd --app curatorian mix format"
+      ]
+    ]
+  end
+
+  defp releases do
+    [
+      curatorian: [
+        version: "0.1.0",
+        applications: [
+          voile: :permanent,
+          curatorian: :permanent
+        ],
+        include_executables_for: [:unix],
+        steps: [:assemble, :tar]
       ]
     ]
   end
