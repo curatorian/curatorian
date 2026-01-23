@@ -2,7 +2,7 @@ defmodule Curatorian.Orgs.OrganizationUser do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias Curatorian.Accounts.User
+  alias Voile.Schema.Accounts.User
   alias Curatorian.Orgs.Organization
   alias Curatorian.Orgs.OrganizationRole
 

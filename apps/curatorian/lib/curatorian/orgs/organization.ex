@@ -3,7 +3,7 @@ defmodule Curatorian.Orgs.Organization do
   import Ecto.Changeset
 
   alias Curatorian.Orgs.OrganizationUser
-  alias Curatorian.Accounts.User
+  alias Voile.Schema.Accounts.User
 
   schema "organizations" do
     field :name, :string

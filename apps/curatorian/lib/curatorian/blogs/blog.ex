@@ -11,7 +11,7 @@ defmodule Curatorian.Blogs.Blog do
     field :content, :string
     field :summary, :string
     field :image_url, :string
-    belongs_to :user, Curatorian.Accounts.User, type: :binary_id
+    belongs_to :user, Voile.Schema.Accounts.User, type: :binary_id
 
     many_to_many :categories, Curatorian.Blogs.Category,
       join_through: "blogs_categories",

@@ -1,8 +1,7 @@
 defmodule CuratorianWeb.UserLive.Settings do
   use CuratorianWeb, :live_view_dashboard
 
-  alias Curatorian.Repo
-  alias Curatorian.Accounts
+  alias Voile.Schema.Accounts
 
   @impl Phoenix.LiveView
   def render(assigns) do
@@ -115,7 +114,7 @@ defmodule CuratorianWeb.UserLive.Settings do
                     <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Nama Lengkap</p>
 
                     <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
-                      {if @user.profile != nil, do: @user.profile.fullname, else: "Belum diisi"}
+                      {@current_user_profile.fullname || "Belum diisi"}
                     </p>
                   </div>
                 </div>
@@ -179,155 +178,65 @@ defmodule CuratorianWeb.UserLive.Settings do
                     id="fullname"
                     placeholder="Masukkan nama lengkap Anda"
                   />
-                  <.input
-                    field={@update_profile_form[:bio]}
-                    value={@current_user_profile.bio}
-                    label="Bio"
-                    type="textarea"
-                    id="bio"
-                    placeholder="Ceritakan tentang diri Anda"
-                  />
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <.input
-                      field={@update_profile_form[:job_title]}
-                      value={@current_user_profile.job_title}
-                      label="Pekerjaan"
+                      field={@update_profile_form[:organization]}
+                      value={@current_user_profile.organization}
+                      label="Organisasi"
                       type="text"
-                      id="job-title"
-                      placeholder="Posisi/Jabatan"
+                      id="organization"
+                      placeholder="Nama organisasi"
                     />
                     <.input
-                      field={@update_profile_form[:company]}
-                      value={@current_user_profile.company}
-                      label="Perusahaan / Lembaga"
+                      field={@update_profile_form[:department]}
+                      value={@current_user_profile.department}
+                      label="Departemen"
                       type="text"
-                      id="company"
-                      placeholder="Nama perusahaan"
+                      id="department"
+                      placeholder="Departemen"
                     />
                   </div>
 
                   <.input
-                    field={@update_profile_form[:location]}
-                    value={@current_user_profile.location}
-                    label="Alamat / Lokasi"
-                    type="textarea"
-                    id="location"
-                    placeholder="Kota, Negara"
+                    field={@update_profile_form[:position]}
+                    value={@current_user_profile.position}
+                    label="Posisi"
+                    type="text"
+                    id="position"
+                    placeholder="Posisi/Jabatan"
                   />
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <.input
-                      field={@update_profile_form[:birthday]}
-                      value={@current_user_profile.birthday}
+                      field={@update_profile_form[:phone_number]}
+                      value={@current_user_profile.phone_number}
+                      label="Nomor Telepon"
+                      type="text"
+                      id="phone_number"
+                      placeholder="Nomor telepon"
+                    />
+                    <.input
+                      field={@update_profile_form[:birth_date]}
+                      value={@current_user_profile.birth_date}
                       label="Tanggal Lahir"
                       type="date"
-                      id="birthday"
-                    />
-                    <.input
-                      field={@update_profile_form[:gender]}
-                      value={@current_user_profile.gender}
-                      label="Jenis Kelamin"
-                      type="select"
-                      options={[
-                        {"Pilih Jenis Kelamin", nil},
-                        {"Laki-laki", "laki-laki"},
-                        {"Perempuan", "perempuan"}
-                      ]}
-                      id="gender"
+                      id="birth_date"
                     />
                   </div>
+                  <.input
+                    field={@update_profile_form[:gender]}
+                    value={@current_user_profile.gender}
+                    label="Jenis Kelamin"
+                    type="select"
+                    options={[
+                      {"Pilih Jenis Kelamin", nil},
+                      {"Laki-laki", "laki-laki"},
+                      {"Perempuan", "perempuan"}
+                    ]}
+                    id="gender"
+                  />
                 </div>
-                <!-- Education Section within form -->
-                <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-                  <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center gap-3">
-                      <.icon
-                        name="hero-academic-cap"
-                        class="w-6 h-6 text-violet-600 dark:text-violet-400"
-                      />
-                      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                        Riwayat Pendidikan
-                      </h3>
-                    </div>
-
-                    <%= if @show_add_education do %>
-                      <button type="button" class="btn-primary text-sm" phx-click="add_education">
-                        <.icon name="hero-plus" class="w-4 h-4 mr-1" /> Tambah
-                      </button>
-                    <% end %>
-                  </div>
-
-                  <div class="space-y-4">
-                    <.inputs_for :let={edu} field={@update_profile_form[:educations]}>
-                      <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
-                        <div class="flex items-center justify-between mb-3">
-                          <p class="text-sm font-semibold text-violet-600 dark:text-violet-400">
-                            Pendidikan #{edu.index + 1}
-                          </p>
-
-                          <%= if edu.data.id do %>
-                            <button
-                              type="button"
-                              class="btn-cancel text-xs px-2 py-1"
-                              phx-click="delete_education"
-                              phx-value-education-id={edu.data.id}
-                            >
-                              <.icon name="hero-trash" class="w-4 h-4" />
-                            </button>
-                          <% else %>
-                            <button
-                              type="button"
-                              class="btn-warning text-xs px-2 py-1"
-                              phx-click="delete_unsaved_education"
-                              phx-value-index={edu.index}
-                            >
-                              <.icon name="hero-trash" class="w-4 h-4" />
-                            </button>
-                          <% end %>
-                        </div>
-
-                        <.input field={edu[:id] || ""} type="hidden" id={"education-id-#{edu.index}"} />
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          <.input
-                            field={edu[:school]}
-                            label="Sekolah / Universitas"
-                            type="text"
-                            id={"school-#{edu.index}"}
-                            placeholder="Nama institusi"
-                          />
-                          <.input
-                            field={edu[:degree]}
-                            label="Jenjang"
-                            type="select"
-                            id={"degree-#{edu.index}"}
-                            options={[
-                              {"Pilih Jenjang", ""},
-                              {"Sekolah", "Sekolah"},
-                              {"Diploma", "Diploma"},
-                              {"Sarjana", "Sarjana"},
-                              {"Magister", "Magister"},
-                              {"Doktor", "Doktor"}
-                            ]}
-                          />
-                          <.input
-                            field={edu[:field_of_study]}
-                            label="Jurusan / Program Studi"
-                            type="text"
-                            id={"field-of-study-#{edu.index}"}
-                            placeholder="Nama jurusan"
-                          />
-                          <.input
-                            field={edu[:graduation_year]}
-                            label="Tahun Lulus"
-                            type="number"
-                            id={"graduation-year-#{edu.index}"}
-                            placeholder="2020"
-                          />
-                        </div>
-                      </div>
-                    </.inputs_for>
-                  </div>
-                </div>
-                <!-- Social Media Section within form -->
+                
+    <!-- Social Media Section within form -->
                 <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
                   <div class="flex items-center gap-3 mb-4">
                     <.icon name="hero-share" class="w-6 h-6 text-violet-600 dark:text-violet-400" />
@@ -337,7 +246,7 @@ defmodule CuratorianWeb.UserLive.Settings do
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <.input
                       field={@update_profile_form[:twitter]}
-                      value={@current_user_profile.social_media["twitter"]}
+                      value={@current_user_profile.twitter}
                       label="Twitter"
                       type="text"
                       id="twitter"
@@ -345,7 +254,7 @@ defmodule CuratorianWeb.UserLive.Settings do
                     />
                     <.input
                       field={@update_profile_form[:facebook]}
-                      value={@current_user_profile.social_media["facebook"]}
+                      value={@current_user_profile.facebook}
                       label="Facebook"
                       type="text"
                       id="facebook"
@@ -353,7 +262,7 @@ defmodule CuratorianWeb.UserLive.Settings do
                     />
                     <.input
                       field={@update_profile_form[:linkedin]}
-                      value={@current_user_profile.social_media["linkedin"]}
+                      value={@current_user_profile.linkedin}
                       label="LinkedIn"
                       type="text"
                       id="linkedin"
@@ -361,7 +270,7 @@ defmodule CuratorianWeb.UserLive.Settings do
                     />
                     <.input
                       field={@update_profile_form[:instagram]}
-                      value={@current_user_profile.social_media["instagram"]}
+                      value={@current_user_profile.instagram}
                       label="Instagram"
                       type="text"
                       id="instagram"
@@ -369,7 +278,7 @@ defmodule CuratorianWeb.UserLive.Settings do
                     />
                     <.input
                       field={@update_profile_form[:website]}
-                      value={@current_user_profile.social_media["website"]}
+                      value={@current_user_profile.website}
                       label="Website"
                       type="text"
                       id="website"
@@ -457,13 +366,11 @@ defmodule CuratorianWeb.UserLive.Settings do
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
-    user = socket.assigns.current_scope.user |> Repo.preload(:profile)
-    user_profile = Accounts.get_user_profile_by_user_id(user.id)
-    educations = Accounts.get_user_educations(user_profile.id)
+    user = socket.assigns.current_scope.user
 
     email_changeset = Accounts.change_user_email(user)
     password_changeset = Accounts.change_user_password(user)
-    profile_changeset = Accounts.change_user_profile(user_profile)
+    profile_changeset = Accounts.change_user(user)
 
     socket =
       socket
@@ -471,14 +378,14 @@ defmodule CuratorianWeb.UserLive.Settings do
       |> assign(:current_email, user.email)
       |> assign(:current_password, nil)
       |> assign(:current_tab, :tab1)
-      |> assign(:current_user_profile, user_profile)
-      |> assign(:educations, educations)
+      |> assign(:current_user_profile, user)
+      |> assign(:educations, [])
       |> assign(:email_form_current_password, nil)
       |> assign(:email_form, to_form(email_changeset))
       |> assign(:password_form, to_form(password_changeset))
       |> assign(:update_profile_form, to_form(profile_changeset))
       |> assign(:trigger_submit, false)
-      |> assign(:show_add_education, true)
+      |> assign(:show_add_education, false)
       |> assign(:uploaded_files, [])
       |> assign(:trigger_submit, false)
       |> allow_upload(:avatar,
@@ -493,69 +400,20 @@ defmodule CuratorianWeb.UserLive.Settings do
 
   @impl Phoenix.LiveView
   def handle_event("add_education", _, socket) do
-    changeset =
-      socket.assigns.update_profile_form.data
-      |> Accounts.change_user_profile()
-
-    educations = Ecto.Changeset.get_field(changeset, :educations) || []
-    new_education = %Accounts.Education{}
-    updated_educations = educations ++ [new_education]
-
-    changeset = Ecto.Changeset.put_assoc(changeset, :educations, updated_educations)
-
-    socket =
-      socket
-      |> assign(update_profile_form: to_form(changeset))
-      |> assign(show_add_education: false)
-
+    # Education not supported in Voile
     {:noreply, socket}
   end
 
   @impl Phoenix.LiveView
-  def handle_event("delete_unsaved_education", %{"index" => index_str}, socket) do
-    index = String.to_integer(index_str)
-
-    changeset =
-      socket.assigns.update_profile_form.data
-      |> Accounts.change_user_profile()
-
-    educations = Ecto.Changeset.get_field(changeset, :educations) || []
-    updated_educations = List.delete_at(educations, index)
-    changeset = Ecto.Changeset.put_assoc(changeset, :educations, updated_educations)
-
-    socket =
-      socket
-      |> assign(update_profile_form: to_form(changeset))
-      |> assign(show_add_education: true)
-
+  def handle_event("delete_unsaved_education", _params, socket) do
+    # Education not supported in Voile
     {:noreply, socket}
   end
 
   @impl Phoenix.LiveView
-  def handle_event("delete_education", %{"education-id" => id}, socket) do
-    changeset = Accounts.change_user_profile(socket.assigns.current_scope.user_profile)
-
-    updated_educations =
-      Ecto.Changeset.get_field(changeset, :educations)
-      |> Enum.reject(fn edu ->
-        edu.id == id
-      end)
-
-    changeset = Ecto.Changeset.put_assoc(changeset, :educations, updated_educations)
-    socket = assign(socket, update_profile_form: to_form(changeset))
-    dbg(updated_educations)
+  def handle_event("delete_education", _params, socket) do
+    # Education not supported in Voile
     {:noreply, socket}
-
-    case Accounts.delete_education(id) do
-      {:ok, _} ->
-        updated_profile = Accounts.get_user_profile_by_user_id(socket.assigns.user.id)
-        changeset = Accounts.change_user_profile(updated_profile)
-        {:noreply, assign(socket, update_profile_form: to_form(changeset))}
-
-      {:error, _reason} ->
-        # Optionally handle the error
-        {:noreply, socket}
-    end
   end
 
   @impl Phoenix.LiveView
@@ -579,7 +437,7 @@ defmodule CuratorianWeb.UserLive.Settings do
 
         File.cp!(path, dest)
 
-        case Accounts.update_user_profile(user, %{user_image: image_path}) do
+        case Accounts.update_profile_user(user, %{user_image: image_path}) do
           {:ok, _} ->
             {:ok, socket}
 
@@ -618,8 +476,8 @@ defmodule CuratorianWeb.UserLive.Settings do
   @impl Phoenix.LiveView
   def handle_event("validate_profile", %{"user_profile" => params}, socket) do
     changeset =
-      socket.assigns.current_scope.user.profile
-      |> Accounts.change_user_profile(params)
+      socket.assigns.current_scope.user
+      |> Accounts.change_user(params)
       |> Map.put(:action, :validate)
 
     {:noreply, assign(socket, update_profile_form: to_form(changeset))}
@@ -629,24 +487,20 @@ defmodule CuratorianWeb.UserLive.Settings do
   def handle_event("update_profile", %{"user_profile" => params}, socket) do
     user = socket.assigns.current_scope.user
 
-    case Accounts.update_user_profile(user, params) do
-      {:ok, profile} ->
-        info = "#{profile.fullname}'s updated successfully."
-        profile_form = profile |> Accounts.change_user_profile() |> to_form()
+    case Accounts.update_profile_user(user, params) do
+      {:ok, updated_user} ->
+        info = "#{updated_user.fullname}'s updated successfully."
+        profile_form = updated_user |> Accounts.change_user() |> to_form()
 
         {:noreply,
          socket
          |> put_flash(:info, info)
          |> assign(update_profile_form: profile_form)
-         |> assign(current_user_profile: profile)
-         |> assign(show_add_education: true)}
+         |> assign(current_user_profile: updated_user)}
 
       {:error, changeset} ->
         dbg(changeset)
         {:noreply, assign(socket, update_profile_form: to_form(changeset))}
-
-      _ ->
-        {:noreply, socket}
     end
   end
 
@@ -655,7 +509,7 @@ defmodule CuratorianWeb.UserLive.Settings do
 
     password_form =
       socket.assigns.current_scope.user
-      |> Accounts.change_user_password(user_params, hash_password: false)
+      |> Accounts.change_user_password(user_params)
       |> Map.put(:action, :validate)
       |> to_form()
 

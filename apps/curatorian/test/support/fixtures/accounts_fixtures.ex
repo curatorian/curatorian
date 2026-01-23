@@ -18,7 +18,7 @@ defmodule Curatorian.AccountsFixtures do
     {:ok, user, _user_profile} =
       attrs
       |> valid_user_attributes()
-      |> Curatorian.Accounts.register_user(attrs)
+      |> Curatorian.Accounts.register_user()
 
     user
   end
@@ -39,10 +39,7 @@ defmodule Curatorian.AccountsFixtures do
         follower_id: user_fixture().id,
         followed_id: user_fixture().id
       })
-      |> Curatorian.Accounts.follow_user(
-        follower_id: attrs.follower_id,
-        followed_id: attrs.followed_id
-      )
+      |> Curatorian.Accounts.follow_user()
 
     follow
   end

@@ -1,11 +1,14 @@
 defmodule CuratorianWeb.ProfileController do
   use CuratorianWeb, :controller
 
-  alias Curatorian.Accounts
+  alias Voile.Schema.Accounts
   alias Curatorian.Blogs
 
   def index(conn, %{"username" => username}) do
-    user = Accounts.get_user_profile_by_username(username)
+    user =
+      Accounts.get_user_by_email(username) ||
+        Accounts.search_users(%{"query" => username}) |> List.first()
+
     active_tab = "blogs"
 
     conn =
@@ -41,7 +44,9 @@ defmodule CuratorianWeb.ProfileController do
   end
 
   def blogs(conn, %{"username" => username}) do
-    user = Accounts.get_user_profile_by_username(username)
+    user =
+      Accounts.get_user_by_email(username) ||
+        Accounts.search_users(%{"query" => username}) |> List.first()
 
     active_tab = "blogs"
 
@@ -77,7 +82,10 @@ defmodule CuratorianWeb.ProfileController do
   end
 
   def show_blog(conn, %{"username" => username, "slug" => slug}) do
-    user = Accounts.get_user_profile_by_username(username)
+    user =
+      Accounts.get_user_by_email(username) ||
+        Accounts.search_users(%{"query" => username}) |> List.first()
+
     blog = Blogs.get_blog_by_slug(slug)
 
     with %Accounts.User{} <- user,
@@ -107,7 +115,9 @@ defmodule CuratorianWeb.ProfileController do
   end
 
   def posts(conn, %{"username" => username}) do
-    user = Accounts.get_user_profile_by_username(username)
+    user =
+      Accounts.get_user_by_email(username) ||
+        Accounts.search_users(%{"query" => username}) |> List.first()
 
     active_tab = "posts"
 
@@ -143,7 +153,9 @@ defmodule CuratorianWeb.ProfileController do
   end
 
   def show_posts(conn, %{"username" => username}, %{"id" => _id}) do
-    user = Accounts.get_user_profile_by_username(username)
+    user =
+      Accounts.get_user_by_email(username) ||
+        Accounts.search_users(%{"query" => username}) |> List.first()
 
     with %Accounts.User{} <- user do
       if user.is_verified do
@@ -170,7 +182,9 @@ defmodule CuratorianWeb.ProfileController do
   end
 
   def works(conn, %{"username" => username}) do
-    user = Accounts.get_user_profile_by_username(username)
+    user =
+      Accounts.get_user_by_email(username) ||
+        Accounts.search_users(%{"query" => username}) |> List.first()
 
     active_tab = "works"
 

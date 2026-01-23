@@ -7,39 +7,26 @@ if System.get_env("PHX_SERVER") do
 end
 
 if config_env() == :prod do
-  # ===== VOILE DATABASE =====
-  voile_database_url =
-    System.get_env("VOILE_DATABASE_URL") ||
+  # ===== SHARED PRODUCTION DATABASE =====
+    database_url =
       System.get_env("DATABASE_URL") ||
-      raise """
-      environment variable VOILE_DATABASE_URL is missing.
-      For example: ecto://USER:PASS@HOST/DATABASE
-      """
+        raise """
+        environment variable DATABASE_URL is missing.
+        For example: ecto://USER:PASS@HOST/DATABASE
+        """
 
-  maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
+    maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
 
-  config :voile, Voile.Repo,
-    url: voile_database_url,
-    pool_size: String.to_integer(System.get_env("VOILE_POOL_SIZE") || "10"),
-    socket_options: maybe_ipv6,
-    parameters: [timezone: "Asia/Jakarta"]
+    shared_prod_db_config = [
+      url: database_url,
+      pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
+      socket_options: maybe_ipv6,
+      parameters: [timezone: "Asia/Jakarta"]
+    ]
 
-  # ===== CURATORIAN DATABASE =====
-  # Option 1: Separate database URL (recommended for production)
-  curatorian_database_url =
-    System.get_env("CURATORIAN_DATABASE_URL") ||
-      System.get_env("VOILE_DATABASE_URL") ||
-      System.get_env("DATABASE_URL") ||
-      raise """
-      environment variable CURATORIAN_DATABASE_URL is missing.
-      For example: ecto://USER:PASS@HOST/DATABASE
-      """
-
-  config :curatorian, Curatorian.Repo,
-    url: curatorian_database_url,
-    pool_size: String.to_integer(System.get_env("CURATORIAN_POOL_SIZE") || "10"),
-    socket_options: maybe_ipv6,
-    parameters: [timezone: "Asia/Jakarta"]
+    # Both repos use same database
+    config :voile, Voile.Repo, shared_prod_db_config
+    config :curatorian, Curatorian.Repo, shared_prod_db_config
 
   # ===== SECRET KEYS =====
   voile_secret_key_base =

@@ -10,7 +10,8 @@ defmodule CuratorianUmbrella.MixProject do
       aliases: aliases(),
       releases: releases(),
       # Use consistent Elixir version across all apps
-      elixir: "~> 1.18"
+      elixir: "~> 1.18",
+      listeners: [Phoenix.CodeReloader]
     ]
   end
 

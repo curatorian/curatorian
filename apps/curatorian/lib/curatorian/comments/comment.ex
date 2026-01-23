@@ -6,7 +6,7 @@ defmodule Curatorian.Comments.Comment do
   schema "comments" do
     field :content, :string
     belongs_to :blog, Curatorian.Blogs.Blog, type: :binary_id
-    belongs_to :user, Curatorian.Accounts.User, type: :binary_id
+    belongs_to :user, Voile.Schema.Accounts.User, type: :binary_id
 
     timestamps(type: :utc_datetime)
   end

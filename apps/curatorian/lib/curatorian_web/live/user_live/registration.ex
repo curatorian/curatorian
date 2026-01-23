@@ -1,8 +1,8 @@
 defmodule CuratorianWeb.UserLive.Registration do
   use CuratorianWeb, :live_view
 
-  alias Curatorian.Accounts
-  alias Curatorian.Accounts.User
+  alias Voile.Schema.Accounts
+  alias Voile.Schema.Accounts.User
 
   @impl true
   def render(assigns) do
@@ -42,12 +42,11 @@ defmodule CuratorianWeb.UserLive.Registration do
   @impl true
   def mount(_params, _session, %{assigns: %{current_scope: %{user: user}}} = socket)
       when not is_nil(user) do
-    {:ok, redirect(socket, to: CuratorianWeb.UserAuth.signed_in_path(socket))}
+    {:ok, redirect(socket, to: VoileWeb.UserAuth.signed_in_path(socket))}
   end
 
   def mount(_params, _session, socket) do
-    # Use the registration changeset so username and password fields
-    # are present and validated on the LiveView form.
+    # Use the registration changeset so email field is present and validated.
     changeset = Accounts.change_user_registration(%User{}, %{})
 
     {:ok, assign_form(socket, changeset), temporary_assigns: [form: nil]}
@@ -56,12 +55,18 @@ defmodule CuratorianWeb.UserLive.Registration do
   @impl true
   def handle_event("save", %{"user" => user_params}, socket) do
     username = Map.get(user_params, "email", "") |> String.split("@") |> hd()
-    user_params = Map.put(user_params, "username", username)
+    # Generate a secure random password for email-only registration
+    password = :crypto.strong_rand_bytes(30) |> Base.encode64(padding: false)
 
-    case Accounts.register_user_by_email_only(user_params) do
+    user_params =
+      user_params
+      |> Map.put("username", username)
+      |> Map.put("password", password)
+
+    case Accounts.register_user(user_params) do
       {:ok, user} ->
         {:ok, _} =
-          Accounts.deliver_login_instructions(
+          Accounts.deliver_user_confirmation_instructions(
             user,
             &url(~p"/login/#{&1}")
           )

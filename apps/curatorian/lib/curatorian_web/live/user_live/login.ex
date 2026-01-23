@@ -1,7 +1,7 @@
 defmodule CuratorianWeb.UserLive.Login do
   use CuratorianWeb, :live_view
 
-  alias Curatorian.Accounts
+  alias Voile.Schema.Accounts
 
   @impl true
   def render(assigns) do

@@ -101,14 +101,24 @@ defmodule CuratorianWeb do
       alias CuratorianWeb.Layouts
 
       # Authorization helpers
-      import CuratorianWeb.Authorization,
+      import VoileWeb.Auth.Authorization,
         only: [
           can?: 2,
           can?: 3,
-          has_role?: 2,
-          is_super_admin?: 1,
-          is_manager?: 1
+          is_super_admin?: 1
         ]
+
+      # Define missing helpers for compatibility
+      def has_role?(user, role_slug) do
+        # Simple role check - adjust as needed
+        # or check roles
+        VoileWeb.Auth.Authorization.can?(user, "system.settings")
+      end
+
+      def is_manager?(user) do
+        # Check if user is staff/admin type
+        user && user.user_type && user.user_type.slug in ["administrator", "staff"]
+      end
 
       # Routes generation with the ~p sigil
       unquote(verified_routes())

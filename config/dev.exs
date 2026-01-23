@@ -1,44 +1,26 @@
 import Config
 
-# ===== VOILE DATABASE =====
-config :voile, Voile.Repo,
-  username: System.get_env("VOILE_POSTGRES_USER") || "postgres",
-  password: System.get_env("VOILE_POSTGRES_PASSWORD") || "postgres",
-  hostname: System.get_env("VOILE_POSTGRES_HOSTNAME") || "localhost",
-  database: System.get_env("VOILE_POSTGRES_DB") || "voile_dev",
-  stacktrace: true,
-  show_sensitive_data_on_connection_error: true,
-  pool_size: 10,
-  parameters: [timezone: "Asia/Jakarta"],
-  queue_target: 50,
-  queue_interval: 1000,
-  pool_timeout: 15000,
-  timeout: 60000
+# ===== SHARED DATABASE CONFIGURATION =====
+# Both Voile and Curatorian use the SAME database
 
-# ===== CURATORIAN DATABASE =====
-# Option 1: Separate database (recommended for development)
-config :curatorian, Curatorian.Repo,
-  username: System.get_env("CURATORIAN_POSTGRES_USER") || "postgres",
-  password: System.get_env("CURATORIAN_POSTGRES_PASSWORD") || "postgres",
-  hostname: System.get_env("CURATORIAN_POSTGRES_HOSTNAME") || "localhost",
-  database: System.get_env("CURATORIAN_POSTGRES_DB") || "curatorian_dev",
+shared_db_config = [
+  username: System.get_env("POSTGRES_USER") || "postgres",
+  password: System.get_env("POSTGRES_PASSWORD") || "postgres",
+  hostname: System.get_env("POSTGRES_HOSTNAME") || "localhost",
+  database: System.get_env("POSTGRES_DB") || "curatorian_dev",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10,
   parameters: [timezone: "Asia/Jakarta"]
+]
 
-# Option 2: Same database (uncomment to use shared database)
-# config :curatorian, Curatorian.Repo,
-#   username: System.get_env("VOILE_POSTGRES_USER") || "postgres",
-#   password: System.get_env("VOILE_POSTGRES_PASSWORD") || "postgres",
-#   hostname: System.get_env("VOILE_POSTGRES_HOSTNAME") || "localhost",
-#   database: System.get_env("VOILE_POSTGRES_DB") || "voile_dev",
-#   stacktrace: true,
-#   show_sensitive_data_on_connection_error: true,
-#   pool_size: 10,
-#   parameters: [timezone: "Asia/Jakarta"]
+# Voile Repo - points to shared database
+config :voile, Voile.Repo, shared_db_config
 
-# ===== MYSQL/MARIADB SOURCE (for SLiMS migration) =====
+# Curatorian Repo - points to SAME database
+config :curatorian, Curatorian.Repo, shared_db_config
+
+# MySQL/MariaDB source (for SLiMS migration)
 config :voile, :mysql_source,
   hostname: "localhost",
   port: 3306,

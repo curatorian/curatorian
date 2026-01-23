@@ -4,7 +4,7 @@ defmodule CuratorianWeb.DashboardLive do
   import CuratorianWeb.DashboardComponents
 
   alias Curatorian.Blogs
-  alias Curatorian.Accounts
+  alias Voile.Schema.Accounts
 
   def render(assigns) do
     ~H"""
@@ -35,7 +35,8 @@ defmodule CuratorianWeb.DashboardLive do
   def mount(_params, _session, socket) do
     user = socket.assigns.current_scope.user
     count_blogs = Blogs.count_blogs_by_user(user.id)
-    count_users = Accounts.count_users()
+    user_stats = Accounts.get_user_statistics()
+    count_users = user_stats.total_users
 
     socket =
       socket

@@ -1,8 +1,8 @@
 defmodule CuratorianWeb.Router do
   use CuratorianWeb, :router
 
-  import CuratorianWeb.UserAuth
-  # import CuratorianWeb.UserAuthGoogle, only: [fetch_google_user: 2]
+  import VoileWeb.UserAuth
+  # import VoileWeb.UserAuthGoogle, only: [fetch_google_user: 2]
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -64,7 +64,7 @@ defmodule CuratorianWeb.Router do
 
     live_session :current_user,
       on_mount: [
-        {CuratorianWeb.UserAuth, :mount_current_scope}
+        {VoileWeb.UserAuth, :mount_current_scope}
       ] do
       live "/register", UserLive.Registration, :new
       live "/login", UserLive.Login, :new
@@ -84,7 +84,7 @@ defmodule CuratorianWeb.Router do
     live_session :require_authenticated_user,
       on_mount: [
         {CuratorianWeb.Utils.SaveRequestUri, :save_request_uri},
-        {CuratorianWeb.UserAuth, :require_authenticated}
+        {VoileWeb.UserAuth, :require_authenticated}
       ] do
       scope "/dashboard" do
         live "/", DashboardLive, :show
@@ -126,35 +126,15 @@ defmodule CuratorianWeb.Router do
 
     post "/users/update-password", UserSessionController, :update_password
 
-    live_session :require_manager_role,
-      on_mount: [
-        {CuratorianWeb.Utils.SaveRequestUri, :save_request_uri},
-        {CuratorianWeb.UserAuth, :require_authenticated},
-        {CuratorianWeb.Authorization, :require_manager}
-      ] do
-      scope "/dashboard" do
-        scope "/user_manager" do
-          live "/", DashboardLive.UserManagerLive.Index, :index
-          live "/:username", DashboardLive.UserManagerLive.Show, :show
-          live "/:username/edit", DashboardLive.UserManagerLive.Edit, :edit
-          # live "/:username/delete", DashboardLive.UserManagerLive.Delete, :delete
-        end
-      end
-    end
-
     # Super Admin Routes - RBAC Management
     live_session :require_super_admin,
       on_mount: [
         {CuratorianWeb.Utils.SaveRequestUri, :save_request_uri},
-        {CuratorianWeb.UserAuth, :require_authenticated},
-        {CuratorianWeb.Authorization, :require_super_admin}
+        {VoileWeb.UserAuth, :require_authenticated},
+        {VoileWeb.UserAuth, {:require_permission, "system.settings"}}
       ] do
       scope "/dashboard/admin" do
-        live "/roles", DashboardLive.RolesLive.Index, :index
-        live "/roles/new", DashboardLive.RolesLive.Form, :new
-        live "/roles/:id/edit", DashboardLive.RolesLive.Form, :edit
-
-        live "/permissions", DashboardLive.PermissionsLive.Index, :index
+        # RBAC managed in Voile
       end
     end
   end

@@ -2,7 +2,7 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Show do
   use CuratorianWeb, :live_view_dashboard
 
   alias Curatorian.Blogs
-  alias Curatorian.Accounts
+  alias Voile.Schema.Accounts
 
   def render(assigns) do
     ~H"""
@@ -81,23 +81,23 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Show do
         </div>
         <%!-- Author Card --%>
         <div class="flex items-center gap-4 mb-8 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
-          <%= if @user_profile.user_image do %>
+          <%= if @user.user_image do %>
             <img
-              src={@user_profile.user_image}
-              alt={@user_profile.fullname}
+              src={@user.user_image}
+              alt={@user.fullname}
               class="w-12 h-12 rounded-full"
             />
           <% else %>
             <div class="w-12 h-12 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
               <span class="text-lg font-semibold text-gray-700 dark:text-gray-200">
-                {String.first(@user_profile.fullname || "?")}
+                {String.first(@user.fullname || "?")}
               </span>
             </div>
           <% end %>
 
           <div>
             <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
-              {@user_profile.fullname}
+              {@user.fullname}
             </p>
 
             <p class="text-xs text-gray-500 dark:text-gray-400">Author</p>
@@ -112,14 +112,14 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Show do
 
   def mount(%{"slug" => slug}, _session, socket) do
     blog = Blogs.get_blog_by_slug(slug)
-    user_profile = Accounts.get_user_profile_by_user_id(blog.user_id)
+    user = Accounts.get_user(blog.user_id)
 
     dbg(blog)
 
     socket =
       socket
       |> assign(:blog, blog)
-      |> assign(:user_profile, user_profile)
+      |> assign(:user, user)
       |> assign(:show_delete_modal, false)
 
     {:ok, socket}

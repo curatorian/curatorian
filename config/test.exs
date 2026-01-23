@@ -1,27 +1,20 @@
 import Config
 
-# Simplify password hashing in tests
 config :pbkdf2_elixir, :rounds, 1
 
-# ===== VOILE TEST DATABASE =====
-config :voile, Voile.Repo,
+# ===== SHARED TEST DATABASE =====
+shared_test_db_config = [
   username: "postgres",
   password: "postgres",
   hostname: "localhost",
-  database: "voile_test#{System.get_env("MIX_TEST_PARTITION")}",
+  database: "voile_test#{System.get_env("MIX_TEST_PARTITION")}",  # Same database!
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: System.schedulers_online() * 2,
   parameters: [timezone: "Asia/Jakarta"]
+]
 
-# ===== CURATORIAN TEST DATABASE =====
-config :curatorian, Curatorian.Repo,
-  username: "postgres",
-  password: "postgres",
-  hostname: "localhost",
-  database: "curatorian_test#{System.get_env("MIX_TEST_PARTITION")}",
-  pool: Ecto.Adapters.SQL.Sandbox,
-  pool_size: System.schedulers_online() * 2,
-  parameters: [timezone: "Asia/Jakarta"]
+config :voile, Voile.Repo, shared_test_db_config
+config :curatorian, Curatorian.Repo, shared_test_db_config
 
 # ===== VOILE ENDPOINT (Test) =====
 config :voile, VoileWeb.Endpoint,

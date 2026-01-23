@@ -22,7 +22,8 @@ import "phoenix_html";
 // Establish Phoenix Socket and LiveView configuration.
 import { Socket } from "phoenix";
 import { LiveSocket } from "phoenix_live_view";
-import { hooks as colocatedHooks } from "phoenix-colocated/curatorian";
+// import { hooks as colocatedHooks } from "phoenix-colocated/curatorian";
+const colocatedHooks = {};
 import topbar from "../vendor/topbar";
 import Trix from "./trix";
 import Slugify from "./slugify";
@@ -169,11 +170,11 @@ if (process.env.NODE_ENV === "development") {
             reloader.openEditorAtDef(e.target);
           }
         },
-        true
+        true,
       );
 
       window.liveReloader = reloader;
-    }
+    },
   );
 }
 
@@ -181,7 +182,7 @@ function applySystemTheme() {
   const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
   document.documentElement.setAttribute(
     "data-theme",
-    isDark ? "dark" : "light"
+    isDark ? "dark" : "light",
   );
   document.documentElement.classList.toggle("dark", isDark);
 }
