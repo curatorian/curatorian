@@ -26,15 +26,13 @@ defmodule CuratorianWeb.Layouts do
       </Layouts.app>
 
   """
-  # MOVED: attr declarations must come immediately before the function
   attr :flash, :map, required: true, doc: "the map of flash messages"
 
   attr :current_scope, :map,
     default: nil,
     doc: "the current [scope](https://hexdocs.pm/phoenix/scopes.html)"
 
-  attr :current_path, :string, default: nil, doc: "the current request path"
-
+  attr :current_uri, :string, default: nil, doc: "the current request path"
   slot :inner_block, required: true
 
   def app(assigns) do
@@ -55,7 +53,7 @@ defmodule CuratorianWeb.Layouts do
         </div>
       </div>
 
-      <%= if @current_path === "/" do %>
+      <%= if @current_uri === "/" do %>
         <section class="min-h-screen h-full bg-violet-100 dark:bg-gray-600">
           {render_slot(@inner_block)}
         </section>
@@ -188,9 +186,9 @@ defmodule CuratorianWeb.Layouts do
               <div class="flex items-center space-x-2">
                 <.theme_toggle />
                 <.link href={"/#{@current_user.username}"}>
-                  <%= if @current_user.profile && @current_user.profile.user_image do %>
+                  <%= if @current_user.user_image do %>
                     <img
-                      src={@current_user.profile.user_image}
+                      src={@current_user.user_image}
                       class="w-8 h-8 object-cover rounded-full"
                       referrerPolicy="no-referrer"
                       alt={@current_user.username}
@@ -237,9 +235,9 @@ defmodule CuratorianWeb.Layouts do
             <%= if @current_user != nil do %>
               <div class="flex items-center gap-3">
                 <.link href={"/#{@current_user.username}"}>
-                  <%= if @current_user.profile && @current_user.profile.user_image do %>
+                  <%= if @current_user.user_image do %>
                     <img
-                      src={@current_user.profile.user_image}
+                      src={@current_user.user_image}
                       class="w-10 h-10 object-cover rounded-full"
                       referrerPolicy="no-referrer"
                       alt={@current_user.username}
@@ -254,8 +252,8 @@ defmodule CuratorianWeb.Layouts do
                 </.link>
                 <div class="flex flex-col">
                   <p class="font-semibold text-sm dark:text-white">
-                    <%= if @current_user.profile && @current_user.profile.fullname do %>
-                      {@current_user.profile.fullname}
+                    <%= if @current_user.fullname do %>
+                      {@current_user.fullname}
                     <% else %>
                       {@current_user.username}
                     <% end %>
@@ -370,4 +368,6 @@ defmodule CuratorianWeb.Layouts do
     </footer>
     """
   end
+
+  # Helper functions for dashboard layout
 end

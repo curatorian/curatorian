@@ -39,7 +39,7 @@ defmodule Curatorian.Blogs do
       from b in Blog,
         where: b.user_id == ^user_id,
         order_by: [desc: b.inserted_at],
-        preload: [user: :profile]
+        preload: [:user]
 
     blogs =
       query
@@ -79,7 +79,7 @@ defmodule Curatorian.Blogs do
     Blog
     |> Repo.get_by(slug: slug)
     |> Repo.preload([:tags, :categories])
-    |> Repo.preload(user: [:profile])
+    |> Repo.preload(:user)
   end
 
   @doc """
@@ -226,7 +226,7 @@ defmodule Curatorian.Blogs do
       from(b in Blog,
         join: t in assoc(b, :tags),
         where: t.id == ^tag_id,
-        preload: [user: :profile]
+        preload: [:user]
       )
     )
   end
@@ -261,7 +261,7 @@ defmodule Curatorian.Blogs do
       from(b in Blog,
         join: c in assoc(b, :categories),
         where: c.id == ^category_id,
-        preload: [user: :profile]
+        preload: [:user]
       )
     )
   end

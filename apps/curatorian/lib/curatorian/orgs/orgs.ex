@@ -19,10 +19,10 @@ defmodule Curatorian.Orgs do
 
   """
   def list_organizations(user \\ nil) do
-    user = if user, do: Repo.preload(user, :role), else: nil
+    user = if user, do: Repo.preload(user, :roles), else: nil
 
     query =
-      if user && user.role && user.role.slug == "super_admin" do
+      if user && user.roles && Enum.any?(user.roles, fn role -> role.name == "super_admin" end) do
         from(o in Organization)
       else
         approved_query = from(o in Organization, where: o.status == "approved")

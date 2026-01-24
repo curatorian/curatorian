@@ -156,6 +156,11 @@ config :curatorian, CuratorianWeb.Endpoint,
 # Configures the mailer for Curatorian
 config :curatorian, Curatorian.Mailer, adapter: Swoosh.Adapters.Local
 
+# Configure uploader for Trix
+config :curatorian,
+  uploader: CuratorianWeb.Utils.Uploader,
+  storage_adapter: Clients.Storage.Local
+
 config :curatorian, CuratorianWeb.Gettext,
   locales: ~w(id en),
   default_locale: "id"

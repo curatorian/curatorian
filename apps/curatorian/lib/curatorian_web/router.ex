@@ -17,7 +17,7 @@ defmodule CuratorianWeb.Router do
 
   pipeline :dashboard do
     plug :browser
-    plug :put_layout, html: {GlammWeb.Layouts, :dashboard}
+    plug :put_layout, html: {CuratorianWeb.Layouts, :dashboard}
   end
 
   pipeline :api do
@@ -102,6 +102,13 @@ defmodule CuratorianWeb.Router do
           live "/:slug", DashboardLive.OrgsLive.Show, :show
           live "/:slug/edit", DashboardLive.OrgsLive.Edit, :edit
         end
+
+        scope "/users" do
+          live "/", DashboardLive.UsersLive.Index, :index
+          live "/new", DashboardLive.UsersLive.Form, :new
+          live "/:id", DashboardLive.UsersLive.Show, :show
+          live "/:id/edit", DashboardLive.UsersLive.Form, :edit
+        end
       end
 
       # live "/users/settings", UserSettingsLive, :edit
@@ -134,7 +141,26 @@ defmodule CuratorianWeb.Router do
         {VoileWeb.UserAuth, {:require_permission, "system.settings"}}
       ] do
       scope "/dashboard/admin" do
-        # RBAC managed in Voile
+        scope "/users" do
+          live "/", DashboardLive.UsersLive.Index, :index
+          live "/new", DashboardLive.UsersLive.Form, :new
+          live "/:id", DashboardLive.UsersLive.Show, :show
+          live "/:id/edit", DashboardLive.UsersLive.Form, :edit
+        end
+
+        scope "/roles" do
+          live "/", DashboardLive.RolesLive.Index, :index
+          live "/new", DashboardLive.RolesLive.Form, :new
+          live "/:id", DashboardLive.RolesLive.Show, :show
+          live "/:id/edit", DashboardLive.RolesLive.Form, :edit
+        end
+
+        scope "/permissions" do
+          live "/", DashboardLive.PermissionsLive.Index, :index
+          live "/new", DashboardLive.PermissionsLive.Form, :new
+          live "/:id", DashboardLive.PermissionsLive.Show, :show
+          live "/:id/edit", DashboardLive.PermissionsLive.Form, :edit
+        end
       end
     end
   end
@@ -148,6 +174,8 @@ defmodule CuratorianWeb.Router do
 
   scope "/", CuratorianWeb do
     pipe_through [:browser]
+
+    get "/manage", PageController, :redirect_manage
 
     get "/:username", ProfileController, :index
     get "/:username/blogs", ProfileController, :blogs

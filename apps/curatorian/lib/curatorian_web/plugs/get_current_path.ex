@@ -4,6 +4,6 @@ defmodule CuratorianWeb.Plugs.GetCurrentPath do
   def init(opts), do: opts
 
   def call(conn, _opts) do
-    assign(conn, :current_path, conn.request_path)
+    assign(conn, :current_uri, conn.request_path)
   end
 end

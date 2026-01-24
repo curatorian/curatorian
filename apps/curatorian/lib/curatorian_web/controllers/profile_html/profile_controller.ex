@@ -24,7 +24,7 @@ defmodule CuratorianWeb.ProfileController do
         |> render(:"404")
 
       %Accounts.User{} ->
-        if user.is_verified do
+        if user.confirmed_at != nil do
           blogs = Blogs.list_blogs_by_user(user.id)
 
           conn =
@@ -55,7 +55,7 @@ defmodule CuratorianWeb.ProfileController do
       |> assign(:active_tab, active_tab)
 
     with %Accounts.User{} <- user do
-      if user.is_verified do
+      if user.confirmed_at != nil do
         blogs = Blogs.list_blogs_by_user(user.id)
 
         conn =
@@ -90,7 +90,7 @@ defmodule CuratorianWeb.ProfileController do
 
     with %Accounts.User{} <- user,
          %Blogs.Blog{} <- blog do
-      if user.is_verified do
+      if user.confirmed_at != nil do
         conn =
           conn
           |> assign(:user, user)
@@ -126,7 +126,7 @@ defmodule CuratorianWeb.ProfileController do
       |> assign(:active_tab, active_tab)
 
     with %Accounts.User{} <- user do
-      if user.is_verified do
+      if user.confirmed_at != nil do
         posts = []
 
         conn =
@@ -158,7 +158,7 @@ defmodule CuratorianWeb.ProfileController do
         Accounts.search_users(%{"query" => username}) |> List.first()
 
     with %Accounts.User{} <- user do
-      if user.is_verified do
+      if user.confirmed_at != nil do
         conn =
           conn
           |> assign(:user, user)
@@ -193,7 +193,7 @@ defmodule CuratorianWeb.ProfileController do
       |> assign(:active_tab, active_tab)
 
     with %Accounts.User{} <- user do
-      if user.is_verified do
+      if user.confirmed_at != nil do
         works = []
 
         conn =

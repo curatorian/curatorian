@@ -1,7 +1,6 @@
 defmodule CuratorianWeb.DashboardLive.OrgsLive.Show do
   use CuratorianWeb, :live_view_dashboard
 
-  alias Curatorian.Repo
   alias Curatorian.Orgs
 
   def render(assigns) do
@@ -10,13 +9,13 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.Show do
       <!-- Cover Image -->
       <div class="h-64 bg-gray-300 dark:bg-gray-700 relative">
         <img
-          src={@organization.image_cover || "/images/default-cover.jpg"}
+          src={@organization.image_cover || "/images/default.png"}
           class="w-full h-full object-cover"
         />
         <!-- Profile Image -->
         <div class="absolute bottom-0 left-8 transform translate-y-1/2">
           <img
-            src={@organization.image_logo || "/images/default-avatar.jpg"}
+            src={@organization.image_logo || "/images/default.png"}
             class="w-32 h-32 object-cover rounded-full border-4 border-white dark:border-gray-800 bg-white dark:bg-gray-800"
           />
         </div>
@@ -117,9 +116,12 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.Show do
                       <td class="py-3">
                         <div class="flex items-center">
                           <img
-                            src={ou.user.avatar_url || "/images/default-avatar.jpg"}
+                            src={ou.user.user_image || "/images/default.png"}
                             class="w-10 h-10 rounded-full mr-3"
-                          /> <span class="text-gray-900 dark:text-white">{ou.user.name}</span>
+                          />
+                          <span class="text-gray-900 dark:text-white">
+                            {ou.user.fullname || ou.user.username}
+                          </span>
                         </div>
                       </td>
 
@@ -141,13 +143,14 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.Show do
     current_user = socket.assigns.current_scope.user || session["current_user"]
     organization = Orgs.get_organization_by_slug(slug)
 
-    current_user = if current_user, do: Repo.preload(current_user, :role), else: nil
-
     can_view? =
       organization.status == "approved" or
         (current_user &&
            (organization.owner_id == current_user.id or
-              (current_user.role && current_user.role.slug == "super_admin")))
+              (current_user.user_role_assignments &&
+                 Enum.any?(current_user.user_role_assignments, fn ura ->
+                   ura.role.name == "super_admin"
+                 end))))
 
     if can_view? do
       {:ok,

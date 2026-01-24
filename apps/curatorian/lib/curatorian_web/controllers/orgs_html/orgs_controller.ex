@@ -19,13 +19,13 @@ defmodule CuratorianWeb.OrgsController do
 
     with {:ok, organization} <- safe_get_organization(slug) do
       current_user = conn.assigns[:current_scope] && conn.assigns.current_scope.user
-      current_user = if current_user, do: Repo.preload(current_user, :role), else: nil
+      current_user = if current_user, do: Repo.preload(current_user, :roles), else: nil
 
       can_view? =
         organization.status == "approved" or
           (current_user &&
              (organization.owner_id == current_user.id or
-                (current_user.role && current_user.role.slug == "super_admin")))
+                (current_user.roles && current_user.roles.name == "super_admin")))
 
       if can_view? do
         conn
@@ -66,13 +66,8 @@ defmodule CuratorianWeb.OrgsController do
   def edit(conn, %{"slug" => slug}) do
     with {:ok, organization} <- safe_get_organization(slug),
          true <- can_manage?(conn, organization) do
-      changeset = Orgs.change_organization(organization)
-
       conn
-      |> assign(:organization, organization)
-      |> assign(:changeset, changeset)
-      |> assign(:page_title, "Edit Organization")
-      |> render(:edit)
+      |> redirect(to: ~p"/dashboard/orgs/#{organization.slug}/edit")
     else
       {:error, :not_found} ->
         conn
@@ -95,12 +90,10 @@ defmodule CuratorianWeb.OrgsController do
           |> put_flash(:info, "Organization updated successfully.")
           |> redirect(to: ~p"/orgs/#{organization.slug}")
 
-        {:error, %Ecto.Changeset{} = changeset} ->
+        {:error, %Ecto.Changeset{} = _changeset} ->
           conn
-          |> assign(:organization, organization)
-          |> assign(:changeset, changeset)
-          |> assign(:page_title, "Edit Organization")
-          |> render(:edit)
+          |> put_flash(:error, "Failed to update organization.")
+          |> redirect(to: ~p"/dashboard/orgs/#{organization.slug}/edit")
       end
     else
       {:error, :not_found} ->
@@ -187,11 +180,11 @@ defmodule CuratorianWeb.OrgsController do
   defp safe_get_organization(slug) do
     try do
       org = Orgs.get_organization_by_slug(slug)
-      # Ensure we preload the organization users with their respective users, profiles and roles
+      # Ensure we preload the organization users with their respective users and roles
       org =
         Repo.preload(org, [
           :owner,
-          organization_users: [user: [:profile], organization_role: []]
+          organization_users: [user: [], organization_role: []]
         ])
 
       {:ok, org}

@@ -15,6 +15,18 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Form do
         <:subtitle>
           {if @action == :new, do: "Create a new blog post", else: "Update your blog post"}
         </:subtitle>
+        <:actions>
+          <button
+            type="submit"
+            form="blog-form"
+            name="action"
+            value="draft"
+            phx-disable-with="Saving..."
+            class="btn-secondary inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            <.icon name="hero-document" class="w-4 h-4 mr-2" /> Save Draft
+          </button>
+        </:actions>
       </.header>
 
       <div class="mt-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 md:p-8">
@@ -33,7 +45,18 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Form do
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div class="md:col-span-2">
-                <.input field={@form[:title]} type="text" label="Title" required />
+                <.input
+                  field={@form[:title]}
+                  type="text"
+                  label="Title"
+                  required
+                  maxlength="100"
+                  phx-hook="CharCounter"
+                  data-target="title-count"
+                />
+                <p class="text-sm text-gray-500 mt-1">
+                  Characters: <span id="title-count">{@title_count}</span>/100
+                </p>
               </div>
               <.input field={@form[:slug]} type="text" label="Slug" phx-hook="Slugify" id="slug" />
               <.input
@@ -44,7 +67,18 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Form do
                 options={@status_input}
               />
               <div class="md:col-span-2">
-                <.input field={@form[:summary]} type="textarea" label="Summary" rows="3" />
+                <.input
+                  field={@form[:summary]}
+                  type="textarea"
+                  label="Summary"
+                  rows="3"
+                  maxlength="300"
+                  phx-hook="CharCounter"
+                  data-target="summary-count"
+                />
+                <p class="text-sm text-gray-500 mt-1">
+                  Characters: <span id="summary-count">{@summary_count}</span>/300
+                </p>
               </div>
             </div>
           </section>
@@ -55,10 +89,11 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Form do
             <.input
               type="text"
               label="Add Tags"
-              placeholder="e.g. Art, History, Tech"
+              placeholder="Type and press Enter to add tags (e.g. Art, History, Tech)"
               field={@form[:tag_name]}
               phx-hook="ChooseTag"
               autocomplete="off"
+              phx-keydown="add_tag_enter"
             />
             <%= if @tags != [] do %>
               <div class="flex flex-wrap gap-2 mt-3">
@@ -82,7 +117,8 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Form do
             <.input field={@form[:image_url]} type="hidden" />
             <div
               phx-drop-target={@uploads.thumbnail.ref}
-              class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 hover:border-gray-400 dark:hover:border-gray-500 transition-colors"
+              class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 hover:border-gray-400 dark:hover:border-gray-500 transition-colors cursor-pointer"
+              phx-click={JS.dispatch("click", to: "##{@uploads.thumbnail.ref}")}
             >
               <%= if length(@uploads.thumbnail.entries) === 0 do %>
                 <%= if @blog.image_url do %>
@@ -165,11 +201,28 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Form do
             >
               <.icon name="hero-x-mark" class="w-4 h-4 mr-2" /> Cancel
             </.button>
-            <.button type="submit" phx-disable-with="Saving...">
-              <.icon name="hero-check" class="w-4 h-4 mr-2" /> {if @action == :new,
-                do: "Create Blog",
-                else: "Update Blog"}
-            </.button>
+            <div class="flex space-x-3">
+              <button
+                type="submit"
+                name="action"
+                value="draft"
+                phx-disable-with="Saving..."
+                class="btn-secondary inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                <.icon name="hero-document" class="w-4 h-4 mr-2" /> Save as Draft
+              </button>
+              <button
+                type="submit"
+                name="action"
+                value="publish"
+                phx-disable-with="Saving..."
+                class="btn-primary inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                <.icon name="hero-check" class="w-4 h-4 mr-2" /> {if @action == :new,
+                  do: "Create Blog",
+                  else: "Update Blog"}
+              </button>
+            </div>
           </div>
         </.form>
       </div>
@@ -189,6 +242,8 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Form do
       |> assign(:content, blog.content)
       |> assign(:status_input, status_input())
       |> assign(:uploaded_files, [])
+      |> assign(:title_count, String.length(blog.title || ""))
+      |> assign(:summary_count, String.length(blog.summary || ""))
       |> assign(:return_to, return_to(params["return_to"]))
       |> apply_action(socket.assigns.live_action, params)
       |> allow_upload(:thumbnail,
@@ -209,13 +264,13 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Form do
 
     # Authorization: only the blog owner or privileged users can edit
     user_id = socket.assigns.current_scope.user.id
-    user_profile = socket.assigns.current_scope.user.profile || socket.assigns.current_scope.user
+    user = socket.assigns.current_scope.user
 
-    privileged_roles = ["manager", "admin", "coordinator"]
+    privileged_roles = ["super_admin", "manager", "admin", "coordinator"]
 
     authorized =
       (user_id && blog.user_id == user_id) or
-        (user_profile && Map.get(user_profile, :user_role) in privileged_roles)
+        (user.roles && Enum.any?(user.roles, &(&1.name in privileged_roles)))
 
     if authorized do
       socket
@@ -251,7 +306,14 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Form do
       |> Blogs.change_blog(blog_params)
       |> Map.put(:action, :validate)
 
-    {:noreply, assign(socket, form: to_form(changeset, action: :validate))}
+    title_count = String.length(blog_params["title"] || "")
+    summary_count = String.length(blog_params["summary"] || "")
+
+    {:noreply,
+     socket
+     |> assign(form: to_form(changeset, action: :validate))
+     |> assign(title_count: title_count)
+     |> assign(summary_count: summary_count)}
   end
 
   @impl true
@@ -264,6 +326,24 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Form do
     send(self(), {:cancel_upload})
     {:noreply, cancel_upload(socket, :thumbnail, ref)}
   end
+
+  @impl true
+  def handle_event("add_tag_enter", %{"key" => "Enter", "value" => tag_name}, socket)
+      when tag_name != "" do
+    new_tag = %{
+      name: String.trim(tag_name),
+      slug: Slugify.slugify(tag_name)
+    }
+
+    updated_tags =
+      socket.assigns.tags
+      |> Enum.reject(&(&1.slug == new_tag.slug))
+      |> Kernel.++([new_tag])
+
+    {:noreply, assign(socket, tags: updated_tags)}
+  end
+
+  def handle_event("add_tag_enter", _params, socket), do: {:noreply, socket}
 
   @impl true
   def handle_event("add_tag", %{"name" => tag_name}, socket) do
@@ -299,12 +379,12 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Form do
   end
 
   @impl true
-  def handle_event("save", %{"blog" => blog_params}, socket) do
+  def handle_event("save", %{"blog" => blog_params, "action" => form_action}, socket) do
     uploaded_files =
       consume_uploaded_entries(socket, :thumbnail, fn %{path: path}, entry ->
-        case Clients.Storage.adapter().upload_from_path(path, entry.client_type, "thumbnail") do
+        case Clients.Storage.adapter().upload_from_path(path, entry.client_type, "blogs") do
           {:ok, image_path} -> {:ok, image_path}
-          {:error, _} -> {:error, "Failed to upload"}
+          {:error, _} -> {:error, "Upload failed"}
         end
       end)
 
@@ -331,16 +411,23 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Form do
       end)
 
     blog_params =
-      if length(uploaded_files) > 0 do
-        blog_params
-        |> Map.put("image_url", hd(uploaded_files))
-        |> Map.put("tags", chosen_tags)
-        |> Map.put("categories", categories)
-      else
-        blog_params
-        |> Map.put("tags", chosen_tags)
-        |> Map.put("categories", categories)
-      end
+      blog_params
+      |> Map.put("tags", chosen_tags)
+      |> Map.put("categories", categories)
+      |> then(fn params ->
+        if length(uploaded_files) > 0 do
+          Map.put(params, "image_url", hd(uploaded_files))
+        else
+          params
+        end
+      end)
+      |> then(fn params ->
+        if form_action == "draft" do
+          Map.put(params, "status", "draft")
+        else
+          params
+        end
+      end)
 
     socket =
       socket

@@ -36,6 +36,9 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.OrganizationForm do
             </div>
           <% else %>
             <.live_file_input upload={@uploads.image_cover} />
+            <%= for error <- @uploads.image_cover.errors do %>
+              <p class="text-red-500 text-sm">{inspect(error)}</p>
+            <% end %>
             <%= if Enum.any?(@uploads.image_cover.entries) do %>
               <%= for entry <- @uploads.image_cover.entries do %>
                 <div class="mt-2">
@@ -51,7 +54,7 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.OrganizationForm do
                   phx-value-field="image_cover"
                   phx-value-ref={entry.ref}
                   phx-target={@myself}
-                  class="btn btn-warning text-sm text-red-600"
+                  class="btn btn-cancel text-sm text-red-600"
                 >
                   Cancel
                 </button>
@@ -82,6 +85,9 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.OrganizationForm do
               </div>
             <% else %>
               <.live_file_input upload={@uploads.image_logo} />
+              <%= for error <- @uploads.image_logo.errors do %>
+                <p class="text-red-500 text-sm">{inspect(error)}</p>
+              <% end %>
               <%= if Enum.any?(@uploads.image_logo.entries) do %>
                 <%= for entry <- @uploads.image_logo.entries do %>
                   <div class="mt-2"><.live_img_preview entry={entry} width="100" /></div>
@@ -92,7 +98,7 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.OrganizationForm do
                     phx-value-field="image_logo"
                     phx-value-ref={entry.ref}
                     phx-target={@myself}
-                    class="btn-warning text-sm text-red-600"
+                    class="btn-cancel text-sm text-red-600"
                   >
                     Cancel
                   </button>
@@ -115,7 +121,10 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.OrganizationForm do
                 {"Archived", "archived"}
               ]}
               prompt="Select status of organization"
-              disabled={not (@current_user.role && @current_user.role.slug == "super_admin")}
+              disabled={
+                not (@current_user.roles &&
+                       Enum.any?(@current_user.roles, fn role -> role.name == "super_admin" end))
+              }
             />
             <.input
               field={@form[:type]}
@@ -132,7 +141,17 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.OrganizationForm do
           </div>
         </div>
         <.input field={@form[:description]} type="textarea" label="Description" />
-        <.button type="submit" phx-disable-with="Saving...">Save</.button>
+        <.button
+          type="submit"
+          phx-disable-with="Saving..."
+          disabled={
+            Enum.any?(@uploads.image_logo.entries ++ @uploads.image_cover.entries, fn entry ->
+              not entry.valid? or entry.progress < 100
+            end) or not Enum.empty?(@uploads.image_logo.errors ++ @uploads.image_cover.errors)
+          }
+        >
+          Save
+        </.button>
       </.form>
     </div>
     """
@@ -147,8 +166,18 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.OrganizationForm do
      |> assign(assigns)
      |> assign_form(changeset)
      |> assign(:action, action)
-     |> allow_upload(:image_logo, accept: ~w(.jpg .jpeg .png), max_entries: 1)
-     |> allow_upload(:image_cover, accept: ~w(.jpg .jpeg .png), max_entries: 1)}
+     |> allow_upload(:image_logo,
+       accept: ~w(.jpg .jpeg .png .gif .webp),
+       max_entries: 1,
+       max_file_size: 10_000_000,
+       auto_upload: true
+     )
+     |> allow_upload(:image_cover,
+       accept: ~w(.jpg .jpeg .png .gif .webp),
+       max_entries: 1,
+       max_file_size: 10_000_000,
+       auto_upload: true
+     )}
   end
 
   defp assign_form(socket, %Ecto.Changeset{} = changeset) do
@@ -206,14 +235,24 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.OrganizationForm do
   defp maybe_put_image_path(params, key, path), do: Map.put(params, key, path)
 
   defp handle_upload(socket, upload_field) do
-    case uploaded_entries(socket, upload_field) do
-      {[entry], _} ->
+    {entries, _errors} = uploaded_entries(socket, upload_field)
+
+    case entries do
+      [entry] ->
         consume_uploaded_entry(socket, entry, fn %{path: path} ->
-          dest = Path.join(["priv", "static", "uploads", "organizations", Path.basename(path)])
-          File.mkdir_p!(Path.dirname(dest))
-          File.cp!(path, dest)
-          {:ok, "/uploads/organizations/#{Path.basename(dest)}"}
+          case Clients.Storage.adapter().upload_from_path(
+                 path,
+                 entry.client_type,
+                 "organizations"
+               ) do
+            {:ok, image_path} -> {:ok, image_path}
+            {:error, _reason} -> {:error, "Upload failed"}
+          end
         end)
+        |> case do
+          {:ok, upload_path} -> upload_path
+          {:error, _reason} -> nil
+        end
 
       _ ->
         nil
@@ -241,8 +280,6 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.OrganizationForm do
       |> Map.put("owner_id", socket.assigns.current_user.id)
       |> Map.put("user_id", socket.assigns.current_user.id)
 
-    dbg(organization_params)
-
     case Orgs.create_organization(socket.assigns.current_user, organization_params) do
       {:ok, organization} ->
         notify_parent({:saved, organization})
@@ -253,7 +290,6 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.OrganizationForm do
          |> push_navigate(to: ~p"/dashboard/orgs/#{organization.slug}")}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        dbg(changeset)
         {:noreply, assign_form(socket, changeset)}
     end
   end

@@ -67,14 +67,16 @@ config :curatorian, CuratorianWeb.Endpoint,
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
-  secret_key_base: "curatorian_secret_key_base_change_me_in_production",
+  secret_key_base:
+    System.get_env("SECRET_KEY") ||
+      "12k0ay7dKO77HRbDn/DDbNv/DHkMuIN5MMGViVNpTntKTh5lDGZWdZJwGWG/JM5x",
   watchers: [
     esbuild: {Esbuild, :install_and_run, [:curatorian, ~w(--sourcemap=inline --watch)]},
-    tailwind: {Tailwind, :install_and_run, [:curatorian, ~w(--watch)]}
+    tailwind: {Tailwind, :install_and_run, [:curatorian, ~w(--watch --quiet)]}
   ],
   live_reload: [
     patterns: [
-      ~r"apps/curatorian/priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$",
+      ~r"apps/curatorian/priv/static/(?!uploads/).*(js|css|png|jpeg|jpg|gif|svg)$",
       ~r"apps/curatorian/priv/gettext/.*(po)$",
       ~r"apps/curatorian/lib/curatorian_web/(controllers|live|components)/.*(ex|heex)$"
     ]

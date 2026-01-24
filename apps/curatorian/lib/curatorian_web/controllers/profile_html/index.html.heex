@@ -8,7 +8,7 @@
     active_tab={@active_tab}
   >
     <h5 class="text-right dark:text-white">
-      Semua Blog dari {if @user.profile == nil, do: @user.username, else: @user.profile.fullname}
+      Semua Blog dari {if @user == nil, do: @user.username, else: @user.fullname || @user.username}
     </h5>
 
     <section class="mt-7">
@@ -21,7 +21,7 @@
                 class="w-full max-h-56 object-cover shadow-lg rounded-xl"
               />
               <div class="flex justify-between items-center my-8 px-7 text-gray-500 dark:text-gray-400 text-xs">
-                <p>by {blog.user.profile.fullname}</p>
+                <p>by {blog.user.fullname || blog.user.username}</p>
 
                 <p>{convert_time_zone_to_indonesia(blog.inserted_at)}</p>
               </div>

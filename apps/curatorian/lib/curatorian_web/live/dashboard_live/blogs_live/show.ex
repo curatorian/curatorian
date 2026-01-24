@@ -6,23 +6,15 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Show do
 
   def render(assigns) do
     ~H"""
-    <.modal id="confirm-delete">
-      <div class="text-center">
-        <.icon name="hero-exclamation-triangle" class="w-12 h-12 mx-auto text-red-600 mb-4" />
-        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Delete Blog Post</h3>
-
-        <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">
-          Are you sure you want to delete "<strong>{@blog.title}</strong>"? This action cannot be undone.
-        </p>
-
-        <div class="flex items-center justify-center gap-4">
-          <.button phx-click={hide_modal("confirm-delete")} class="btn-secondary">Cancel</.button>
-          <.button phx-click="delete-blog" phx-value-id={@blog.id} class="bg-red-600 hover:bg-red-700">
-            <.icon name="hero-trash" class="w-4 h-4 mr-2" /> Delete
-          </.button>
-        </div>
-      </div>
-    </.modal>
+    <.confirm_modal
+      id="confirm-delete"
+      title="Delete Blog Post"
+      message={"Are you sure you want to delete \"#{@blog.title}\"? This action cannot be undone."}
+      confirm_text="Delete"
+      confirm_click="delete-blog"
+      confirm_value={@blog.id}
+      cancel_text="Cancel"
+    />
 
     <div class="mb-6">
       <.link
@@ -73,7 +65,7 @@ defmodule CuratorianWeb.DashboardLive.BlogsLive.Show do
                 <span class="hidden md:inline">Edit</span>
               </.button>
             </.link>
-            <.button phx-click={show_modal("confirm-delete")} class="bg-red-600 hover:bg-red-700">
+            <.button phx-click={show_modal("confirm-delete")} class="btn-cancel">
               <.icon name="hero-trash" class="w-4 h-4 md:mr-2" />
               <span class="hidden md:inline">Delete</span>
             </.button>

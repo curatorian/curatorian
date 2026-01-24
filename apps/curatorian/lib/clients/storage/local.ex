@@ -23,8 +23,14 @@ defmodule Clients.Storage.Local do
   end
 
   def delete(file_url) do
-    "priv/static/"
-    |> Path.join(file_url)
+    Path.join([
+      File.cwd!(),
+      "apps",
+      "curatorian",
+      "priv",
+      "static",
+      String.trim_leading(file_url, "/")
+    ])
     |> File.rm()
     |> case do
       :ok -> {:ok}
@@ -37,6 +43,8 @@ defmodule Clients.Storage.Local do
     ext
   end
 
-  defp upload_dir(context), do: Path.join(["priv", "static", "uploads", context])
+  defp upload_dir(context),
+    do: Path.join([File.cwd!(), "apps", "curatorian", "priv", "static", "uploads", context])
+
   defp create_uploads_dir(context), do: File.mkdir_p!(upload_dir(context))
 end

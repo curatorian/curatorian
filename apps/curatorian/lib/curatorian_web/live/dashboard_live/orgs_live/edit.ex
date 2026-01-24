@@ -20,7 +20,7 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.Edit do
         title="Edit Organization"
         navigate={~p"/dashboard/orgs"}
         action={:edit}
-      /> <.button navigate="/dashboard/orgs">Kembali</.button>
+      />
     </section>
     """
   end
@@ -28,7 +28,7 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.Edit do
   @impl Phoenix.LiveView
   def mount(%{"slug" => slug}, session, socket) do
     current_user = socket.assigns.current_scope.user || session["current_user"]
-    current_user = Curatorian.Repo.preload(current_user, :role)
+    current_user = Curatorian.Repo.preload(current_user, :roles)
     organization = Orgs.get_organization_by_slug(slug)
 
     if Orgs.has_permission?(organization, current_user, :manage_all) do

@@ -8,7 +8,7 @@
     active_tab={@active_tab}
   >
     <h5 class="text-right dark:text-white">
-      Semua Blog dari {if @user.profile == nil, do: @user.username, else: @user.profile.fullname}
+      Semua Blog dari {if @user == nil, do: @user.username, else: @user.fullname || @user.username}
     </h5>
 
     <section class="mt-7">
@@ -24,7 +24,7 @@
                 <p>
                   by {if blog.user.profile == nil,
                     do: blog.user.username,
-                    else: blog.user.profile.fullname}
+                    else: blog.user.fullname || blog.user.username}
                 </p>
 
                 <p>{convert_time_zone_to_indonesia(blog.inserted_at)}</p>

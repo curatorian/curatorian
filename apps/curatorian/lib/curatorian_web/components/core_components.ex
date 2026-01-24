@@ -62,7 +62,11 @@ defmodule CuratorianWeb.CoreComponents do
       data-cancel={JS.exec(@on_cancel, "phx-remove")}
       class="relative z-50 hidden"
     >
-      <div id={"#{@id}-bg"} class="bg-zinc-50/90 fixed inset-0 transition-opacity" aria-hidden="true" />
+      <div
+        id={"#{@id}-bg"}
+        class="bg-zinc-50/90 dark:bg-zinc-900/90 fixed inset-0 transition-opacity"
+        aria-hidden="true"
+      />
       <div
         class="fixed inset-0 overflow-y-auto"
         aria-labelledby={"#{@id}-title"}
@@ -78,13 +82,13 @@ defmodule CuratorianWeb.CoreComponents do
               phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
               phx-key="escape"
               phx-click-away={JS.exec("data-cancel", to: "##{@id}")}
-              class="shadow-zinc-700/10 ring-zinc-700/10 relative hidden rounded-2xl bg-white p-14 shadow-lg ring-1 transition"
+              class="shadow-zinc-700/10 ring-zinc-700/10 dark:shadow-zinc-900/20 dark:ring-zinc-900/20 relative hidden rounded-2xl bg-white dark:bg-gray-800 p-14 shadow-lg ring-1 transition"
             >
               <div class="absolute top-6 right-5">
                 <button
                   phx-click={JS.exec("data-cancel", to: "##{@id}")}
                   type="button"
-                  class="-m-3 flex-none p-3 opacity-20 hover:opacity-40"
+                  class="-m-3 flex-none p-3 opacity-20 hover:opacity-40 text-gray-400 dark:text-gray-500"
                   aria-label={gettext("close")}
                 >
                   <.icon name="hero-x-mark-solid" class="h-5 w-5" />
@@ -97,6 +101,57 @@ defmodule CuratorianWeb.CoreComponents do
         </div>
       </div>
     </div>
+    """
+  end
+
+  @doc """
+  Renders a confirmation modal.
+
+  ## Examples
+
+      <.confirm_modal
+        id="confirm-delete"
+        title="Delete Blog Post"
+        message="Are you sure you want to delete this blog post? This action cannot be undone."
+        confirm_text="Delete"
+        confirm_click="delete-blog"
+        confirm_value={@blog.id}
+        cancel_text="Cancel"
+      />
+  """
+  attr :id, :string, required: true
+  attr :title, :string, required: true
+  attr :message, :string, required: true
+  attr :confirm_text, :string, default: "Confirm"
+  attr :cancel_text, :string, default: "Cancel"
+  attr :confirm_click, :string, required: true
+  attr :confirm_value, :any, default: nil
+  attr :confirm_class, :string, default: "btn-cancel"
+  attr :icon, :string, default: "hero-exclamation-triangle"
+
+  def confirm_modal(assigns) do
+    ~H"""
+    <.modal id={@id}>
+      <div class="text-center">
+        <.icon name={@icon} class="w-12 h-12 mx-auto text-red-600 dark:text-red-400 mb-4" />
+        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">{@title}</h3>
+
+        <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">
+          {@message}
+        </p>
+
+        <div class="flex items-center justify-center gap-4">
+          <.button phx-click={hide_modal(@id)} class="btn-secondary">{@cancel_text}</.button>
+          <.button
+            phx-click={@confirm_click}
+            phx-value-id={@confirm_value}
+            class={@confirm_class}
+          >
+            <.icon name="hero-trash" class="w-4 h-4 mr-2" /> {@confirm_text}
+          </.button>
+        </div>
+      </div>
+    </.modal>
     """
   end
 

@@ -44,7 +44,7 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.Index do
             >
               Edit
             </.link>
-            <%= if @current_user.role && @current_user.role.slug == "super_admin" && org.status != "approved" do %>
+            <%= if @current_user.roles && Enum.any?(@current_user.roles, fn role -> role.name == "super_admin" end) && org.status != "approved" do %>
               <.link
                 phx-click={JS.push("approve", value: %{id: org.id})}
                 class="btn-primary text-green-600 hover:text-green-900 font-medium no-underline"
@@ -69,7 +69,7 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.Index do
   @impl true
   def mount(_params, _session, socket) do
     current_user = socket.assigns.current_scope.user
-    current_user = Curatorian.Repo.preload(current_user, :role)
+    current_user = Curatorian.Repo.preload(current_user, :roles)
     organizations = Orgs.list_organizations(current_user)
 
     {:ok,
@@ -119,7 +119,8 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.Index do
   def handle_event("approve", %{"id" => id}, socket) do
     organization = Orgs.get_organization!(id)
 
-    if socket.assigns.current_user.role && socket.assigns.current_user.role.slug == "super_admin" do
+    if socket.assigns.current_user.roles &&
+         socket.assigns.current_user.roles.name == "super_admin" do
       {:ok, _} = Orgs.update_organization(organization, %{status: "approved"})
       organizations = Orgs.list_organizations(socket.assigns.current_user)
 

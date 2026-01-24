@@ -9,17 +9,13 @@ defmodule CuratorianUmbrella.MixProject do
       deps: deps(),
       aliases: aliases(),
       releases: releases(),
-      # Use consistent Elixir version across all apps
       elixir: "~> 1.18",
       listeners: [Phoenix.CodeReloader]
     ]
   end
 
-  # Dependencies listed here are available only for this
-  # project and cannot be accessed from applications inside
-  # the apps folder.
-  #
-  # Run "mix help deps" for examples and options.
+  # ===== SHARED DEPENDENCIES =====
+  # These are available to all child apps automatically
   defp deps do
     [
       # Core Phoenix & Web
@@ -77,43 +73,107 @@ defmodule CuratorianUmbrella.MixProject do
 
   defp aliases do
     [
-      # Setup everything
+      # ===== SETUP (Full initialization) =====
       setup: [
         "deps.get",
-        "cmd --app voile mix ecto.setup",
-        "cmd --app curatorian mix ecto.setup",
-        "cmd --app voile mix assets.setup",
-        "cmd --app curatorian mix assets.setup",
-        "cmd --app voile mix assets.build",
-        "cmd --app curatorian mix assets.build"
+        "ecto.setup",
+        "assets.setup",
+        "assets.build"
       ],
 
-      # Database operations
+      # ===== DATABASE OPERATIONS (Shared Database) =====
+      # Since both repos use the same database (curatorian_dev),
+      # we only create/drop ONCE, but run migrations for BOTH repos
+
       "ecto.setup": [
-        "cmd --app voile mix ecto.setup",
-        "cmd --app curatorian mix ecto.setup"
+        # Create database once (using either repo)
+        "ecto.create -r Curatorian.Repo",
+
+        # Run Voile migrations first (base tables like users)
+        "ecto.migrate -r Voile.Repo",
+
+        # Run Curatorian migrations second (references Voile tables)
+        "ecto.migrate -r Curatorian.Repo",
+
+        # Run seeds for both apps
+        "run apps/voile/priv/repo/seeds/seeds.exs",
+        "run apps/voile/priv/repo/seeds/metadata_resource_class.exs",
+        "run apps/voile/priv/repo/seeds/authorization_seeds_runner.exs",
+        "run apps/voile/priv/repo/seeds/metadata_properties.exs",
+        "run apps/voile/priv/repo/seeds/master.exs",
+        "run apps/curatorian/priv/repo/seeds.exs",
+        "run apps/curatorian/priv/repo/seeds_rbac.exs"
       ],
       "ecto.reset": [
-        "cmd --app voile mix ecto.reset",
-        "cmd --app curatorian mix ecto.reset"
+        # Drop database once
+        "ecto.drop -r Curatorian.Repo",
+
+        # Run setup again
+        "ecto.setup"
       ],
       "ecto.migrate": [
-        "cmd --app voile mix ecto.migrate",
-        "cmd --app curatorian mix ecto.migrate"
+        # Run both migrations in order
+        "ecto.migrate -r Voile.Repo",
+        "ecto.migrate -r Curatorian.Repo"
+      ],
+      "ecto.rollback": [
+        # Rollback in reverse order (Curatorian first, then Voile)
+        "ecto.rollback -r Curatorian.Repo",
+        "ecto.rollback -r Voile.Repo"
       ],
 
-      # Testing
+      # ===== ASSETS =====
+      "assets.setup": [
+        "do --app voile assets.setup",
+        "do --app curatorian assets.setup"
+      ],
+      "assets.build": [
+        "do --app voile assets.build",
+        "do --app curatorian assets.build"
+      ],
+      "assets.deploy": [
+        "do --app voile assets.deploy",
+        "do --app curatorian assets.deploy"
+      ],
+
+      # ===== TESTING =====
       test: [
-        "cmd --app voile mix test",
-        "cmd --app curatorian mix test"
+        # Create test database once
+        "ecto.create -r Curatorian.Repo --quiet",
+
+        # Run migrations for both repos
+        "ecto.migrate -r Voile.Repo --quiet",
+        "ecto.migrate -r Curatorian.Repo --quiet",
+
+        # Run tests for both apps
+        "do --app voile test",
+        "do --app curatorian test"
       ],
 
-      # Code quality
+      # ===== CODE QUALITY =====
       format: [
         "format",
-        "cmd --app voile mix format",
-        "cmd --app curatorian mix format"
-      ]
+        "do --app voile format",
+        "do --app curatorian format"
+      ],
+
+      # ===== UTILITY COMMANDS =====
+
+      # Check migration status
+      "ecto.migrations": [
+        "echo '=== Voile Migrations ==='",
+        "ecto.migrations -r Voile.Repo",
+        "echo ''",
+        "echo '=== Curatorian Migrations ==='",
+        "ecto.migrations -r Curatorian.Repo"
+      ],
+
+      # Generate new migration (specify repo)
+      # Usage: mix ecto.gen.migration -r Voile.Repo add_field_to_collections
+      # Usage: mix ecto.gen.migration -r Curatorian.Repo add_field_to_events
+
+      # Database console
+      psql: ["mix do psql curatorian_dev"]
     ]
   end
 

@@ -7,9 +7,9 @@
           <h5>Curatorian</h5>
         </.link>
         <div class="flex flex-col items-center my-2">
-          <%= if !match?(%Ecto.Association.NotLoaded{}, @current_scope.user.profile) and @current_scope.user.profile && @current_scope.user.profile.user_image do %>
+          <%= if @current_scope.user.user_image do %>
             <img
-              src={@current_scope.user.profile.user_image}
+              src={@current_scope.user.user_image}
               class="w-16 h-16 object-cover rounded-xl"
               referrerPolicy="no-referrer"
               alt={@current_scope.user.username}
@@ -93,20 +93,6 @@
         >
           <.icon name="hero-pencil-square-solid" class="h-6 w-6 mr-3" /> <span>Blog Saya</span>
         </.link>
-        <%= if is_manager?(@current_scope.user) do %>
-          <.link
-            class={[
-              "no-underline",
-              if(@current_uri |> String.starts_with?("/dashboard/user_manager"),
-                do: "active-menu-dashboard",
-                else: "inactive-menu-dashboard"
-              )
-            ]}
-            href="/dashboard/user_manager"
-          >
-            <.icon name="hero-user-group-solid" class="h-6 w-6 mr-3" /> <span>User Manager</span>
-          </.link>
-        <% end %>
 
         <%= if is_manager?(@current_scope.user) do %>
           <.link
@@ -128,6 +114,18 @@
           <div class="mt-4 pt-4 border-t border-gray-300 dark:border-gray-500">
             <p class="text-xs text-gray-500 dark:text-gray-400 mb-2 px-2">ADMIN</p>
             <div class="flex flex-col gap-3">
+              <.link
+                class={[
+                  "no-underline",
+                  if(@current_uri |> String.starts_with?("/dashboard/admin/users"),
+                    do: "active-menu-dashboard",
+                    else: "inactive-menu-dashboard"
+                  )
+                ]}
+                href="/dashboard/admin/users"
+              >
+                <.icon name="hero-users-solid" class="h-6 w-6 mr-3" /> <span>Users</span>
+              </.link>
               <.link
                 class={[
                   "no-underline",

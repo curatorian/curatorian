@@ -25,9 +25,9 @@ defmodule CuratorianWeb.ProfileLayouts do
           />
           <div class="bg-white dark:bg-gray-700 shadow-md rounded-lg p-6">
             <div class="flex justify-between">
-              <%= if @user.profile && @user.profile.user_image do %>
+              <%= if @user.user_image do %>
                 <img
-                  src={@user.profile.user_image}
+                  src={@user.user_image}
                   alt="Profile Picture"
                   class="main-profile-pic"
                   referrerPolicy="no-referrer"
@@ -44,7 +44,7 @@ defmodule CuratorianWeb.ProfileLayouts do
               <%= if @current_scope.user && @current_scope.user.id == @user.id do %>
                 <.link
                   navigate={~p"/users/settings"}
-                  class="btn-primary w-full max-w-24 text-xs no-underline"
+                  class="btn-primary w-full max-w-32 text-xs text-center no-underline"
                 >
                   Edit Profile
                 </.link>
@@ -53,17 +53,14 @@ defmodule CuratorianWeb.ProfileLayouts do
 
             <div class="flex items-center space-x-4 my-5">
               <div>
-                <div class="flex items-center gap-2">
-                  <h2 class="text-xl font-semibold dark:text-white">
-                    {if @user.profile == nil, do: @user.username, else: @user.profile.fullname}
-                  </h2>
-
-                  <%= if @user.is_verified do %>
-                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                      <.icon name="hero-check-circle" class="w-3 h-3 mr-1" /> Verified
-                    </span>
-                  <% end %>
-                </div>
+                <%= if @user.confirmed_at != nil do %>
+                  <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 mb-2">
+                    <.icon name="hero-check-circle" class="w-3 h-3 mr-1" /> Verified
+                  </span>
+                <% end %>
+                <h2 class="text-xl font-semibold dark:text-white">
+                  {@user.fullname || @user.username}
+                </h2>
 
                 <p class="text-gray-500 dark:text-gray-400">@{@user.username}</p>
               </div>
@@ -72,7 +69,7 @@ defmodule CuratorianWeb.ProfileLayouts do
             <div class="my-4">
               <h3 class="text-lg font-medium dark:text-white">About</h3>
 
-              <%= if @user.profile && @user.profile.bio do %>
+              <%= if false do %>
                 <p class="text-gray-500 dark:text-gray-400 mt-2">{@user.profile.bio}</p>
               <% else %>
                 <p class="text-gray-500 dark:text-gray-400 mt-2">

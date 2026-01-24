@@ -14,7 +14,9 @@
    curl -sLO https://github.com/saadeghi/daisyui/releases/latest/download/daisyui.js
    Make sure to look at the daisyUI changelog: https://daisyui.com/docs/changelog/ */
 @plugin "../vendor/daisyui" {
-  themes: light --default, dark --prefersdark;
+  themes:
+    light --default,
+    dark --prefersdark;
 }
 
 /* daisyUI theme plugin. You can update this file by fetching the latest version with:
@@ -117,8 +119,18 @@
 }
 
 * {
-  font-family: "Parkinsans", system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
+  font-family:
+    "Parkinsans",
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    "Open Sans",
+    "Helvetica Neue",
     sans-serif;
 }
 
@@ -128,8 +140,18 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: "Literata", system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
+  font-family:
+    "Literata",
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    "Open Sans",
+    "Helvetica Neue",
     sans-serif;
   @apply mb-4;
 }
@@ -177,7 +199,8 @@ a {
 }
 
 #navbar {
-  transition: background-color 0.3s ease-in-out,
+  transition:
+    background-color 0.3s ease-in-out,
     backdrop-filter 0.3s ease-in-out;
 }
 
@@ -186,15 +209,35 @@ a {
 }
 
 .homepage-heading {
-  font-family: "Parkinsans", system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
+  font-family:
+    "Parkinsans",
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    "Open Sans",
+    "Helvetica Neue",
     sans-serif;
   @apply text-5xl md:text-6xl lg:text-7xl font-bold;
 }
 
 .error-status-heading {
-  font-family: "Parkinsans", system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
+  font-family:
+    "Parkinsans",
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    "Open Sans",
+    "Helvetica Neue",
     sans-serif;
   @apply text-7xl md:text-8xl lg:text-9xl text-red-400;
 }
@@ -213,31 +256,31 @@ a {
 }
 
 .btn-primary {
-  @apply bg-violet-500 text-white px-4 py-2 rounded-md hover:bg-violet-600 cursor-pointer;
+  @apply bg-violet-500 text-white px-4 py-2 rounded-md hover:bg-violet-600 dark:bg-violet-600 dark:hover:bg-violet-700 cursor-pointer;
 }
 
 .btn-secondary {
-  @apply bg-violet-100 text-violet-600 px-4 py-2 rounded-md hover:bg-violet-200 cursor-pointer;
+  @apply bg-violet-100 text-violet-600 px-4 py-2 rounded-md hover:bg-violet-200 dark:bg-violet-800 dark:text-violet-300 dark:hover:bg-violet-900 cursor-pointer;
 }
 
 .btn-confirm {
-  @apply bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 cursor-pointer;
+  @apply bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 cursor-pointer;
 }
 
 .btn-cancel {
-  @apply bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 cursor-pointer;
+  @apply bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 cursor-pointer;
 }
 
 .btn-warning {
-  @apply bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 cursor-pointer;
+  @apply bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 dark:bg-yellow-600 dark:hover:bg-yellow-700 cursor-pointer;
 }
 
 .btn-default {
-  @apply bg-[--main-color] text-white px-4 py-2 rounded-md hover:bg-[--hover-color] cursor-pointer;
+  @apply bg-[--main-color] text-white px-4 py-2 rounded-md hover:bg-[--hover-color] dark:bg-[--main-color] dark:text-white dark:hover:bg-[--hover-color] cursor-pointer;
 }
 
 .btn-disabled {
-  @apply bg-gray-300 text-gray-700 px-4 py-2 rounded-md cursor-not-allowed;
+  @apply bg-gray-300 text-gray-700 px-4 py-2 rounded-md dark:bg-gray-600 dark:text-gray-300 cursor-not-allowed;
 }
 
 .btn-menu {
@@ -298,11 +341,118 @@ blockquote {
 }
 
 @layer base {
-  /* Adds style to unordered list */
+  /* Trix Editor Toolbar Styling - Override CDN styles with high specificity */
+  trix-toolbar .trix-button-row {
+    @apply flex flex-wrap gap-2 p-3;
+  }
+
+  trix-toolbar {
+    @apply bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-300 shadow-sm rounded-t-md;
+  }
+
+  .dark trix-toolbar {
+    @apply bg-gradient-to-r from-gray-700 to-gray-800 border-gray-600 shadow-md;
+  }
+
+  trix-toolbar .trix-button-group {
+    @apply flex bg-white border border-gray-300 rounded-lg overflow-hidden shadow-sm mr-3;
+  }
+
+  .dark trix-toolbar .trix-button-group {
+    @apply bg-gray-600 border-gray-500 shadow-md;
+  }
+
+  trix-toolbar .trix-button {
+    @apply bg-violet-50 border border-violet-200 px-4 py-2.5 hover:bg-violet-100 hover:shadow-inner transition-all duration-200 flex items-center justify-center min-w-[36px] h-9 rounded-md;
+    background-color: #f3e8ff !important;
+    color: #6b21a8 !important;
+    border: 1px solid #c4b5fd !important;
+    box-shadow: none !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+  }
+
+  trix-toolbar .trix-button::before {
+    color: inherit !important;
+    font-size: 16px !important;
+    font-weight: inherit !important;
+  }
+
+  trix-toolbar .trix-button--icon::before {
+    display: block !important;
+    text-align: center !important;
+  }
+
+  trix-toolbar .trix-button--icon {
+    font-size: 0 !important;
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  .dark trix-toolbar .trix-button {
+    background-color: #f3e8ff !important;
+    color: #6b21a8 !important;
+    border-color: #c4b5fd !important;
+  }
+
+  .dark trix-toolbar .trix-button::before {
+    color: inherit !important;
+  }
+
+  .dark trix-toolbar .trix-button:hover {
+    background-color: #e9d5ff !important;
+    color: #6b21a8 !important;
+  }
+
+  trix-toolbar .trix-button:not(:last-child) {
+    @apply border-r border-violet-300;
+  }
+
+  .dark trix-toolbar .trix-button:not(:last-child) {
+    @apply border-violet-300;
+  }
+
+  trix-toolbar .trix-button[data-trix-active] {
+    @apply shadow-lg;
+    background-color: #7c3aed !important;
+    color: white !important;
+    border-color: #7c3aed !important;
+  }
+
+  trix-toolbar .trix-button[data-trix-active]::before {
+    color: inherit !important;
+  }
+
+  .dark trix-toolbar .trix-button[data-trix-active] {
+    background-color: #7c3aed !important;
+    border-color: #7c3aed !important;
+  }
+
+  trix-toolbar .trix-button:hover {
+    @apply transform scale-105;
+    background-color: #e9d5ff !important;
+  }
+
+  trix-toolbar .trix-button[data-trix-active]:hover {
+    background-color: #6d28d9 !important;
+    box-shadow:
+      0 10px 15px -3px rgba(139, 92, 246, 0.3),
+      0 4px 6px -2px rgba(139, 92, 246, 0.2) !important;
+  }
+
+  .dark trix-toolbar .trix-button[data-trix-active]:hover {
+    background-color: #6d28d9 !important;
+  }
+
+  /* Trix Editor Content Area */
   trix-editor {
     height: 350px;
     overflow-y: auto;
-    @apply bg-white border border-violet-300 rounded-md p-4;
+    @apply bg-white border-0 rounded-b-md p-4 text-gray-900;
+  }
+
+  .dark trix-editor {
+    @apply bg-gray-800 text-white;
   }
 
   trix-editor > h1 {
@@ -326,6 +476,28 @@ blockquote {
   /* Add style to links added within the editor */
   trix-editor > div > a {
     @apply text-blue-700 underline decoration-blue-700 italic;
+  }
+
+  .dark trix-editor > div > a {
+    @apply text-blue-400 underline decoration-blue-400;
+  }
+
+  /* Style inline code */
+  trix-editor code {
+    @apply bg-gray-100 text-red-600 px-1 py-0.5 rounded font-mono text-sm;
+  }
+
+  .dark trix-editor code {
+    @apply bg-gray-700 text-green-400;
+  }
+
+  /* Style code blocks */
+  trix-editor pre {
+    @apply bg-gray-100 border border-gray-300 rounded p-4 overflow-x-auto font-mono text-sm;
+  }
+
+  .dark trix-editor pre {
+    @apply bg-gray-700 border-gray-600 text-green-400;
   }
 
   /* trix-editor > blockquote {
@@ -361,7 +533,9 @@ input[type="file"][data-phx-upload-ref]:focus {
 input[type="file"]::file-selector-button,
 input[type="file"]::-webkit-file-upload-button {
   @apply bg-violet-600 text-white px-3 py-2 rounded-md border-none cursor-pointer;
-  transition: background-color 0.15s ease-in-out, transform 0.08s ease;
+  transition:
+    background-color 0.15s ease-in-out,
+    transform 0.08s ease;
 }
 
 input[type="file"]::file-selector-button:hover,

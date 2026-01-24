@@ -426,31 +426,30 @@ defmodule CuratorianWeb.UserLive.Settings do
     user = socket.assigns.current_scope.user
 
     uploaded_files =
-      consume_uploaded_entries(socket, :avatar, fn %{path: path}, _entry ->
-        dest =
-          Path.join(
-            Application.app_dir(:curatorian, "priv/static/uploads/user_image"),
-            user.id
-          )
-
-        image_path = "/uploads/user_image/#{Path.basename(dest)}"
-
-        File.cp!(path, dest)
-
-        case Accounts.update_profile_user(user, %{user_image: image_path}) do
-          {:ok, _} ->
-            {:ok, socket}
-
-          {:error, _} ->
-            {:error, socket}
-        end
+      consume_uploaded_entries(socket, :avatar, fn %{path: path}, entry ->
+        Clients.Storage.adapter().upload_from_path(path, entry.client_type, "user_image")
       end)
 
-    socket =
-      socket
-      |> put_flash(:info, "Image uploaded successfully")
-      |> update(:uploaded_files, &(&1 ++ uploaded_files))
-      |> redirect(to: ~p"/users/settings")
+    case uploaded_files do
+      [image_path | _] ->
+        case Accounts.update_profile_user(user, %{user_image: image_path}) do
+          {:ok, _} ->
+            socket
+            |> put_flash(:info, "Image uploaded successfully")
+            |> update(:uploaded_files, &(&1 ++ uploaded_files))
+            |> redirect(to: ~p"/users/settings")
+
+          {:error, _} ->
+            socket
+            |> put_flash(:error, "Failed to update profile")
+            |> redirect(to: ~p"/users/settings")
+        end
+
+      _ ->
+        socket
+        |> put_flash(:error, "Upload failed")
+        |> redirect(to: ~p"/users/settings")
+    end
 
     {:noreply, socket}
   end

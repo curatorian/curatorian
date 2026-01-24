@@ -8,9 +8,9 @@
           <%= for curator <- @curatorians do %>
             <div class="bg-white dark:bg-gray-700 rounded-xl p-5">
               <div class="flex gap-3">
-                <%= if curator.profile.user_image do %>
+                <%= if curator.user_image do %>
                   <img
-                    src={curator.profile.user_image}
+                    src={curator.user_image}
                     class="w-24 h-24 object-cover rounded"
                     referrerPolicy="no-referrer"
                   />
@@ -25,9 +25,9 @@
                 <div class="flex flex-col justify-between">
                   <div>
                     <div class="flex items-center gap-2">
-                      <p class="font-semibold">{curator.profile.fullname}</p>
+                      <p class="font-semibold">{curator.fullname}</p>
 
-                      <%= if curator.is_verified do %>
+                      <%= if curator.confirmed_at != nil do %>
                         <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
                           <.icon name="hero-check-circle" class="w-3 h-3 mr-1" /> Verified
                         </span>
