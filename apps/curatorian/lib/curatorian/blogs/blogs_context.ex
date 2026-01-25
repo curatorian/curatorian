@@ -26,7 +26,7 @@ defmodule Curatorian.Blogs do
       from(b in Blog,
         where: b.user_id == ^user_id,
         order_by: [desc: b.inserted_at],
-        preload: [user: :profile]
+        preload: [:user]
       )
     )
   end

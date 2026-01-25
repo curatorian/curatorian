@@ -5,7 +5,7 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.Show do
 
   def render(assigns) do
     ~H"""
-    <div class="bg-gray-100 dark:bg-gray-900 h-full mb-16">
+    <div class="bg-gray-100 dark:bg-gray-900 h-full">
       <!-- Cover Image -->
       <div class="h-64 bg-gray-300 dark:bg-gray-700 relative">
         <img
@@ -134,6 +134,9 @@ defmodule CuratorianWeb.DashboardLive.OrgsLive.Show do
               </table>
             </div>
         <% end %>
+        <div class="mt-6">
+          <.button navigate="/dashboard/orgs">Kembali</.button>
+        </div>
       </div>
     </div>
     """

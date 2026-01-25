@@ -389,7 +389,7 @@ defmodule CuratorianWeb.UserLive.Settings do
       |> assign(:uploaded_files, [])
       |> assign(:trigger_submit, false)
       |> allow_upload(:avatar,
-        accept: ~w(.jpg .jpeg),
+        accept: ~w(.jpg .jpeg .png .gif .webp),
         max_file_size: 3_000_000,
         max_entries: 1,
         auto_upload: true
@@ -423,35 +423,46 @@ defmodule CuratorianWeb.UserLive.Settings do
 
   @impl Phoenix.LiveView
   def handle_event("upload_image", _params, socket) do
-    user = socket.assigns.current_scope.user
+    # Check if all uploads are completed
+    all_done? = Enum.all?(socket.assigns.uploads.avatar.entries, & &1.done?)
 
-    uploaded_files =
-      consume_uploaded_entries(socket, :avatar, fn %{path: path}, entry ->
-        Clients.Storage.adapter().upload_from_path(path, entry.client_type, "user_image")
-      end)
+    if all_done? do
+      uploaded_files =
+        consume_uploaded_entries(socket, :avatar, fn %{path: path}, entry ->
+          Clients.Storage.adapter().upload_from_path(path, entry.client_type, "user_image")
+        end)
 
-    case uploaded_files do
-      [image_path | _] ->
-        case Accounts.update_profile_user(user, %{user_image: image_path}) do
-          {:ok, _} ->
-            socket
-            |> put_flash(:info, "Image uploaded successfully")
-            |> update(:uploaded_files, &(&1 ++ uploaded_files))
-            |> redirect(to: ~p"/users/settings")
+      case uploaded_files do
+        [image_path | _] ->
+          user = socket.assigns.current_scope.user
 
-          {:error, _} ->
-            socket
-            |> put_flash(:error, "Failed to update profile")
-            |> redirect(to: ~p"/users/settings")
-        end
+          case Accounts.update_profile_user(user, %{user_image: image_path}) do
+            {:ok, _updated_user} ->
+              socket
+              |> put_flash(:info, "Image uploaded successfully")
+              |> push_navigate(to: ~p"/users/settings")
 
-      _ ->
-        socket
-        |> put_flash(:error, "Upload failed")
-        |> redirect(to: ~p"/users/settings")
+              {:noreply, socket}
+
+            {:error, _} ->
+              socket
+              |> put_flash(:error, "Failed to update profile")
+
+              {:noreply, socket}
+          end
+
+        _ ->
+          socket
+          |> put_flash(:error, "Upload failed")
+
+          {:noreply, socket}
+      end
+    else
+      socket
+      |> put_flash(:error, "Upload still in progress, please wait")
+
+      {:noreply, socket}
     end
-
-    {:noreply, socket}
   end
 
   @impl Phoenix.LiveView
@@ -487,15 +498,13 @@ defmodule CuratorianWeb.UserLive.Settings do
     user = socket.assigns.current_scope.user
 
     case Accounts.update_profile_user(user, params) do
-      {:ok, updated_user} ->
-        info = "#{updated_user.fullname}'s updated successfully."
-        profile_form = updated_user |> Accounts.change_user() |> to_form()
+      {:ok, _updated_user} ->
+        info = "Profile updated successfully."
 
         {:noreply,
          socket
          |> put_flash(:info, info)
-         |> assign(update_profile_form: profile_form)
-         |> assign(current_user_profile: updated_user)}
+         |> push_navigate(to: ~p"/users/settings")}
 
       {:error, changeset} ->
         dbg(changeset)
