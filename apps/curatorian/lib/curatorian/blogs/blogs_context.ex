@@ -175,7 +175,59 @@ defmodule Curatorian.Blogs do
   """
   def count_blogs_by_user(user_id) do
     from(b in Blog,
-      where: b.user_id == ^user_id
+      where: b.user_id == ^user_id and b.post_type == "blog"
+    )
+    |> Repo.aggregate(:count, :id)
+  end
+
+  def list_posts_by_user(user_id) do
+    Repo.all(
+      from(b in Blog,
+        where: b.user_id == ^user_id and b.post_type == "post" and b.status == "published",
+        order_by: [desc: b.inserted_at],
+        preload: [:user]
+      )
+    )
+  end
+
+  def list_posts_by_user_paginated(user_id, page \\ 1) do
+    per_page = 20
+    offset = (page - 1) * per_page
+
+    query =
+      from b in Blog,
+        where: b.user_id == ^user_id and b.post_type == "post" and b.status == "published",
+        order_by: [desc: b.inserted_at],
+        preload: [:user]
+
+    posts =
+      query
+      |> limit(^per_page)
+      |> offset(^offset)
+      |> Repo.all()
+
+    total_count =
+      Repo.aggregate(
+        from(b in Blog,
+          where: b.user_id == ^user_id and b.post_type == "post" and b.status == "published"
+        ),
+        :count
+      )
+
+    total_pages = div(total_count + per_page - 1, per_page)
+
+    %{
+      posts: posts,
+      page: page,
+      per_page: per_page,
+      total_count: total_count,
+      total_pages: total_pages
+    }
+  end
+
+  def count_posts_by_user(user_id) do
+    from(b in Blog,
+      where: b.user_id == ^user_id and b.post_type == "post" and b.status == "published"
     )
     |> Repo.aggregate(:count, :id)
   end

@@ -613,4 +613,51 @@ defmodule CuratorianWeb.CoreComponents do
     |> JS.remove_class("overflow-hidden", to: "body")
     |> JS.pop_focus()
   end
+
+  @doc """
+  Renders a follow/unfollow button.
+
+  ## Examples
+
+      <.follow_button
+        current_user={@current_user}
+        target_user={@user}
+        following={@following}
+        followers_count={@followers_count}
+      />
+  """
+  attr :current_user, :map, required: true
+  attr :target_user, :map, required: true
+  attr :following, :boolean, default: false
+  attr :followers_count, :integer, default: 0
+  attr :class, :string, default: ""
+
+  def follow_button(assigns) do
+    ~H"""
+    <div class={@class}>
+      <%= if @current_user && @current_user.id != @target_user.id do %>
+        <%= if @following do %>
+          <button
+            phx-click="unfollow"
+            phx-value-user-id={@target_user.id}
+            class="btn btn-outline btn-error btn-sm"
+          >
+            <.icon name="hero-user-minus" class="w-4 h-4 mr-1" /> Unfollow
+          </button>
+        <% else %>
+          <button
+            phx-click="follow"
+            phx-value-user-id={@target_user.id}
+            class="btn btn-primary btn-sm"
+          >
+            <.icon name="hero-user-plus" class="w-4 h-4 mr-1" /> Follow
+          </button>
+        <% end %>
+      <% end %>
+      <div class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+        {@followers_count} followers
+      </div>
+    </div>
+    """
+  end
 end

@@ -28,8 +28,11 @@ defmodule CuratorianWeb.Endpoint do
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.
   if code_reloading? do
-    socket "/phoenix/live_reload/socket", Phoenix.LiveReloader.Socket
-    plug Phoenix.LiveReloader
+    if Code.ensure_loaded?(Phoenix.LiveReloader) do
+      socket "/phoenix/live_reload/socket", Phoenix.LiveReloader.Socket
+      plug Phoenix.LiveReloader
+    end
+
     plug Phoenix.CodeReloader
     plug Phoenix.Ecto.CheckRepoStatus, otp_app: :curatorian
   end

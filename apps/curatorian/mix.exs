@@ -30,8 +30,8 @@ defmodule Curatorian.MixProject do
 
   defp deps do
     [
-      # ===== UMBRELLA DEPENDENCY =====
-      {:voile, in_umbrella: true}
+      # ===== VOILE DEPENDENCY =====
+      {:voile, github: "curatorian/voile", branch: "main"}
 
       # ALL OTHER DEPENDENCIES ARE NOW IN UMBRELLA ROOT!
       # No need to duplicate Phoenix, Ecto, etc.
