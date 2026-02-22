@@ -4,7 +4,6 @@ defmodule Curatorian.Accounts do
   """
 
   import Ecto.Query, warn: false
-  alias Curatorian.Repo
   defdelegate get_user_by_email(email), to: Voile.Schema.Accounts
   defdelegate get_user_by_email_and_password(email, password), to: Voile.Schema.Accounts
   defdelegate get_user_by_login_and_password(login, password), to: Voile.Schema.Accounts
@@ -64,98 +63,4 @@ defmodule Curatorian.Accounts do
   defdelegate unsuspend_user(user), to: Voile.Schema.Accounts
   defdelegate is_manually_suspended?(user), to: Voile.Schema.Accounts
   defdelegate lift_expired_suspensions(), to: Voile.Schema.Accounts
-
-  alias Curatorian.Repo
-  alias Curatorian.Accounts.Follow
-
-  def list_follows do
-    Repo.all(Follow)
-  end
-
-  def get_follow!(id) do
-    Repo.get!(Follow, id)
-  end
-
-  def create_follow(attrs \\ %{}) do
-    %Follow{}
-    |> Follow.changeset(attrs)
-    |> Repo.insert()
-  end
-
-  def update_follow(%Follow{} = follow, attrs) do
-    follow
-    |> Follow.changeset(attrs)
-    |> Repo.update()
-  end
-
-  def delete_follow(%Follow{} = follow) do
-    Repo.delete(follow)
-  end
-
-  def change_follow(%Follow{} = follow, attrs \\ %{}) do
-    Follow.changeset(follow, attrs)
-  end
-
-  def follow_user(attrs, opts \\ []) do
-    follower_id = opts[:follower_id] || attrs[:follower_id]
-    followed_id = opts[:followed_id] || attrs[:followed_id]
-
-    # Prevent self-following
-    if follower_id == followed_id do
-      {:error, :cannot_follow_self}
-    else
-      create_follow(%{follower_id: follower_id, followed_id: followed_id})
-    end
-  end
-
-  def unfollow_user(follower_id, followed_id) do
-    case Repo.get_by(Follow, follower_id: follower_id, followed_id: followed_id) do
-      nil -> {:error, :not_following}
-      follow -> delete_follow(follow)
-    end
-  end
-
-  def is_following?(follower_id, followed_id) do
-    Repo.exists?(
-      from f in Follow, where: f.follower_id == ^follower_id and f.followed_id == ^followed_id
-    )
-  end
-
-  def count_followers(user_id) do
-    Repo.aggregate(from(f in Follow, where: f.followed_id == ^user_id), :count, :id)
-  end
-
-  def count_following(user_id) do
-    Repo.aggregate(from(f in Follow, where: f.follower_id == ^user_id), :count, :id)
-  end
-
-  def list_followers(user_id, opts \\ []) do
-    limit = opts[:limit] || 50
-    offset = opts[:offset] || 0
-
-    Repo.all(
-      from f in Follow,
-        where: f.followed_id == ^user_id,
-        join: u in assoc(f, :follower),
-        select: u,
-        limit: ^limit,
-        offset: ^offset,
-        order_by: [desc: f.inserted_at]
-    )
-  end
-
-  def list_following(user_id, opts \\ []) do
-    limit = opts[:limit] || 50
-    offset = opts[:offset] || 0
-
-    Repo.all(
-      from f in Follow,
-        where: f.follower_id == ^user_id,
-        join: u in assoc(f, :followed),
-        select: u,
-        limit: ^limit,
-        offset: ^offset,
-        order_by: [desc: f.inserted_at]
-    )
-  end
 end
