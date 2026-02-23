@@ -110,6 +110,16 @@ defmodule CuratorianUmbrella.MixProject do
       "ecto.setup": [
         # Create database once (using either repo)
         "ecto.create -r Curatorian.Repo",
+        fn _ ->
+          Mix.Task.run("app.config")
+          {:ok, _} = Application.ensure_all_started(:postgrex)
+          {:ok, _} = Application.ensure_all_started(:ecto_sql)
+          {:ok, _} = Voile.Repo.start_link()
+          Ecto.Adapters.SQL.query!(Voile.Repo, "CREATE SCHEMA IF NOT EXISTS voile", [])
+          Ecto.Adapters.SQL.query!(Voile.Repo, "CREATE SCHEMA IF NOT EXISTS atrium", [])
+          Ecto.Adapters.SQL.query!(Voile.Repo, "CREATE EXTENSION IF NOT EXISTS citext", [])
+          Mix.shell().info("✓ schemas created: voile, atrium")
+        end,
 
         # Run Voile migrations first (base tables like users)
         "ecto.migrate -r Voile.Repo",
@@ -118,32 +128,11 @@ defmodule CuratorianUmbrella.MixProject do
         "ecto.migrate -r Curatorian.Repo",
 
         # Run seeds for both apps if present
-        # Prefer running the local copies of Voile seeds under Curatorian
-        fn _ ->
-          run_if_exists("apps/curatorian/priv/repo/seeds/voile/seeds.exs")
-        end,
-        fn _ ->
-          run_if_exists("apps/curatorian/priv/repo/seeds/voile/master.exs")
-        end,
-        fn _ ->
-          run_if_exists("apps/curatorian/priv/repo/seeds/voile/metadata_resource_class.exs")
-        end,
-        fn _ ->
-          run_if_exists("apps/curatorian/priv/repo/seeds/voile/metadata_properties.exs")
-        end,
-        fn _ ->
-          run_if_exists("apps/curatorian/priv/repo/seeds/voile/glams.exs")
-        end,
-        fn _ ->
-          run_if_exists("apps/curatorian/priv/repo/seeds/voile/authorization_seeds_runner.exs")
-        end,
-        fn _ ->
-          run_if_exists("apps/curatorian/priv/repo/seeds/voile/pustakawan.exs")
-        end,
-        # Also run app-level seeds and RBAC seeds
+        # Prefer running the centralized local seeds under Curatorian
         fn _ ->
           run_if_exists("apps/curatorian/priv/repo/seeds.exs")
         end,
+        # RBAC seeds (kept separate)
         fn _ ->
           run_if_exists("apps/curatorian/priv/repo/seeds_rbac.exs")
         end

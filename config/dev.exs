@@ -15,10 +15,16 @@ shared_db_config = [
 ]
 
 # Voile Repo - points to shared database
-config :voile, Voile.Repo, shared_db_config
+config :voile,
+       Voile.Repo,
+       shared_db_config ++
+         [after_connect: {Postgrex, :query!, ["SET search_path TO voile,public", []]}]
 
 # Curatorian Repo - points to SAME database
-config :curatorian, Curatorian.Repo, shared_db_config
+config :curatorian,
+       Curatorian.Repo,
+       shared_db_config ++
+         [after_connect: {Postgrex, :query!, ["SET search_path TO public", []]}]
 
 # MySQL/MariaDB source (for SLiMS migration)
 config :voile, :mysql_source,
