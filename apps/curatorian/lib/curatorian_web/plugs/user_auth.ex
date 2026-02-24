@@ -1,14 +1,16 @@
 defmodule CuratorianWeb.UserAuth do
   @moduledoc """
-  Curatorian's authentication plug that wraps Voile's authentication
-  and adds cross-app token generation for Atrium integration.
+  Curatorian's authentication plug — owns login/logout session management and
+  cross-app token generation for Atrium integration.
 
   This module provides:
-  - Session-based authentication via Voile's existing auth system
+  - Session-based authentication using Voile.Schema.Accounts context functions
   - Cross-app token generation for Atrium (billing dashboard)
   - Cross-app cookie management for subdomain sharing
+  - `on_mount` callbacks for LiveView session mounting
+  - `require_authenticated_user/2` plug for controller pipelines
 
-  ## Usage in Router
+  ## Usage in Router (plug pipeline)
 
       pipeline :browser do
         plug :accepts, ["html"]
@@ -19,6 +21,18 @@ defmodule CuratorianWeb.UserAuth do
         plug :put_secure_browser_headers
         plug CuratorianWeb.UserAuth
         plug CuratorianWeb.Plugs.CrossAppCookie
+      end
+
+  ## Usage in LiveView (on_mount)
+
+      # Mount scope but don't require auth:
+      live_session :public, on_mount: [{CuratorianWeb.UserAuth, :mount_current_scope}] do
+        live "/register", UserRegistrationLive, :new
+      end
+
+      # Require authenticated user:
+      live_session :authenticated, on_mount: [{CuratorianWeb.UserAuth, :require_authenticated}] do
+        live "/dashboard", DashboardLive, :index
       end
   """
 
@@ -242,4 +256,82 @@ defmodule CuratorianWeb.UserAuth do
       CuratorianWeb.Endpoint.broadcast(user_session_topic(token), "disconnect", %{})
     end)
   end
+
+  # ---------------------------------------------------------------------------
+  # LiveView on_mount callbacks
+  # ---------------------------------------------------------------------------
+
+  @doc """
+  Handles mounting and authenticating the current_scope in LiveViews.
+
+  ## `on_mount` arguments
+
+    * `:mount_current_scope` — assigns `current_scope` based on the session
+      user_token, or `nil` when there is no logged-in user.
+
+    * `:require_authenticated` — same as `:mount_current_scope` but halts
+      and redirects to `/login` when no authenticated user is found.
+  """
+  def on_mount(:mount_current_scope, _params, session, socket) do
+    {:cont, mount_current_scope(socket, session)}
+  end
+
+  def on_mount(:require_authenticated, _params, session, socket) do
+    socket = mount_current_scope(socket, session)
+
+    if socket.assigns.current_scope && socket.assigns.current_scope.user do
+      {:cont, socket}
+    else
+      socket =
+        socket
+        |> Phoenix.LiveView.put_flash(:error, "You must log in to access this page.")
+        |> Phoenix.LiveView.redirect(to: ~p"/login")
+
+      {:halt, socket}
+    end
+  end
+
+  @doc """
+  Plug for controller pipelines that require an authenticated user.
+  Stores the current path and redirects to `/login` when not authenticated.
+  """
+  def require_authenticated_user(conn, _opts) do
+    if conn.assigns.current_scope && conn.assigns.current_scope.user do
+      conn
+    else
+      conn
+      |> put_flash(:error, "You must log in to access this page.")
+      |> maybe_store_return_to()
+      |> redirect(to: ~p"/login")
+      |> halt()
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # Private helpers
+  # ---------------------------------------------------------------------------
+
+  defp mount_current_scope(socket, session) do
+    Phoenix.Component.assign_new(socket, :current_scope, fn ->
+      {user, _} =
+        if user_token = session["user_token"] do
+          Accounts.get_user_by_session_token(user_token)
+        end || {nil, nil}
+
+      user =
+        if user, do: Voile.Repo.preload(user, [:roles, :user_type, :node]), else: nil
+
+      if user && Accounts.is_manually_suspended?(user) do
+        Scope.for_user(nil)
+      else
+        Scope.for_user(user)
+      end
+    end)
+  end
+
+  defp maybe_store_return_to(%{method: "GET"} = conn) do
+    put_session(conn, :user_return_to, current_path(conn))
+  end
+
+  defp maybe_store_return_to(conn), do: conn
 end

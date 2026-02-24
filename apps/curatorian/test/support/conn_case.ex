@@ -35,4 +35,18 @@ defmodule CuratorianWeb.ConnCase do
     Curatorian.DataCase.setup_sandbox(tags)
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
+
+  @doc """
+  Sets up the connection for a logged-in user.
+
+  Generates a session token for the given user and stores it in the connection's
+  session, mirroring what `CuratorianWeb.UserAuth.log_in_user/2` does in production.
+  """
+  def log_in_user(conn, user) do
+    token = Voile.Schema.Accounts.generate_user_session_token(user)
+
+    conn
+    |> Phoenix.ConnTest.init_test_session(%{})
+    |> Plug.Conn.put_session(:user_token, token)
+  end
 end

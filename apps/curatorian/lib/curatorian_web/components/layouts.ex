@@ -67,7 +67,7 @@ defmodule CuratorianWeb.Layouts do
           {render_slot(@inner_block)}}
         </section> --%>
     </main>
-    <.footer_layout /> <.flash_group flash={@flash} />
+    <.footer_layout />
     """
   end
 

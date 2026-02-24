@@ -39,3 +39,5 @@ npm-debug.log
 # Language Server
 .elixir_ls/
 .expert
+
+/specifications

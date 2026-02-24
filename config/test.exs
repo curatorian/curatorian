@@ -7,7 +7,8 @@ shared_test_db_config = [
   username: "postgres",
   password: "postgres",
   hostname: "localhost",
-  database: "voile_test#{System.get_env("MIX_TEST_PARTITION")}",  # Same database!
+  # Same database!
+  database: "voile_test#{System.get_env("MIX_TEST_PARTITION")}",
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: System.schedulers_online() * 2,
   parameters: [timezone: "Asia/Jakarta"]
@@ -25,7 +26,7 @@ config :voile, VoileWeb.Endpoint,
 # ===== CURATORIAN ENDPOINT (Test) =====
 config :curatorian, CuratorianWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4003],
-  secret_key_base: "curatorian_test_secret_key_base",
+  secret_key_base: "curatorian_test_secret_key_base_must_be_at_least_64_bytes_long_padding",
   server: false
 
 # ===== MAILER (Test) =====

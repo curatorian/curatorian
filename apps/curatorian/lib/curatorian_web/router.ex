@@ -1,12 +1,9 @@
 defmodule CuratorianWeb.Router do
   use CuratorianWeb, :router
 
-  # Note: For LiveView sessions that need authentication, use VoileWeb.UserAuth's
-  # on_mount callbacks directly in the live_session definition:
-  #
-  #   live_session :authenticated, on_mount: [{VoileWeb.UserAuth, :require_authenticated}] do
-  #     live "/dashboard", DashboardLive, :index
-  #   end
+  # ---------------------------------------------------------------------------
+  # Pipelines
+  # ---------------------------------------------------------------------------
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -34,6 +31,10 @@ defmodule CuratorianWeb.Router do
     plug Curatorian.Plugs.InternalApiAuth
   end
 
+  # ---------------------------------------------------------------------------
+  # Public routes (no auth required)
+  # ---------------------------------------------------------------------------
+
   scope "/", CuratorianWeb do
     pipe_through :browser
 
@@ -41,20 +42,55 @@ defmodule CuratorianWeb.Router do
     get "/about", PageController, :about
   end
 
-  # Internal API for cross-server authentication (Atrium -> Curatorian)
-  # Used when Curatorian and Atrium are on different servers
+  # Session controller handles form POST from login/register LiveViews
+  scope "/", CuratorianWeb do
+    pipe_through :browser
+
+    post "/users/log_in", UserSessionController, :create
+    delete "/users/log_out", UserSessionController, :delete
+  end
+
+  # Auth LiveViews — mounts scope but does NOT require authentication.
+  # Logged-in users are redirected away inside mount/3.
+  scope "/", CuratorianWeb do
+    pipe_through :browser
+
+    live_session :unauthenticated_only,
+      on_mount: [{CuratorianWeb.UserAuth, :mount_current_scope}] do
+      live "/login", UserLoginLive, :new
+      live "/register", UserRegistrationLive, :new
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # Authenticated routes — require a logged-in user
+  # ---------------------------------------------------------------------------
+
+  # Example authenticated section — expand as features are built:
+  #
+  #   scope "/", CuratorianWeb do
+  #     pipe_through :browser
+  #
+  #     live_session :authenticated,
+  #       on_mount: [{CuratorianWeb.UserAuth, :require_authenticated}] do
+  #       live "/dashboard", DashboardLive, :index
+  #     end
+  #   end
+
+  # ---------------------------------------------------------------------------
+  # Internal API — cross-server auth for Atrium
+  # ---------------------------------------------------------------------------
+
   scope "/api/internal", CuratorianWeb do
     pipe_through :internal_api
     post "/auth/token", InternalAuthController, :issue_token
   end
 
-  # Enable LiveDashboard and Swoosh mailbox preview in development
+  # ---------------------------------------------------------------------------
+  # Dev-only routes
+  # ---------------------------------------------------------------------------
+
   if Application.compile_env(:curatorian, :dev_routes) do
-    # If you want to use the LiveDashboard in production, you should put
-    # it behind authentication and allow only admins to access it.
-    # If your application does not have an admins-only section yet,
-    # you can use Plug.BasicAuth to set up some basic authentication
-    # as long as you are also using SSL (which you should anyway).
     import Phoenix.LiveDashboard.Router
 
     scope "/dev" do
