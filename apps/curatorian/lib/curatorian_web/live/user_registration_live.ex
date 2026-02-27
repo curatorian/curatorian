@@ -38,9 +38,6 @@ defmodule CuratorianWeb.UserRegistrationLive do
                 id="registration_form"
                 phx-submit="save"
                 phx-change="validate"
-                phx-trigger-action={@trigger_submit}
-                action={~p"/users/log_in?_action=registered"}
-                method="post"
                 class="flex flex-col gap-4"
               >
                 <.input
@@ -92,7 +89,7 @@ defmodule CuratorianWeb.UserRegistrationLive do
 
       socket =
         socket
-        |> assign(trigger_submit: false, check_errors: false)
+        |> assign(check_errors: false)
         |> assign_form(changeset)
 
       {:ok, socket, temporary_assigns: [form: nil]}
@@ -120,10 +117,17 @@ defmodule CuratorianWeb.UserRegistrationLive do
       |> Map.put("registration_date", registration_date)
 
     case Accounts.register_user(attrs) do
-      {:ok, _user} ->
-        # Flip trigger_submit so the form posts to the session controller
+      {:ok, user} ->
+        {:ok, _} =
+          Accounts.deliver_user_confirmation_instructions(
+            user,
+            &url(~p"/users/confirm/#{&1}")
+          )
+
         {:noreply,
-         socket |> assign(trigger_submit: true) |> assign_form(to_form(attrs, as: :user))}
+         socket
+         |> put_flash(:info, "Account created! Please check your email to confirm your address.")
+         |> push_navigate(to: ~p"/users/pending_confirmation?email=#{user.email}")}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply,
@@ -137,9 +141,5 @@ defmodule CuratorianWeb.UserRegistrationLive do
 
   defp assign_form(socket, %Ecto.Changeset{} = changeset) do
     assign(socket, form: to_form(changeset, as: :user))
-  end
-
-  defp assign_form(socket, %Phoenix.HTML.Form{} = form) do
-    assign(socket, form: form)
   end
 end

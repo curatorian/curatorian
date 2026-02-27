@@ -21,7 +21,7 @@ defmodule Curatorian.MixProject do
   def application do
     [
       mod: {Curatorian.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :esbuild, :tailwind]
     ]
   end
 

@@ -132,8 +132,9 @@ defmodule CuratorianWeb.UserAuth do
         )
         |> log_out_user()
       else
-        # Generate cross-app token for Atrium
-        cross_app_token = generate_cross_app_token(token)
+        # Generate cross-app token for Atrium — use already-fetched user struct
+        # (avoids a second DB round-trip and works even when user.node_id is nil)
+        cross_app_token = generate_cross_app_token(user)
 
         conn
         |> assign(:current_scope, Scope.for_user(user))
@@ -154,14 +155,8 @@ defmodule CuratorianWeb.UserAuth do
 
   # Private functions
 
-  defp generate_cross_app_token(session_token) do
-    case Accounts.get_user_session_auth(session_token) do
-      {:ok, auth_info} ->
-        Curatorian.CrossAppToken.sign(auth_info)
-
-      {:error, _reason} ->
-        nil
-    end
+  defp generate_cross_app_token(%Voile.Schema.Accounts.User{} = user) do
+    Curatorian.CrossAppToken.sign_user(user)
   end
 
   defp ensure_user_token(conn) do
@@ -193,7 +188,7 @@ defmodule CuratorianWeb.UserAuth do
     remember_me = get_session(conn, :user_remember_me)
 
     # Generate cross-app token at session creation
-    cross_app_token = generate_cross_app_token(token)
+    cross_app_token = generate_cross_app_token(user)
 
     conn
     |> renew_session()

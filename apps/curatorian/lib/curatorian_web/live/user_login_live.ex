@@ -30,7 +30,7 @@ defmodule CuratorianWeb.UserLoginLive do
               <.form
                 for={@form}
                 id="login_form"
-                action={~p"/users/log_in"}
+                action={~p"/login"}
                 class="flex flex-col gap-4"
               >
                 <.input

@@ -110,16 +110,7 @@ defmodule CuratorianUmbrella.MixProject do
       "ecto.setup": [
         # Create database once (using either repo)
         "ecto.create -r Curatorian.Repo",
-        fn _ ->
-          Mix.Task.run("app.config")
-          {:ok, _} = Application.ensure_all_started(:postgrex)
-          {:ok, _} = Application.ensure_all_started(:ecto_sql)
-          {:ok, _} = Voile.Repo.start_link()
-          Ecto.Adapters.SQL.query!(Voile.Repo, "CREATE SCHEMA IF NOT EXISTS voile", [])
-          Ecto.Adapters.SQL.query!(Voile.Repo, "CREATE SCHEMA IF NOT EXISTS atrium", [])
-          Ecto.Adapters.SQL.query!(Voile.Repo, "CREATE EXTENSION IF NOT EXISTS citext", [])
-          Mix.shell().info("✓ schemas created: voile, atrium")
-        end,
+        fn _ -> create_db_extensions() end,
 
         # Run Voile migrations first (base tables like users)
         "ecto.migrate -r Voile.Repo",
@@ -192,6 +183,9 @@ defmodule CuratorianUmbrella.MixProject do
         # Create test database once
         "ecto.create -r Curatorian.Repo --quiet",
 
+        # Create schemas and extensions before running migrations
+        fn _ -> create_db_extensions() end,
+
         # Run migrations for both repos
         "ecto.migrate -r Voile.Repo --quiet",
         "ecto.migrate -r Curatorian.Repo --quiet",
@@ -246,6 +240,48 @@ defmodule CuratorianUmbrella.MixProject do
         steps: [:assemble, :tar]
       ]
     ]
+  end
+
+  # Creates the required PostgreSQL schemas and extensions before running
+  # Voile/Curatorian migrations. Must be called after the database exists.
+  #
+  # Key points:
+  #  - Uses Curatorian.Repo (search_path=public) so that the citext extension
+  #    is installed into the `public` schema, making it accessible to all repos.
+  #    If we used Voile.Repo here, citext would land in the `voile` schema only.
+  #  - Handles the {:already_started, pid} case so it's safe to call when
+  #    repos are already running (e.g. during `mix test`).
+  defp create_db_extensions do
+    Mix.Task.run("app.config")
+    {:ok, _} = Application.ensure_all_started(:postgrex)
+    {:ok, _} = Application.ensure_all_started(:ecto_sql)
+
+    # Use Curatorian.Repo (search_path=public) so citext lands in public schema
+    case Curatorian.Repo.start_link() do
+      {:ok, _} -> :ok
+      {:error, {:already_started, _}} -> :ok
+    end
+
+    # Voile.Repo needed for schema creation
+    case Voile.Repo.start_link() do
+      {:ok, _} -> :ok
+      {:error, {:already_started, _}} -> :ok
+    end
+
+    # Install citext into public schema so it is reachable from all search_paths.
+    # Voile's first migration also calls CREATE EXTENSION IF NOT EXISTS citext
+    # (without a schema qualifier), which would place it in the voile schema
+    # when run via Voile.Repo. By pre-creating it in public here, that migration
+    # becomes a no-op and every connection can resolve the citext type.
+    Ecto.Adapters.SQL.query!(
+      Curatorian.Repo,
+      "CREATE EXTENSION IF NOT EXISTS citext WITH SCHEMA public",
+      []
+    )
+
+    Ecto.Adapters.SQL.query!(Voile.Repo, "CREATE SCHEMA IF NOT EXISTS voile", [])
+    Ecto.Adapters.SQL.query!(Voile.Repo, "CREATE SCHEMA IF NOT EXISTS atrium", [])
+    Mix.shell().info("✓ schemas and extensions created: voile, atrium, citext(public)")
   end
 
   defp run_if_exists(rel_path) do

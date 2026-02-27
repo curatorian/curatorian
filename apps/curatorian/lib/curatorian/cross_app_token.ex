@@ -63,8 +63,31 @@ defmodule Curatorian.CrossAppToken do
       user_id: to_string(user_id),
       node_id: node_id,
       node_name: node_name,
-      node_abbr: node_abbr,
+      node_slug: node_abbr,
       roles: Enum.map(roles, & &1.name)
+    }
+
+    Phoenix.Token.sign(CuratorianWeb.Endpoint, @salt, payload)
+  end
+
+  @doc """
+  Signs a cross-app token directly from a User struct.
+  Works for Curatorian community users who may not have a node_id.
+  The roles list must be preloaded on the user.
+  """
+  def sign_user(%Voile.Schema.Accounts.User{} = user) do
+    roles =
+      case user.roles do
+        roles when is_list(roles) -> Enum.map(roles, & &1.name)
+        _ -> []
+      end
+
+    payload = %{
+      user_id: to_string(user.id),
+      node_id: user.node_id,
+      node_name: "",
+      node_slug: "",
+      roles: roles
     }
 
     Phoenix.Token.sign(CuratorianWeb.Endpoint, @salt, payload)

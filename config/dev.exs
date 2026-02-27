@@ -44,25 +44,26 @@ config :assent,
 
 # ===== VOILE ENDPOINT (Port 4001) =====
 config :voile, VoileWeb.Endpoint,
-  http: [
-    ip: {0, 0, 0, 0},
-    port: String.to_integer(System.get_env("VOILE_PORT") || "4001")
-  ],
-  check_origin: false,
-  code_reloader: true,
-  debug_errors: true,
-  secret_key_base: "8yUfAjPlnRwlXp8kQaME2eoN8nXCApsGmofKKaAMoeKsThy5ZHE2XTKdE1fKjH9c",
-  watchers: [
-    esbuild: {Esbuild, :install_and_run, [:voile, ~w(--sourcemap=inline --watch)]},
-    tailwind: {Tailwind, :install_and_run, [:voile, ~w(--watch)]}
-  ],
-  live_reload: [
-    patterns: [
-      ~r"apps/voile/priv/static/(?!uploads/).*(js|css|png|jpeg|jpg|gif|svg)$",
-      ~r"apps/voile/priv/gettext/.*(po)$",
-      ~r"apps/voile/lib/voile_web/(?:controllers|live|components|router)/?.*\.(ex|heex)$"
-    ]
-  ]
+  # http: [
+  #   ip: {0, 0, 0, 0},
+  #   port: String.to_integer(System.get_env("VOILE_PORT") || "4001")
+  # ],
+  # check_origin: false,
+  # code_reloader: true,
+  # debug_errors: true,
+  # secret_key_base: "8yUfAjPlnRwlXp8kQaME2eoN8nXCApsGmofKKaAMoeKsThy5ZHE2XTKdE1fKjH9c",
+  # watchers: [
+  #   esbuild: {Esbuild, :install_and_run, [:voile, ~w(--sourcemap=inline --watch)]},
+  #   tailwind: {Tailwind, :install_and_run, [:voile, ~w(--watch)]}
+  # ],
+  # live_reload: [
+  #   patterns: [
+  #     ~r"apps/voile/priv/static/(?!uploads/).*(js|css|png|jpeg|jpg|gif|svg)$",
+  #     ~r"apps/voile/priv/gettext/.*(po)$",
+  #     ~r"apps/voile/lib/voile_web/(?:controllers|live|components|router)/?.*\.(ex|heex)$"
+  #   ]
+  # ]
+  server: false
 
 # ===== CURATORIAN ENDPOINT (Port 4000) =====
 config :curatorian, CuratorianWeb.Endpoint,
@@ -107,8 +108,10 @@ config :phoenix_live_view,
 # ===== SWOOSH (Email) =====
 config :swoosh, :api_client, false
 
-# Use Gmail API adapter in development if requested
-if System.get_env("VOILE_MAILER_ADAPTER") == "gmail_api" do
+# Use Gmail API adapter in development only when credentials are fully configured
+if System.get_env("VOILE_MAILER_ADAPTER") == "gmail_api" &&
+     System.get_env("VOILE_GMAIL_CLIENT_ID") not in [nil, ""] &&
+     System.get_env("VOILE_GMAIL_CLIENT_SECRET") not in [nil, ""] do
   config :voile, Voile.Mailer,
     adapter: Voile.Mailer.GmailApiAdapter,
     access_token: System.get_env("VOILE_GMAIL_ACCESS_TOKEN"),
@@ -117,6 +120,11 @@ if System.get_env("VOILE_MAILER_ADAPTER") == "gmail_api" do
     client_secret: System.get_env("VOILE_GMAIL_CLIENT_SECRET"),
     redirect_uri: System.get_env("VOILE_GMAIL_REDIRECT_URI")
 end
+
+# Always force both mailers to the local in-memory adapter in this dev environment.
+# This intentionally overrides any Gmail config above — Curatorian uses /dev/mailbox.
+config :voile, Voile.Mailer, adapter: Swoosh.Adapters.Local
+config :curatorian, Curatorian.Mailer, adapter: Swoosh.Adapters.Local
 
 # Disable email queue in development
 config :voile, :disable_email_queue, false

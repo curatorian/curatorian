@@ -34,13 +34,23 @@ defmodule CuratorianWeb.Plugs.CrossAppCookie do
   def put_cross_app_cookie(conn, nil), do: conn
 
   def put_cross_app_cookie(conn, token) do
-    put_resp_cookie(conn, @cookie_name, token,
-      domain: cookie_domain(),
+    base_opts = [
       http_only: true,
       secure: secure?(),
       same_site: "Lax",
       max_age: Curatorian.CrossAppToken.max_age()
-    )
+    ]
+
+    # On localhost, omit the domain attribute entirely.
+    # "localhost" as a domain value is inconsistently handled across browsers;
+    # host-only cookies (no domain) are reliably shared across ports on the same host.
+    opts =
+      case cookie_domain() do
+        d when d in [nil, "", "localhost"] -> base_opts
+        domain -> Keyword.put(base_opts, :domain, domain)
+      end
+
+    put_resp_cookie(conn, @cookie_name, token, opts)
   end
 
   @doc "Clears the cross-app cookie. Call on logout."

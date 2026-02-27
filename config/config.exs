@@ -142,6 +142,9 @@ config :curatorian,
   ecto_repos: [Curatorian.Repo],
   generators: [timestamp_type: :utc_datetime]
 
+# Expose the Mix env at runtime so plugs can check it (e.g. CrossAppCookie secure?)
+config :curatorian, :env, config_env()
+
 # Configures Curatorian endpoint
 config :curatorian, CuratorianWeb.Endpoint,
   url: [host: "localhost"],

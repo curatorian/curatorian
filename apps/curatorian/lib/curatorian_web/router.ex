@@ -46,8 +46,8 @@ defmodule CuratorianWeb.Router do
   scope "/", CuratorianWeb do
     pipe_through :browser
 
-    post "/users/log_in", UserSessionController, :create
-    delete "/users/log_out", UserSessionController, :delete
+    post "/login", UserSessionController, :create
+    delete "/logout", UserSessionController, :delete
   end
 
   # Auth LiveViews — mounts scope but does NOT require authentication.
@@ -59,6 +59,8 @@ defmodule CuratorianWeb.Router do
       on_mount: [{CuratorianWeb.UserAuth, :mount_current_scope}] do
       live "/login", UserLoginLive, :new
       live "/register", UserRegistrationLive, :new
+      live "/users/pending_confirmation", UserPendingConfirmationLive, :new
+      live "/users/confirm/:token", UserConfirmationLive, :edit
     end
   end
 
