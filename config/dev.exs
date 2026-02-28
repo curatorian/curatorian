@@ -1,7 +1,14 @@
+# config/dev.exs
 import Config
 
 # ===== SHARED DATABASE CONFIGURATION =====
-# Both Voile and Curatorian use the SAME database
+# Both Voile and Curatorian connect to the same PostgreSQL database.
+# Schema separation is enforced via search_path set in config.exs after_connect.
+#
+# Schema layout:
+#   voile  schema → all Voile tables (users, nodes, collections, items, etc.)
+#   atrium schema → all Atrium tables (subscriptions, user_profiles, webinars, etc.)
+#   public schema → intentionally empty
 
 shared_db_config = [
   username: System.get_env("POSTGRES_USER") || "postgres",
@@ -14,56 +21,10 @@ shared_db_config = [
   parameters: [timezone: "Asia/Jakarta"]
 ]
 
-# Voile Repo - points to shared database
-config :voile,
-       Voile.Repo,
-       shared_db_config ++
-         [after_connect: {Postgrex, :query!, ["SET search_path TO voile,public", []]}]
-
-# Curatorian Repo - points to SAME database
-config :curatorian,
-       Curatorian.Repo,
-       shared_db_config ++
-         [after_connect: {Postgrex, :query!, ["SET search_path TO public", []]}]
-
-# MySQL/MariaDB source (for SLiMS migration)
-config :voile, :mysql_source,
-  hostname: "localhost",
-  port: 3306,
-  username: "root",
-  password: "",
-  database: "slims_gold"
-
-# ===== OAUTH CONFIGURATION =====
-config :assent,
-  google: [
-    client_id: System.get_env("VOILE_GOOGLE_CLIENT_ID"),
-    client_secret: System.get_env("VOILE_GOOGLE_CLIENT_SECRET"),
-    redirect_uri: System.get_env("VOILE_GOOGLE_REDIRECT_URI")
-  ]
-
-# ===== VOILE ENDPOINT (Port 4001) =====
-config :voile, VoileWeb.Endpoint,
-  # http: [
-  #   ip: {0, 0, 0, 0},
-  #   port: String.to_integer(System.get_env("VOILE_PORT") || "4001")
-  # ],
-  # check_origin: false,
-  # code_reloader: true,
-  # debug_errors: true,
-  # secret_key_base: "8yUfAjPlnRwlXp8kQaME2eoN8nXCApsGmofKKaAMoeKsThy5ZHE2XTKdE1fKjH9c",
-  # watchers: [
-  #   esbuild: {Esbuild, :install_and_run, [:voile, ~w(--sourcemap=inline --watch)]},
-  #   tailwind: {Tailwind, :install_and_run, [:voile, ~w(--watch)]}
-  # ],
-  # live_reload: [
-  #   patterns: [
-  #     ~r"apps/voile/priv/static/(?!uploads/).*(js|css|png|jpeg|jpg|gif|svg)$",
-  #     ~r"apps/voile/priv/gettext/.*(po)$",
-  #     ~r"apps/voile/lib/voile_web/(?:controllers|live|components|router)/?.*\.(ex|heex)$"
-  #   ]
-  # ]
-  server: false
+# after_connect is already set per-repo in config.exs with the correct search_path.
+# These dev configs only add connection details — they merge, not replace.
+config :voile, Voile.Repo, shared_db_config
+config :curatorian, Curatorian.Repo, shared_db_config
 
 # ===== CURATORIAN ENDPOINT (Port 4000) =====
 config :curatorian, CuratorianWeb.Endpoint,
@@ -89,7 +50,19 @@ config :curatorian, CuratorianWeb.Endpoint,
     ]
   ]
 
-# ===== DEVELOPMENT ROUTES =====
+# Voile web server is disabled — Voile runs as a compiled library dep only.
+# Curatorian (4000) is the public frontend. Atrium (4001) is the private dashboard.
+config :voile, VoileWeb.Endpoint, server: false
+
+# ===== OAUTH =====
+config :assent,
+  google: [
+    client_id: System.get_env("VOILE_GOOGLE_CLIENT_ID"),
+    client_secret: System.get_env("VOILE_GOOGLE_CLIENT_SECRET"),
+    redirect_uri: System.get_env("VOILE_GOOGLE_REDIRECT_URI")
+  ]
+
+# ===== DEVELOPMENT FLAGS =====
 config :voile, dev_routes: true
 config :curatorian, dev_routes: true
 
@@ -105,31 +78,22 @@ config :phoenix_live_view,
   debug_attributes: true,
   enable_expensive_runtime_checks: true
 
-# ===== SWOOSH (Email) =====
+# ===== MAILER =====
 config :swoosh, :api_client, false
-
-# Use Gmail API adapter in development only when credentials are fully configured
-if System.get_env("VOILE_MAILER_ADAPTER") == "gmail_api" &&
-     System.get_env("VOILE_GMAIL_CLIENT_ID") not in [nil, ""] &&
-     System.get_env("VOILE_GMAIL_CLIENT_SECRET") not in [nil, ""] do
-  config :voile, Voile.Mailer,
-    adapter: Voile.Mailer.GmailApiAdapter,
-    access_token: System.get_env("VOILE_GMAIL_ACCESS_TOKEN"),
-    refresh_token: System.get_env("VOILE_GMAIL_REFRESH_TOKEN"),
-    client_id: System.get_env("VOILE_GMAIL_CLIENT_ID"),
-    client_secret: System.get_env("VOILE_GMAIL_CLIENT_SECRET"),
-    redirect_uri: System.get_env("VOILE_GMAIL_REDIRECT_URI")
-end
-
-# Always force both mailers to the local in-memory adapter in this dev environment.
-# This intentionally overrides any Gmail config above — Curatorian uses /dev/mailbox.
 config :voile, Voile.Mailer, adapter: Swoosh.Adapters.Local
 config :curatorian, Curatorian.Mailer, adapter: Swoosh.Adapters.Local
 
-# Disable email queue in development
 config :voile, :disable_email_queue, false
 
-# ===== XENDIT (Payment Gateway - Development) =====
+# ===== MYSQL (SLiMS Migration Source) =====
+config :voile, :mysql_source,
+  hostname: "localhost",
+  port: 3306,
+  username: "root",
+  password: "",
+  database: "slims_gold"
+
+# ===== XENDIT (Development) =====
 config :voile,
   xendit_api_key:
     System.get_env("VOILE_XENDIT_API_KEY") || "xnd_development_REPLACE_WITH_YOUR_KEY",

@@ -201,7 +201,9 @@ defmodule CuratorianWeb.Layouts do
                     />
                   <% end %>
                 </.link>
-                <.link href="/dashboard" class="btn-primary no-underline text-xs">Dashboard</.link>
+                <.link href="http://localhost:4001/dashboard" class="btn-primary no-underline text-xs">
+                  Dashboard
+                </.link>
                 <.link href="/logout" method="delete" class="no-underline btn-cancel text-xs">
                   Log out
                 </.link>

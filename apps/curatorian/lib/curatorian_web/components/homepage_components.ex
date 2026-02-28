@@ -66,7 +66,7 @@ defmodule CuratorianWeb.HomepageComponents do
         <h3 class="text-center md:text-left py-5">Cara Kerja Curatorian ?</h3>
 
         <p class="text-justify">
-          Curatorian akan memberikan berbagai fitur bagi penggunanya untuk membuat profil mereka masing-masing (seperti Linkedin), membangun halaman profil dari lembaga dan organisasi tempat mereka bekerja atau berkarya (seperti halaman Facebook), membuat dan membagikan kegiatan serta event yang berkaitan dengan kurasi koleksi (Event Organization), serta berbagi pengalaman dan pengetahuan yang dimiliki. Untuk mempermudah koneksi dan kolaborasi, Curatorian juga akan memberikan fitur Kolaborasi Projek (Upwork / Freelance) serta Daftar Lowongan Kerja (seperti Glints). Dan terakhir akan ada fitur Live Chat & Voice Chat untuk seluruh user dalam bentuk grup (kanal) maupun personal (seperti Discord).
+          Curatorian akan memberikan berbagai fitur bagi penggunanya untuk membuat profil mereka masing-masing (seperti Linkedin), membangun halaman profil dari lembaga dan organisasi tempat mereka bekerja atau berkarya (seperti halaman Facebook), membuat dan membagikan kegiatan serta event yang berkaitan dengan kurasi koleksi (Event Organization), serta berbagi pengalaman dan pengetahuan yang dimiliki. Untuk mempermudah koneksi dan kolaborasi, Curatorian juga akan memberikan fitur Kolaborasi Projek (Upwork / Freelance) serta Daftar Lowongan Kerja (seperti Glints).
         </p>
       </div>
     </div>

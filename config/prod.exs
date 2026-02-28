@@ -1,21 +1,19 @@
 import Config
 
 # ===== VOILE PRODUCTION =====
-config :voile, VoileWeb.Endpoint, cache_static_manifest: "priv/static/cache_manifest.json"
+# config :voile, VoileWeb.Endpoint, cache_static_manifest: "priv/static/cache_manifest.json"
 
-# ===== CURATORIAN PRODUCTION =====
+# Voile web server is disabled — no cache manifest needed.
+# Curatorian is the only public-facing web app in this deployment.
 config :curatorian, CuratorianWeb.Endpoint,
   cache_static_manifest: "priv/static/cache_manifest.json"
 
-# ===== SWOOSH (Email) =====
+# ===== SWOOSH =====
 config :swoosh, api_client: Swoosh.ApiClient.Finch, finch_name: Voile.Finch
 config :swoosh, local: false
 
 # ===== LOGGER =====
 config :logger, level: :info
-
-# ===== EMAIL QUEUE =====
-config :voile, disable_email_queue: false
 
 # Gmail SMTP setup instructions:
 # To use Gmail SMTP, set these environment variables:
