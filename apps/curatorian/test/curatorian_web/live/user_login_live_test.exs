@@ -10,6 +10,8 @@ defmodule CuratorianWeb.UserLoginLiveTest do
 
       assert html =~ "Sign in"
       assert html =~ "Create an account"
+      assert html =~ "Sign in with Google"
+      assert html =~ "/auth/google"
     end
 
     test "redirects if already logged in", %{conn: conn} do

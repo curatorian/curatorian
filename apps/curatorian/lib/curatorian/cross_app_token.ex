@@ -84,7 +84,7 @@ defmodule Curatorian.CrossAppToken do
 
     payload = %{
       user_id: to_string(user.id),
-      node_id: user.node_id,
+      node_id: user.node_id || 1,
       node_name: "",
       node_slug: "",
       roles: roles

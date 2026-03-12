@@ -210,42 +210,19 @@ admin_member_type = Enum.find(created_member_types, fn mt -> mt.slug == "adminis
 
 # Create the admin user using proper changeset validation
 admin_user_attrs = %{
-  email: "admin@voile.id",
-  fullname: "Voile Administrator",
+  email: "admin@curatorian.id",
+  fullname: "Curatorian Administrator",
   username: "admin",
   password: "super_long_password",
   user_type_id: admin_member_type.id,
   confirmed_at: DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_naive()
 }
 
-reviewer_user_attrs = %{
-  email: "reviewer@voile.id",
-  fullname: "Voile Reviewer",
-  username: "reviewer",
-  password: "super_long_password",
-  user_type_id: admin_member_type.id,
-  confirmed_at: DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_naive()
-}
-
 admin_user =
-  case Repo.get_by(Accounts.User, email: "admin@voile.id") do
+  case Repo.get_by(Accounts.User, email: "admin@curatorian.id") do
     nil ->
       %Accounts.User{}
       |> Accounts.User.registration_changeset(admin_user_attrs,
-        hash_password: true,
-        validate_email: false
-      )
-      |> Repo.insert!()
-
-    existing_user ->
-      existing_user
-  end
-
-reviewer_user =
-  case Repo.get_by(Accounts.User, email: "reviewer@voile.id") do
-    nil ->
-      %Accounts.User{}
-      |> Accounts.User.registration_changeset(reviewer_user_attrs,
         hash_password: true,
         validate_email: false
       )
@@ -290,62 +267,3 @@ if super_admin_role do
 else
   IO.puts("⚠️  super_admin role not found. Please run authorization seeds first.")
 end
-
-# Add Master Location for each items
-alias Voile.Schema.Master.Location
-
-list_locations = [
-  %{
-    location_code: "kandaga-sirkulasi",
-    location_name: "Ruang Sirkulasi, Kandaga",
-    location_place: "Gd. Grha Kandaga Lantai 3 Universitas Padjadjaran",
-    location_type: "circulation",
-    description: "Lokasi utama untuk sirkulasi koleksi fisik di Kandaga",
-    notes: "Hanya untuk koleksi fisik",
-    is_active: true,
-    node_id: 20
-  },
-  %{
-    location_code: "kandaga-referensi",
-    location_name: "Ruang Referensi, Kandaga",
-    location_place: "Gd. Grha Kandaga Lantai 4 Universitas Padjadjaran",
-    location_type: "reference",
-    description: "Lokasi untuk koleksi referensi di Kandaga",
-    notes: "Koleksi tidak boleh dipinjamkan",
-    is_active: true,
-    node_id: 20
-  },
-  %{
-    location_code: "kandaga-populer",
-    location_name: "Ruang Koleksi Populer, Kandaga",
-    location_place: "Gd. Grha Kandaga Lantai 4 Universitas Padjadjaran",
-    location_type: "popular",
-    description: "Lokasi untuk koleksi populer untuk peminjaman cepat",
-    notes: "",
-    is_active: true,
-    node_id: 20
-  },
-  %{
-    location_code: "kandaga-lama",
-    location_name: "Ruang Koleksi Lama, Kandaga",
-    location_place: "Gd. Grha Kandaga Lantai 3 Universitas Padjadjaran",
-    location_type: "rare_collection",
-    description: "Lokasi untuk koleksi lama dan langka di Kandaga",
-    notes: "Akses terbatas, hubungi staf untuk bantuan",
-    is_active: true,
-    node_id: 20
-  }
-]
-
-Enum.each(list_locations, fn location_attrs ->
-  case Repo.get_by(Location, location_code: location_attrs.location_code) do
-    nil ->
-      %Location{}
-      |> Location.changeset(location_attrs)
-      |> Repo.insert!()
-      |> (fn _ -> IO.puts("✅ Created location #{location_attrs.location_code}") end).()
-
-    _existing_location ->
-      IO.puts("ℹ️  Location #{location_attrs.location_code} already exists")
-  end
-end)

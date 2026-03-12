@@ -70,6 +70,13 @@ defmodule CuratorianWeb.UserLoginLive do
                 </.button>
               </.form>
 
+              <%!-- OAuth login --%>
+              <div class="mt-4">
+                <a href="/auth/google" class="btn btn-outline btn-primary w-full">
+                  Sign in with Google
+                </a>
+              </div>
+
               <div class="divider text-base-content/40 text-xs">Don't have an account?</div>
 
               <.link

@@ -53,128 +53,8 @@ end
 # Populate the Node List
 node_list = [
   %{
-    name: "Fakultas Hukum",
-    abbr: "FH",
-    description: nil,
-    image: nil
-  },
-  %{
-    name: "Fakultas Ekonomi dan Bisnis",
-    abbr: "FEB",
-    description: nil,
-    image: nil
-  },
-  %{
-    name: "Fakultas Kedokteran",
-    abbr: "FK",
-    description: nil,
-    image: nil
-  },
-  %{
-    name: "Fakultas Matematika dan Ilmu Pengetahuan Alam",
-    abbr: "FMIPA",
-    description: nil,
-    image: nil
-  },
-  %{
-    name: "Fakultas Pertanian",
-    abbr: "FAPERTA",
-    description: nil,
-    image: nil
-  },
-  %{
-    name: "Fakultas Kedokteran Gigi",
-    abbr: "FKG",
-    description: nil,
-    image: nil
-  },
-  %{
-    name: "Fakultas Ilmu Sosial dan Ilmu Politik",
-    abbr: "FISIP",
-    description: nil,
-    image: nil
-  },
-  %{
-    name: "Fakultas Ilmu Budaya",
-    abbr: "FIB",
-    description: nil,
-    image: nil
-  },
-  %{
-    name: "Fakultas Psikologi",
-    abbr: "FAPSI",
-    description: nil,
-    image: nil
-  },
-  %{
-    name: "Fakultas Peternakan",
-    abbr: "FAPET",
-    description: nil,
-    image: nil
-  },
-  %{
-    name: "Fakultas Ilmu Komunikasi",
-    abbr: "FIKOM",
-    description: nil,
-    image: nil
-  },
-  %{
-    name: "Fakultas Keperawatan",
-    abbr: "FKEP",
-    description: nil,
-    image: nil
-  },
-  %{
-    name: "Fakultas Perikanan dan Ilmu Kelautan",
-    abbr: "FPIK",
-    description: nil,
-    image: nil
-  },
-  %{
-    name: "Fakultas Teknologi Industri Pertanian",
-    abbr: "FTIP",
-    description: nil,
-    image: nil
-  },
-  %{
-    name: "Sekolah Pascasarjana",
-    abbr: "SPS",
-    description: nil,
-    image: nil
-  },
-  %{
-    name: "Fakultas Farmasi",
-    abbr: "FARMASI",
-    description: nil,
-    image: nil
-  },
-  %{
-    name: "Fakultas Teknik Geologi",
-    abbr: "FTG",
-    description: nil,
-    image: nil
-  },
-  %{
-    name: "Perpustakaan Pangandaran",
-    abbr: "Pangandaran",
-    description: nil,
-    image: nil
-  },
-  %{
-    name: "Perpustakaan Garut",
-    abbr: "Garut",
-    description: nil,
-    image: nil
-  },
-  %{
-    name: "Perpustakaan Pusat",
-    abbr: "Kandaga",
-    description: nil,
-    image: nil
-  },
-  %{
-    name: "Fakultas Vokasi",
-    abbr: "Vokasi",
+    name: "Curatorian",
+    abbr: "curatorian",
     description: nil,
     image: nil
   }
@@ -206,16 +86,16 @@ alias Voile.Schema.System
 IO.puts("Seeding default application profile and theme...")
 
 # App identity
-System.upsert_setting("app_name", "Voile")
+System.upsert_setting("app_name", "Curatorian")
 
 System.upsert_setting(
   "app_description",
   "A gentle digital sanctuary for libraries, museums, and archives — curated for discovery and wonder."
 )
 
-System.upsert_setting("app_contact_email", "chrisna.adhi@unpad.ac.id")
+System.upsert_setting("app_contact_email", "chrisnaadhip@gmail.com")
 System.upsert_setting("app_website", "https://curatorian.id")
-System.upsert_setting("app_address", "Kandaga Universitas Padjadjaran, Jatinangor, Indonesia")
+System.upsert_setting("app_address", "Curatorian Network")
 
 # Logo (default to packaged icon)
 System.upsert_setting("app_logo_url", "/images/v.png")

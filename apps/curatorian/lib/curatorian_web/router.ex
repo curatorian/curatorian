@@ -48,6 +48,10 @@ defmodule CuratorianWeb.Router do
 
     post "/login", UserSessionController, :create
     delete "/logout", UserSessionController, :delete
+
+    # OAuth callbacks
+    get "/auth/google", GoogleAuthController, :request
+    get "/auth/google/callback", GoogleAuthController, :callback
   end
 
   # Auth LiveViews — mounts scope but does NOT require authentication.

@@ -18,9 +18,7 @@ seed_files = [
   "seeds/voile/master.exs",
   "seeds/voile/metadata_resource_class.exs",
   "seeds/voile/metadata_properties.exs",
-  "seeds/voile/glams.exs",
   "seeds/voile/authorization_seeds_runner.exs",
-  "seeds/voile/pustakawan.exs",
   # application-level RBAC seeds (optional)
   "seeds_rbac.exs"
 ]
