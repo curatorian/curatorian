@@ -214,6 +214,7 @@ admin_user_attrs = %{
   fullname: "Curatorian Administrator",
   username: "admin",
   password: "super_long_password",
+  node_id: 1,
   user_type_id: admin_member_type.id,
   confirmed_at: DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_naive()
 }
@@ -245,21 +246,6 @@ if super_admin_role do
 
     {:error, %Ecto.Changeset{errors: [role_id: {"has already been taken", _}]}} ->
       IO.puts("ℹ️  Admin user already has super_admin role")
-
-    {:error, reason} ->
-      IO.puts("⚠️  Failed to assign super_admin role: #{inspect(reason)}")
-  end
-else
-  IO.puts("⚠️  super_admin role not found. Please run authorization seeds first.")
-end
-
-if super_admin_role do
-  case Authorization.assign_role(reviewer_user.id, super_admin_role.id) do
-    {:ok, _assignment} ->
-      IO.puts("✅ Assigned super_admin role to #{reviewer_user.email}")
-
-    {:error, %Ecto.Changeset{errors: [role_id: {"has already been taken", _}]}} ->
-      IO.puts("ℹ️  Reviewer user already has super_admin role")
 
     {:error, reason} ->
       IO.puts("⚠️  Failed to assign super_admin role: #{inspect(reason)}")

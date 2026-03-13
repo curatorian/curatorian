@@ -1,5 +1,7 @@
 import Config
 
+config :curatorian, :atrium_url, System.get_env("ATRIUM_URL", "https://atrium.curatorian.id")
+
 # ===== VOILE PRODUCTION =====
 # config :voile, VoileWeb.Endpoint, cache_static_manifest: "priv/static/cache_manifest.json"
 

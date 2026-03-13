@@ -1,6 +1,8 @@
 # config/dev.exs
 import Config
 
+config :curatorian, :atrium_url, "http://localhost:4001"
+
 # ===== SHARED DATABASE CONFIGURATION =====
 # Both Voile and Curatorian connect to the same PostgreSQL database.
 # Schema separation is enforced via search_path set in config.exs after_connect.

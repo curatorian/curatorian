@@ -231,11 +231,12 @@ defmodule CuratorianWeb.UserAuth do
   # Curatorian is a frontend-only app that delegates to Voile for auth.
   defp signed_in_path(%Voile.Schema.Accounts.User{} = user) do
     user = Voile.Repo.preload(user, [:user_type, :roles])
+    atrium_url = Application.get_env(:curatorian, :atrium_url, "http://localhost:4001")
 
     cond do
-      Enum.any?(user.roles, &(&1.name == "super_admin")) -> "/manage"
-      user.user_type && user.user_type.slug in ["administrator", "staff"] -> "/manage"
-      user.user_type && String.starts_with?(user.user_type.slug, "member_") -> "/atrium"
+      Enum.any?(user.roles, &(&1.name == "super_admin")) -> atrium_url <> "/dashboard"
+      user.user_type && user.user_type.slug in ["administrator", "staff"] -> atrium_url <> "/dashboard"
+      user.user_type && String.starts_with?(user.user_type.slug, "member_") -> atrium_url <> "/dashboard"
       true -> "/"
     end
   end
