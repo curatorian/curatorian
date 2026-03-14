@@ -47,7 +47,10 @@ defmodule CuratorianWeb.Router do
     pipe_through :browser
 
     post "/login", UserSessionController, :create
+    # DELETE is used by same-app logout links; GET allows cross-app redirect-based logout
+    # (e.g. Atrium redirecting here after clearing its own session).
     delete "/logout", UserSessionController, :delete
+    get "/logout", UserSessionController, :delete
 
     # OAuth callbacks
     get "/auth/google", GoogleAuthController, :request

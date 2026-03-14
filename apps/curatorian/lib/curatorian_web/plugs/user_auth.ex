@@ -88,7 +88,7 @@ defmodule CuratorianWeb.UserAuth do
 
       conn
       |> create_or_extend_session(user, params)
-      |> redirect(to: user_return_to || signed_in_path(user))
+      |> redirect_after_login(user_return_to || signed_in_path(user))
     end
   end
 
@@ -229,6 +229,14 @@ defmodule CuratorianWeb.UserAuth do
 
   # Note: These paths are handled by Voile's routes, not Curatorian's.
   # Curatorian is a frontend-only app that delegates to Voile for auth.
+  defp redirect_after_login(conn, path_or_url) do
+    if String.starts_with?(path_or_url, "http://") or String.starts_with?(path_or_url, "https://") do
+      redirect(conn, external: path_or_url)
+    else
+      redirect(conn, to: path_or_url)
+    end
+  end
+
   defp signed_in_path(%Voile.Schema.Accounts.User{} = user) do
     user = Voile.Repo.preload(user, [:user_type, :roles])
     atrium_url = Application.get_env(:curatorian, :atrium_url, "http://localhost:4001")

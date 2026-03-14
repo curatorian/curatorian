@@ -567,7 +567,7 @@ properties_list = [
     local_name: "editorList",
     label: "list of editors",
     comment:
-      "An ordered list of editors. Normally this list is seen as a priority list that order editors by importance.",
+      "An ordered list of editors. Normally, this list is seen as a priority list that order editors by importance.",
     type_value: "textarea"
   },
   %{
@@ -798,6 +798,890 @@ properties_list = [
     local_name: "gtin14",
     label: "gtin14",
     comment: nil,
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 3,
+    local_name: "handle",
+    label: "handle",
+    comment: nil,
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 3,
+    local_name: "isbn",
+    label: "isbn",
+    comment: nil,
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 3,
+    local_name: "isbn10",
+    label: "isbn10",
+    comment: nil,
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 3,
+    local_name: "isbn13",
+    label: "isbn13",
+    comment: nil,
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 3,
+    local_name: "issn",
+    label: "issn",
+    comment: nil,
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 3,
+    local_name: "issue",
+    label: "issue",
+    comment: "An issue number",
+    type_value: "number"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 3,
+    local_name: "lccn",
+    label: "lccn",
+    comment: nil,
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 3,
+    local_name: "locator",
+    label: "locator",
+    comment:
+      "A description (often numeric) that locates an item within a containing document or collection.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 3,
+    local_name: "numPages",
+    label: "number of pages",
+    comment: "The number of pages contained in a document",
+    type_value: "number"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 3,
+    local_name: "numVolumes",
+    label: "number of volumes",
+    comment:
+      "The number of volumes contained in a collection of documents (usually a series, periodical, etc.).",
+    type_value: "number"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 3,
+    local_name: "number",
+    label: "number",
+    comment: "A generic item or document number. Not to be confused with issue number.",
+    type_value: "number"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 3,
+    local_name: "oclcnum",
+    label: "oclcnum",
+    comment: nil,
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 3,
+    local_name: "pageEnd",
+    label: "page end",
+    comment: "Ending page number within a continuous page range.",
+    type_value: "number"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 3,
+    local_name: "pageStart",
+    label: "page start",
+    comment: "Starting page number within a continuous page range.",
+    type_value: "number"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 3,
+    local_name: "pages",
+    label: "pages",
+    comment:
+      "A string of non-contiguous page spans that locate a Document within a Collection. Example: 23-25, 34, 54-56. For continuous page ranges, use the pageStart and pageEnd properties.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 3,
+    local_name: "pmid",
+    label: "pmid",
+    comment: nil,
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 3,
+    local_name: "prefixName",
+    label: "prefix name",
+    comment: "The prefix of a name",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 3,
+    local_name: "section",
+    label: "section",
+    comment: "A section number",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 3,
+    local_name: "shortDescription",
+    label: "shortDescription",
+    comment: nil,
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 3,
+    local_name: "shortTitle",
+    label: "short title",
+    comment: "The abbreviation of a title.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 3,
+    local_name: "sici",
+    label: "sici",
+    comment: nil,
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 3,
+    local_name: "suffixName",
+    label: "suffix name",
+    comment: "The suffix of a name",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 3,
+    local_name: "upc",
+    label: "upc",
+    comment: nil,
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 3,
+    local_name: "uri",
+    label: "uri",
+    comment: "Universal Resource Identifier of a document",
+    type_value: "url"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 3,
+    local_name: "volume",
+    label: "volume",
+    comment: "A volume number",
+    type_value: "number"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "mbox",
+    label: "personal mailbox",
+    comment:
+      "A  personal mailbox, ie. an Internet mailbox associated with exactly one owner, the first owner of this mailbox. This is a 'static inverse functional property', in that  there is (across time and change) at most one individual that ever has any particular value for foaf:mbox.",
+    type_value: "email"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "mbox_sha1sum",
+    label: "sha1sum of a personal mailbox URI name",
+    comment:
+      "The sha1sum of the URI of an Internet mailbox associated with exactly one owner, the  first owner of the mailbox.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "gender",
+    label: "gender",
+    comment: "The gender of this Agent (typically but not necessarily 'male' or 'female').",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "geekcode",
+    label: "geekcode",
+    comment: "A textual geekcode for this person, see http:\/\/www.geekcode.com\/geek.html",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "dnaChecksum",
+    label: "DNA checksum",
+    comment: "A checksum for the DNA of some thing. Joke.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "sha1",
+    label: "sha1sum (hex)",
+    comment: "A sha1sum hash, in hex.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "based_near",
+    label: "based near",
+    comment: "A location that something is based near, for some broadly human notion of near.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "person_title",
+    label: "person title",
+    comment: "Title (Mr, Mrs, Ms, Dr. etc)",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "nick",
+    label: "nickname",
+    comment:
+      "A short informal nickname characterising an agent (includes login identifiers, IRC and other chat nicknames).",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "jabberID",
+    label: "jabber ID",
+    comment: "A jabber ID for something.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "aimChatID",
+    label: "AIM chat ID",
+    comment: "An AIM chat ID",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "skypeID",
+    label: "Skype ID",
+    comment: "A Skype ID",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "icqChatID",
+    label: "ICQ chat ID",
+    comment: "An ICQ chat ID",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "yahooChatID",
+    label: "Yahoo chat ID",
+    comment: "A Yahoo chat ID",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "msnChatID",
+    label: "MSN chat ID",
+    comment: "An MSN chat ID",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "name",
+    label: "name",
+    comment: "A name for some thing.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "firstName",
+    label: "firstName",
+    comment: "The first name of a person.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "lastName",
+    label: "lastName",
+    comment: "The last name of a person.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "givenName",
+    label: "Given name",
+    comment: "The given name of some person.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "surname",
+    label: "Surname",
+    comment: "The surname of some person.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "family_name",
+    label: "family_name",
+    comment: "The family name of some person.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "familyName",
+    label: "familyName",
+    comment: "The family name of some person.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "phone",
+    label: "phone",
+    comment:
+      "A phone,  specified using fully qualified tel: URI scheme (refs: http:\/\/www.w3.org\/Addressing\/schemes.html#tel).",
+    type_value: "tel"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "homepage",
+    label: "homepage",
+    comment: "A homepage for some thing.",
+    type_value: "url"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "weblog",
+    label: "weblog",
+    comment: "A weblog of some thing (whether person, group, company etc.).",
+    type_value: "url"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "openid",
+    label: "openid",
+    comment: "An OpenID for an Agent.",
+    type_value: "url"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "tipjar",
+    label: "tipjar",
+    comment: "A tipjar document for this agent, describing means for payment and reward.",
+    type_value: "url"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "plan",
+    label: "plan",
+    comment: "A .plan comment, in the tradition of finger and '.plan' files.",
+    type_value: "textarea"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "made",
+    label: "made",
+    comment: "Something that was made by this agent.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "maker",
+    label: "maker",
+    comment: "An agent that  made this thing.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "img",
+    label: "image",
+    comment:
+      "An image that can be used to represent some thing (ie. those depictions which are particularly representative of something, eg. one's photo on a homepage).",
+    type_value: "file"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "depiction",
+    label: "depiction",
+    comment: "A depiction of some thing.",
+    type_value: "file"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "depicts",
+    label: "depicts",
+    comment: "A thing depicted in this representation.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "thumbnail",
+    label: "thumbnail",
+    comment: "A derived thumbnail image.",
+    type_value: "file"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "myersBriggs",
+    label: "myersBriggs",
+    comment: "A Myers Briggs (MBTI) personality classification.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "workplaceHomepage",
+    label: "workplace homepage",
+    comment:
+      "A workplace homepage of some person; the homepage of an organization they work for.",
+    type_value: "url"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "workInfoHomepage",
+    label: "work info homepage",
+    comment:
+      "A work info homepage of some person; a page about their work for some organization.",
+    type_value: "url"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "schoolHomepage",
+    label: "schoolHomepage",
+    comment: "A homepage of a school attended by the person.",
+    type_value: "url"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "knows",
+    label: "knows",
+    comment:
+      "A person known by this person (indicating some level of reciprocated interaction between the parties).",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "interest",
+    label: "interest",
+    comment: "A page about a topic of interest to this person.",
+    type_value: "url"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "topic_interest",
+    label: "topic_interest",
+    comment: "A thing of interest to this person.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "publications",
+    label: "publications",
+    comment: "A link to the publications of this person.",
+    type_value: "url"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "currentProject",
+    label: "current project",
+    comment: "A current project this person works on.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "pastProject",
+    label: "past project",
+    comment: "A project this person has previously worked on.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "fundedBy",
+    label: "funded by",
+    comment: "An organization funding a project or person.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "logo",
+    label: "logo",
+    comment: "A logo representing some thing.",
+    type_value: "file"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "topic",
+    label: "topic",
+    comment: "A topic of some page or document.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "primaryTopic",
+    label: "primary topic",
+    comment: "The primary topic of some page or document.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "focus",
+    label: "focus",
+    comment: "The underlying or 'focal' entity associated with some SKOS-described concept.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "isPrimaryTopicOf",
+    label: "is primary topic of",
+    comment: "A document that this thing is the primary topic of.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "page",
+    label: "page",
+    comment: "A page or document about this thing.",
+    type_value: "url"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "theme",
+    label: "theme",
+    comment: "A theme.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "account",
+    label: "account",
+    comment: "Indicates an account held by this agent.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "holdsAccount",
+    label: "holds account",
+    comment: "Indicates an account held by this agent.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "accountServiceHomepage",
+    label: "account service homepage",
+    comment: "Indicates a homepage of the service provide for this online account.",
+    type_value: "url"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "accountName",
+    label: "account name",
+    comment: "Indicates the name (identifier) associated with this online account.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "member",
+    label: "member",
+    comment: "Indicates a member of a Group",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "membershipClass",
+    label: "membershipClass",
+    comment: "Indicates the class of individuals that are a member of a Group",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "birthday",
+    label: "birthday",
+    comment: "The birthday of this Agent, represented in mm-dd string form, eg. '12-31'.",
+    type_value: "date"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "age",
+    label: "age",
+    comment: "The age in years of some agent.",
+    type_value: "number"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 4,
+    local_name: "statusUser",
+    label: "status user",
+    comment:
+      "A string expressing what the user is happy for the general public (normally) to know about their current activity.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 5,
+    local_name: "title",
+    label: "Title",
+    comment: "The title of the resource based on Perpustakaan Universitas Padjadjaran's Book.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 5,
+    local_name: "sor",
+    label: "Statement of Responsibility",
+    comment:
+      "A statement of responsibility for the resource based on Perpustakaan Universitas Padjadjaran's Book.",
+    type_value: "textarea"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 5,
+    local_name: "edition",
+    label: "Edition",
+    comment: "The edition of the resource based on Perpustakaan Universitas Padjadjaran's Book.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 5,
+    local_name: "isbn",
+    label: "International Standard Book Number",
+    comment: "The ISBN of the resource based on Perpustakaan Universitas Padjadjaran's Book.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 5,
+    local_name: "issn",
+    label: "International Standard Serial Number",
+    comment: "The ISSN of the resource based on Perpustakaan Universitas Padjadjaran's Book.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 5,
+    local_name: "publisher",
+    label: "Publisher",
+    comment:
+      "The publisher of the resource based on Perpustakaan Universitas Padjadjaran's Book.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 5,
+    local_name: "publishedYear",
+    label: "Published Year",
+    comment:
+      "The year the resource was published based on Perpustakaan Universitas Padjadjaran's Book.",
+    type_value: "number"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 5,
+    local_name: "publishedDate",
+    label: "Published Date",
+    comment:
+      "The date the resource was published based on Perpustakaan Universitas Padjadjaran's Book.",
+    type_value: "date"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 5,
+    local_name: "publishedPlace",
+    label: "Published Place",
+    comment:
+      "The place where the resource was published based on Perpustakaan Universitas Padjadjaran's Book.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 5,
+    local_name: "collation",
+    label: "Collation",
+    comment:
+      "The collation of the resource based on Perpustakaan Universitas Padjadjaran's Book.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 5,
+    local_name: "seriesTitle",
+    label: "Series Title",
+    comment:
+      "The series title of the resource based on Perpustakaan Universitas Padjadjaran's Book.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 5,
+    local_name: "callNumber",
+    label: "Call Number",
+    comment:
+      "The call number of the resource based on Perpustakaan Universitas Padjadjaran's Book.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 5,
+    local_name: "languageType",
+    label: "Language Type",
+    comment:
+      "The language type of the resource based on Perpustakaan Universitas Padjadjaran's Book.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 5,
+    local_name: "sourceOfResource",
+    label: "Source of Resource",
+    comment: "The source of the resource based on Perpustakaan Universitas Padjadjaran's Book.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 5,
+    local_name: "classification",
+    label: "Classification",
+    comment:
+      "The classification of the resource based on Perpustakaan Universitas Padjadjaran's Book.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 5,
+    local_name: "notes",
+    label: "Notes",
+    comment:
+      "Additional notes about the resource based on Perpustakaan Universitas Padjadjaran's Book.",
+    type_value: "textarea"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 5,
+    local_name: "frequency",
+    label: "Frequency",
+    comment:
+      "The frequency of the resource released based on Perpustakaan Universitas Padjadjaran's Book.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 5,
+    local_name: "specDetailInfo",
+    label: "Special Detail Information",
+    comment:
+      "Special detail information about the resource based on Perpustakaan Universitas Padjadjaran's Book.",
+    type_value: "textarea"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 5,
+    local_name: "contentType",
+    label: "Content Type",
+    comment:
+      "The content type of the resource based on Perpustakaan Universitas Padjadjaran's Book.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 5,
+    local_name: "mediaType",
+    label: "Media Type",
+    comment:
+      "The media type of the resource based on Perpustakaan Universitas Padjadjaran's Book.",
+    type_value: "text"
+  },
+  %{
+    owner_id: nil,
+    vocabulary_id: 5,
+    local_name: "carrierType",
+    label: "Carrier Type",
+    comment:
+      "The carrier type of the resource based on Perpustakaan Universitas Padjadjaran's Book.",
     type_value: "text"
   }
 ]
