@@ -242,10 +242,17 @@ defmodule CuratorianWeb.UserAuth do
     atrium_url = Application.get_env(:curatorian, :atrium_url, "http://localhost:4001")
 
     cond do
-      Enum.any?(user.roles, &(&1.name == "super_admin")) -> atrium_url <> "/dashboard"
-      user.user_type && user.user_type.slug in ["administrator", "staff"] -> atrium_url <> "/dashboard"
-      user.user_type && String.starts_with?(user.user_type.slug, "member_") -> atrium_url <> "/dashboard"
-      true -> "/"
+      Enum.any?(user.roles, &(&1.name == "super_admin")) ->
+        atrium_url <> "/dashboard"
+
+      user.user_type && user.user_type.slug in ["administrator", "staff"] ->
+        atrium_url <> "/dashboard"
+
+      user.user_type && String.starts_with?(user.user_type.slug, "member_") ->
+        atrium_url <> "/dashboard"
+
+      true ->
+        "/"
     end
   end
 

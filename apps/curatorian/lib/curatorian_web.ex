@@ -120,6 +120,9 @@ defmodule CuratorianWeb do
         user && user.user_type && user.user_type.slug in ["administrator", "staff"]
       end
 
+      # Asset URL helper — prefixes Atrium-served paths with the Atrium base URL
+      import Curatorian.Public, only: [asset_url: 1]
+
       # Routes generation with the ~p sigil
       unquote(verified_routes())
     end

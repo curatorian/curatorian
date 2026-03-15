@@ -72,6 +72,25 @@ defmodule CuratorianWeb.Router do
   end
 
   # ---------------------------------------------------------------------------
+  # Public explore routes — no auth required, current_scope is still mounted
+  # ---------------------------------------------------------------------------
+
+  scope "/", CuratorianWeb do
+    pipe_through :browser
+
+    live_session :public,
+      on_mount: [{CuratorianWeb.UserAuth, :mount_current_scope}] do
+      live "/kurator", Public.ProfilesLive, :index
+      live "/u/:username", Public.ProfileShowLive, :show
+      live "/u/:username/blog/:slug", Public.BlogShowLive, :show
+      live "/orgs", Public.OrganizationsLive, :index
+      live "/orgs/:slug", Public.OrganizationShowLive, :show
+      live "/collections", Public.CollectionsLive, :index
+      live "/collections/:id", Public.CollectionShowLive, :show
+    end
+  end
+
+  # ---------------------------------------------------------------------------
   # Authenticated routes — require a logged-in user
   # ---------------------------------------------------------------------------
 
