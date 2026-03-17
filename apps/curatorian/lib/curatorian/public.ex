@@ -11,7 +11,16 @@ defmodule Curatorian.Public do
   import Ecto.Query
 
   alias Curatorian.Repo
-  alias Curatorian.Public.{UserProfile, OrgPage, Collection, NodeProfile, Unit, BlogPost, BlogPostComment}
+
+  alias Curatorian.Public.{
+    UserProfile,
+    OrgPage,
+    Collection,
+    NodeProfile,
+    Unit,
+    BlogPost,
+    BlogPostComment
+  }
 
   @page_size 12
 

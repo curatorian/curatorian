@@ -172,7 +172,7 @@ defmodule CuratorianWeb.Public.ProfileShowLive do
                         <p class="font-semibold text-sm">{cert["name"]}</p>
                         <p :if={cert["issuer"]} class="text-xs text-base-content/60">
                           {cert["issuer"]}
-                          <span :if={cert["year"]}> ·    {cert["year"]}</span>
+                          <span :if={cert["year"]}> ·     {cert["year"]}</span>
                         </p>
                       </div>
                     </div>

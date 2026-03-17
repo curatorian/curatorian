@@ -4,6 +4,7 @@ defmodule CuratorianWeb.Public.BlogShowLive do
   use CuratorianWeb, :live_view
 
   alias Curatorian.Public
+  alias CuratorianWeb.Markdown
 
   @impl true
   def mount(_params, _session, socket) do
@@ -89,7 +90,7 @@ defmodule CuratorianWeb.Public.BlogShowLive do
           </.link>
           <.icon name="hero-chevron-right-micro" class="w-3 h-3" />
           <.link navigate={~p"/u/#{@username}"} class="hover:text-primary transition-colors">
-            {@author && @author.display_name || @username}
+            {(@author && @author.display_name) || @username}
           </.link>
           <.icon name="hero-chevron-right-micro" class="w-3 h-3" />
           <span class="truncate max-w-xs">{@post.title}</span>
@@ -147,17 +148,16 @@ defmodule CuratorianWeb.Public.BlogShowLive do
           <div class="ml-auto text-right">
             <p class="text-sm text-base-content/50">{format_date(@post.published_at)}</p>
             <p class="text-xs text-base-content/40">
-              {if @post.comment_count > 0, do: "#{@post.comment_count} komentar",
-               else: "Belum ada komentar"}
+              {if @post.comment_count > 0,
+                do: "#{@post.comment_count} komentar",
+                else: "Belum ada komentar"}
             </p>
           </div>
         </div>
 
         <%!-- Post body --%>
         <div class="prose prose-base max-w-none">
-          <p class="whitespace-pre-wrap leading-[1.85] text-base-content/90 text-[1.0625rem]">
-            {@post.body}
-          </p>
+          {Markdown.to_html(@post.body)}
         </div>
 
         <%!-- Comments section --%>
@@ -175,7 +175,9 @@ defmodule CuratorianWeb.Public.BlogShowLive do
               <div class="card bg-base-200/60 rounded-xl p-5 mb-8">
                 <p class="text-sm font-medium mb-3">
                   Berkomentar sebagai
-                  <span class="font-bold">{@current_scope.user.fullname || @current_scope.user.username}</span>
+                  <span class="font-bold">
+                    {@current_scope.user.fullname || @current_scope.user.username}
+                  </span>
                 </p>
                 <.form
                   for={@comment_form}

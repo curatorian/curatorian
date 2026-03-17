@@ -58,6 +58,7 @@ defmodule CuratorianUmbrella.MixProject do
       {:swoosh, "~> 1.16"},
       {:tzdata, "~> 1.1"},
       {:html_sanitize_ex, "~> 1.4"},
+      {:earmark, "~> 1.4"},
 
       # AWS
       {:aws, "~> 1.0.0"},
