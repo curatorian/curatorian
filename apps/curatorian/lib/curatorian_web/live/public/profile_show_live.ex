@@ -40,249 +40,335 @@ defmodule CuratorianWeb.Public.ProfileShowLive do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <div class="max-w-4xl mx-auto pb-12 px-4">
-        <%!-- Cover photo --%>
-        <div class="relative -mx-4 -mt-8 mb-0 h-48 md:h-64 overflow-hidden">
-          <%= if @profile.cover_url do %>
-            <img src={asset_url(@profile.cover_url)} alt="" class="w-full h-full object-cover" />
-          <% else %>
-            <div class="w-full h-full bg-gradient-to-br from-violet-400 via-purple-500 to-indigo-600">
-            </div>
-          <% end %>
-          <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
-        </div>
-
-        <%!-- Profile header --%>
-        <div class="relative -mt-16 px-4 pb-4">
-          <div class="flex flex-col sm:flex-row sm:items-end gap-4">
-            <%!-- Avatar --%>
-            <div class="w-28 h-28 rounded-full ring-4 ring-base-100 overflow-hidden bg-violet-200 dark:bg-violet-800 flex items-center justify-center shrink-0">
-              <%= if @profile.avatar_url do %>
-                <img
-                  src={asset_url(@profile.avatar_url)}
-                  alt={@profile.display_name}
-                  class="w-full h-full object-cover"
-                />
-              <% else %>
-                <span class="text-4xl font-bold text-violet-600 dark:text-violet-300">
-                  {String.first(@profile.display_name || "K")}
-                </span>
-              <% end %>
-            </div>
-
-            <%!-- Name & meta --%>
-            <div class="pb-1 min-w-0">
-              <div class="flex items-center gap-2 flex-wrap">
-                <h1 class="text-2xl md:text-3xl font-bold leading-tight">
-                  {@profile.display_name}
-                </h1>
-                <.icon
-                  :if={@profile.is_verified}
-                  name="hero-check-badge"
-                  class="w-6 h-6 text-primary shrink-0"
-                />
-                <%= if @profile.institution_type do %>
-                  <span class="badge badge-outline capitalize text-xs">
-                    {@profile.institution_type}
-                  </span>
-                <% end %>
-              </div>
-              <p class="text-base-content/50 text-sm mt-0.5">@{@profile.username}</p>
-              <p :if={@profile.headline} class="text-base-content/80 mt-1 text-sm md:text-base">
-                {@profile.headline}
-              </p>
-            </div>
+      <%!-- ============================================================
+           HERO COVER — bleeds through the section's pt-48 px-5 padding
+           ============================================================ --%>
+      <div class="-mt-48 -mx-5 relative h-72 md:h-[26rem] overflow-hidden">
+        <%= if @profile.cover_url do %>
+          <img
+            src={asset_url(@profile.cover_url)}
+            alt=""
+            class="absolute inset-0 w-full h-full object-cover"
+          />
+        <% else %>
+          <div class="absolute inset-0 bg-gradient-to-br from-violet-600 via-purple-700 to-indigo-900">
           </div>
-
-          <%!-- Stats row --%>
-          <div class="flex flex-wrap gap-6 mt-4 text-sm text-base-content/60">
-            <span class="flex items-center gap-1">
-              <.icon name="hero-users" class="w-4 h-4" />
-              <strong class="text-base-content">{@profile.follower_count}</strong> pengikut
-            </span>
-            <span class="flex items-center gap-1">
-              <.icon name="hero-user-plus" class="w-4 h-4" />
-              <strong class="text-base-content">{@profile.following_count}</strong> mengikuti
-            </span>
-            <span :if={@profile.webinar_hosted_count > 0} class="flex items-center gap-1">
-              <.icon name="hero-video-camera" class="w-4 h-4" />
-              <strong class="text-base-content">{@profile.webinar_hosted_count}</strong> webinar
-            </span>
-            <span :if={@profile.city} class="flex items-center gap-1">
-              <.icon name="hero-map-pin" class="w-4 h-4" />
-              {@profile.city}
-              <%= if @profile.province do %>
-                , {@profile.province}
-              <% end %>
-            </span>
+        <% end %>
+        <%!-- cinematic vignette --%>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/35">
+        </div>
+        <%!-- verified pill — top right --%>
+        <div :if={@profile.is_verified} class="absolute top-20 right-6 z-10">
+          <span class="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-md text-white text-xs font-semibold px-3 py-1.5 rounded-full border border-white/20 shadow">
+            <.icon name="hero-check-badge" class="w-3.5 h-3.5" /> Terverifikasi
+          </span>
+        </div>
+        <%!-- avatar + identity — pinned to bottom of cover --%>
+        <div class="absolute bottom-0 left-0 right-0 px-6 md:px-10 pb-8 flex items-end gap-5">
+          <div class="w-24 h-24 md:w-32 md:h-32 rounded-3xl ring-4 ring-white/25 shadow-2xl overflow-hidden bg-gradient-to-br from-violet-400 to-purple-600 flex items-center justify-center shrink-0">
+            <%= if @profile.avatar_url do %>
+              <img
+                src={asset_url(@profile.avatar_url)}
+                alt={@profile.display_name}
+                class="w-full h-full object-cover"
+              />
+            <% else %>
+              <span class="text-4xl md:text-5xl font-bold text-white select-none">
+                {String.first(@profile.display_name || "K")}
+              </span>
+            <% end %>
+          </div>
+          <div class="pb-1 flex-1 min-w-0">
+            <div class="flex flex-wrap items-center gap-2.5">
+              <h1 class="text-2xl md:text-4xl font-bold text-white leading-tight drop-shadow-lg">
+                {@profile.display_name}
+              </h1>
+              <span
+                :if={@profile.institution_type}
+                class="badge badge-sm bg-white/20 text-white border-white/30 backdrop-blur-sm capitalize"
+              >
+                {@profile.institution_type}
+              </span>
+            </div>
+            <p class="text-white/55 text-sm font-mono mt-1">@{@profile.username}</p>
+            <p :if={@profile.headline} class="text-white/80 text-sm md:text-base mt-2 leading-snug max-w-2xl">
+              {@profile.headline}
+            </p>
           </div>
         </div>
+      </div>
 
-        <%!-- Main content grid --%>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4 px-4">
-          <%!-- Left column: bio + details --%>
-          <div class="md:col-span-2 space-y-6">
+      <%!-- ============================================================
+           STATS BAR — full-bleed white strip beneath cover
+           ============================================================ --%>
+      <div class="-mx-5 bg-base-100 border-b border-base-300 shadow">
+        <div class="max-w-5xl mx-auto px-6 md:px-10 py-4 flex flex-wrap items-center gap-x-8 gap-y-3">
+          <div class="flex flex-col items-center">
+            <span class="text-2xl font-bold text-base-content tabular-nums">
+              {@profile.follower_count}
+            </span>
+            <span class="text-[10px] uppercase tracking-widest text-base-content/45 mt-0.5">
+              Pengikut
+            </span>
+          </div>
+          <div class="w-px h-8 bg-base-300 hidden sm:block"></div>
+          <div class="flex flex-col items-center">
+            <span class="text-2xl font-bold text-base-content tabular-nums">
+              {@profile.following_count}
+            </span>
+            <span class="text-[10px] uppercase tracking-widest text-base-content/45 mt-0.5">
+              Mengikuti
+            </span>
+          </div>
+          <div
+            :if={@profile.webinar_hosted_count > 0}
+            class="flex flex-col items-center"
+          >
+            <div class="w-px h-8 bg-base-300 hidden sm:block -mb-8 mr-8"></div>
+            <span class="text-2xl font-bold text-base-content tabular-nums">
+              {@profile.webinar_hosted_count}
+            </span>
+            <span class="text-[10px] uppercase tracking-widest text-base-content/45 mt-0.5">
+              Webinar
+            </span>
+          </div>
+          <div :if={@profile.city} class="ml-auto flex items-center gap-1.5 text-sm text-base-content/55">
+            <.icon name="hero-map-pin" class="w-4 h-4 text-primary" />
+            {if @profile.province,
+              do: "#{@profile.city}, #{@profile.province}",
+              else: @profile.city}
+          </div>
+        </div>
+      </div>
+
+      <%!-- ============================================================
+           MAIN CONTENT
+           ============================================================ --%>
+      <div class="max-w-5xl mx-auto pt-8 pb-20 px-2 sm:px-0">
+        <%!-- Breadcrumb --%>
+        <div class="mb-7">
+          <.link
+            navigate={~p"/kurator"}
+            class="inline-flex items-center gap-1.5 text-base-content/45 hover:text-base-content text-sm transition-colors"
+          >
+            <.icon name="hero-arrow-left" class="w-4 h-4" /> Kembali ke daftar kurator
+          </.link>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <%!-- --------------------------------------------------------
+               MAIN COLUMN (2/3)
+               -------------------------------------------------------- --%>
+          <div class="md:col-span-2 space-y-4">
             <%!-- Bio --%>
-            <div :if={@profile.bio} class="card bg-base-100 border border-base-300 shadow-sm">
-              <div class="card-body">
-                <h2 class="card-title text-base">Tentang</h2>
-                <p class="text-base-content/80 whitespace-pre-line text-sm leading-relaxed">
-                  {@profile.bio}
-                </p>
-              </div>
-            </div>
+            <section
+              :if={@profile.bio}
+              class="bg-base-100 rounded-2xl border border-base-300 shadow-sm p-6 hover:shadow-md transition-shadow duration-200"
+            >
+              <p class="text-[10px] font-bold uppercase tracking-widest text-base-content/35 mb-3">
+                Tentang
+              </p>
+              <p class="text-base-content/80 text-sm leading-relaxed whitespace-pre-line">
+                {@profile.bio}
+              </p>
+            </section>
 
             <%!-- Education --%>
-            <div
+            <section
               :if={@profile.education != [] and @profile.education != nil}
-              class="card bg-base-100 border border-base-300 shadow-sm"
+              class="bg-base-100 rounded-2xl border border-base-300 shadow-sm p-6 hover:shadow-md transition-shadow duration-200"
             >
-              <div class="card-body">
-                <h2 class="card-title text-base flex items-center gap-2">
-                  <.icon name="hero-academic-cap" class="w-5 h-5 text-primary" /> Pendidikan
-                </h2>
-                <div class="space-y-3 mt-1">
-                  <%= for edu <- @profile.education do %>
-                    <div class="border-l-2 border-primary/30 pl-3">
-                      <p class="font-semibold text-sm">{edu["institution"] || edu["school"]}</p>
-                      <p class="text-sm text-base-content/70">
-                        {edu["degree"]} — {edu["field"]}
-                      </p>
-                      <p :if={edu["year"]} class="text-xs text-base-content/50">{edu["year"]}</p>
+              <p class="text-[10px] font-bold uppercase tracking-widest text-base-content/35 mb-5 flex items-center gap-1.5">
+                <.icon name="hero-academic-cap" class="w-3.5 h-3.5 text-primary" /> Pendidikan
+              </p>
+              <div>
+                <%= for {edu, idx} <- Enum.with_index(@profile.education) do %>
+                  <div class="flex gap-4">
+                    <div class="flex flex-col items-center">
+                      <div class="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 text-xs font-bold text-primary">
+                        {idx + 1}
+                      </div>
+                      <div
+                        :if={idx < length(@profile.education) - 1}
+                        class="w-px flex-1 bg-base-300 my-2 min-h-4"
+                      >
+                      </div>
                     </div>
-                  <% end %>
-                </div>
+                    <div class="pb-5 flex-1 min-w-0">
+                      <p class="font-semibold text-sm">{edu["institution"] || edu["school"]}</p>
+                      <p class="text-sm text-base-content/60 mt-0.5">
+                        {edu["degree"]}<span :if={edu["field"]}> · {edu["field"]}</span>
+                      </p>
+                      <p :if={edu["year"]} class="text-xs text-base-content/40 font-mono mt-0.5">
+                        {edu["year"]}
+                      </p>
+                    </div>
+                  </div>
+                <% end %>
               </div>
-            </div>
+            </section>
 
             <%!-- Certifications --%>
-            <div
+            <section
               :if={@profile.certifications != [] and @profile.certifications != nil}
-              class="card bg-base-100 border border-base-300 shadow-sm"
+              class="bg-base-100 rounded-2xl border border-base-300 shadow-sm p-6 hover:shadow-md transition-shadow duration-200"
             >
-              <div class="card-body">
-                <h2 class="card-title text-base flex items-center gap-2">
-                  <.icon name="hero-trophy" class="w-5 h-5 text-primary" /> Sertifikasi
-                </h2>
-                <div class="space-y-3 mt-1">
-                  <%= for cert <- @profile.certifications do %>
-                    <div class="flex items-start gap-2">
-                      <div class="w-2 h-2 rounded-full bg-primary mt-1.5 shrink-0"></div>
-                      <div>
-                        <p class="font-semibold text-sm">{cert["name"]}</p>
-                        <p :if={cert["issuer"]} class="text-xs text-base-content/60">
-                          {cert["issuer"]}
-                          <span :if={cert["year"]}> ·     {cert["year"]}</span>
-                        </p>
-                      </div>
+              <p class="text-[10px] font-bold uppercase tracking-widest text-base-content/35 mb-4 flex items-center gap-1.5">
+                <.icon name="hero-trophy" class="w-3.5 h-3.5 text-primary" /> Sertifikasi
+              </p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <%= for cert <- @profile.certifications do %>
+                  <div class="flex items-start gap-3 bg-base-200/50 hover:bg-base-200 rounded-xl p-3.5 transition-colors">
+                    <span class="flex items-center justify-center w-9 h-9 rounded-xl bg-primary/15 text-primary shrink-0">
+                      <.icon name="hero-check-badge" class="w-5 h-5" />
+                    </span>
+                    <div class="min-w-0">
+                      <p class="font-semibold text-sm leading-snug">{cert["name"]}</p>
+                      <p :if={cert["issuer"]} class="text-xs text-base-content/50 mt-0.5">
+                        {cert["issuer"]}
+                        <span :if={cert["year"]} class="font-mono"> · {cert["year"]}</span>
+                      </p>
                     </div>
-                  <% end %>
-                </div>
+                  </div>
+                <% end %>
               </div>
-            </div>
+            </section>
 
             <%!-- Blog posts --%>
-            <div :if={@blog_posts != []} class="card bg-base-100 border border-base-300 shadow-sm">
-              <div class="card-body">
-                <h2 class="card-title text-base flex items-center gap-2">
-                  <.icon name="hero-document-text" class="w-5 h-5 text-primary" /> Tulisan
-                </h2>
-                <div class="space-y-4 mt-1 divide-y divide-base-200">
-                  <%= for post <- @blog_posts do %>
-                    <.link
-                      navigate={~p"/u/#{@profile.username}/blog/#{post.slug}"}
-                      class="block group pt-3 first:pt-0"
-                    >
-                      <div class="flex gap-3">
-                        <%= if post.cover_url && post.cover_url != "" do %>
-                          <img
-                            src={asset_url(post.cover_url)}
-                            alt=""
-                            class="w-16 h-11 rounded-lg object-cover shrink-0"
-                          />
-                        <% end %>
-                        <div class="flex-1 min-w-0">
-                          <p class="font-semibold text-sm leading-snug group-hover:text-primary transition-colors line-clamp-2">
-                            {post.title}
-                          </p>
-                          <p class="text-xs text-base-content/50 mt-0.5">
-                            {Calendar.strftime(post.published_at, "%d %b %Y")}
-                            <%= if post.comment_count > 0 do %>
-                              ·
-                              <span class="inline-flex items-center gap-0.5">
-                                <.icon
-                                  name="hero-chat-bubble-left-ellipsis-micro"
-                                  class="w-3 h-3"
-                                />
-                                {post.comment_count}
-                              </span>
-                            <% end %>
-                          </p>
-                        </div>
+            <section
+              :if={@blog_posts != []}
+              class="bg-base-100 rounded-2xl border border-base-300 shadow-sm p-6 hover:shadow-md transition-shadow duration-200"
+            >
+              <p class="text-[10px] font-bold uppercase tracking-widest text-base-content/35 mb-4 flex items-center gap-1.5">
+                <.icon name="hero-document-text" class="w-3.5 h-3.5 text-primary" /> Tulisan
+              </p>
+              <div class="space-y-1">
+                <%= for post <- @blog_posts do %>
+                  <.link
+                    navigate={~p"/u/#{@profile.username}/blog/#{post.slug}"}
+                    class="flex items-center gap-4 -mx-3 px-3 py-3 rounded-xl hover:bg-base-200/70 transition-colors group"
+                  >
+                    <%= if post.cover_url && post.cover_url != "" do %>
+                      <img
+                        src={asset_url(post.cover_url)}
+                        alt=""
+                        class="w-16 h-11 rounded-lg object-cover shrink-0"
+                      />
+                    <% else %>
+                      <div class="w-16 h-11 rounded-lg bg-gradient-to-br from-violet-200 to-purple-300 dark:from-violet-700 dark:to-purple-900 shrink-0">
                       </div>
-                    </.link>
-                  <% end %>
-                </div>
+                    <% end %>
+                    <div class="flex-1 min-w-0">
+                      <p class="font-medium text-sm leading-snug group-hover:text-primary transition-colors line-clamp-2">
+                        {post.title}
+                      </p>
+                      <p class="text-xs text-base-content/40 mt-1 flex items-center gap-1.5">
+                        {Calendar.strftime(post.published_at, "%d %b %Y")}
+                        <span :if={post.comment_count > 0} class="flex items-center gap-1">
+                          ·
+                          <.icon name="hero-chat-bubble-left-ellipsis-micro" class="w-3 h-3" />
+                          {post.comment_count}
+                        </span>
+                      </p>
+                    </div>
+                    <.icon
+                      name="hero-chevron-right"
+                      class="w-4 h-4 text-base-content/20 group-hover:text-primary transition-colors shrink-0"
+                    />
+                  </.link>
+                <% end %>
               </div>
-            </div>
+            </section>
+
+            <%!-- Empty state --%>
+            <section
+              :if={
+                !@profile.bio and
+                  (@profile.education == [] or @profile.education == nil) and
+                  (@profile.certifications == [] or @profile.certifications == nil) and
+                  @blog_posts == []
+              }
+              class="bg-base-100 rounded-2xl border border-base-300 border-dashed shadow-sm p-16 flex flex-col items-center justify-center text-center"
+            >
+              <div class="w-16 h-16 rounded-3xl bg-base-200 flex items-center justify-center mb-4">
+                <.icon name="hero-user" class="w-8 h-8 text-base-content/20" />
+              </div>
+              <p class="font-semibold text-base-content/40 text-sm">Profil belum dilengkapi</p>
+              <p class="text-base-content/30 text-xs mt-1">Informasi tambahan belum tersedia</p>
+            </section>
           </div>
 
-          <%!-- Right column: sidebar --%>
+          <%!-- --------------------------------------------------------
+               SIDEBAR (1/3)
+               -------------------------------------------------------- --%>
           <div class="space-y-4">
             <%!-- Current position --%>
-            <div
+            <section
               :if={@profile.current_position || @profile.current_institution}
-              class="card bg-base-100 border border-base-300 shadow-sm"
+              class="bg-base-100 rounded-2xl border border-base-300 shadow-sm p-5"
             >
-              <div class="card-body py-4">
-                <h2 class="font-semibold text-sm text-base-content/60 uppercase tracking-wide">
-                  Posisi Saat Ini
-                </h2>
-                <p :if={@profile.current_position} class="font-semibold text-sm mt-1">
-                  {@profile.current_position}
-                </p>
-                <p :if={@profile.current_institution} class="text-sm text-base-content/70">
-                  <.icon name="hero-building-office-2-micro" class="w-3 h-3 inline mr-1" />
-                  {@profile.current_institution}
-                </p>
-                <p :if={@profile.years_experience} class="text-xs text-base-content/50">
-                  {@profile.years_experience} tahun pengalaman
-                </p>
-              </div>
-            </div>
-
-            <%!-- Social links --%>
-            <div
-              :if={@profile.social_links != %{} and @profile.social_links != nil}
-              class="card bg-base-100 border border-base-300 shadow-sm"
-            >
-              <div class="card-body py-4">
-                <h2 class="font-semibold text-sm text-base-content/60 uppercase tracking-wide">
-                  Tautan
-                </h2>
-                <div class="space-y-2 mt-1">
-                  <%= for {platform, url} <- @profile.social_links, url != nil and url != "" do %>
-                    <a
-                      href={normalize_social_url(platform, url)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      class="flex items-center gap-2 text-sm text-primary hover:underline"
-                    >
-                      <.icon name="hero-link" class="w-3.5 h-3.5 shrink-0" />
-                      <span class="truncate capitalize">{platform}</span>
-                    </a>
-                  <% end %>
+              <p class="text-[10px] font-bold uppercase tracking-widest text-base-content/35 mb-4">
+                Posisi Saat Ini
+              </p>
+              <div class="flex items-start gap-3">
+                <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                  <.icon name="hero-briefcase" class="w-5 h-5 text-primary" />
+                </div>
+                <div class="min-w-0">
+                  <p :if={@profile.current_position} class="font-semibold text-sm leading-snug">
+                    {@profile.current_position}
+                  </p>
+                  <p :if={@profile.current_institution} class="text-xs text-base-content/55 mt-0.5">
+                    {@profile.current_institution}
+                  </p>
+                  <p
+                    :if={@profile.years_experience}
+                    class="text-xs text-base-content/40 font-mono mt-1.5"
+                  >
+                    {@profile.years_experience} tahun pengalaman
+                  </p>
                 </div>
               </div>
-            </div>
+            </section>
 
-            <%!-- Back link --%>
-            <.link
-              navigate={~p"/kurator"}
-              class="btn btn-sm btn-ghost w-full text-base-content/60 hover:text-base-content"
+            <%!-- Social links --%>
+            <section
+              :if={@profile.social_links != %{} and @profile.social_links != nil}
+              class="bg-base-100 rounded-2xl border border-base-300 shadow-sm p-5"
             >
-              <.icon name="hero-arrow-left" class="w-4 h-4" /> Kembali ke daftar kurator
-            </.link>
+              <p class="text-[10px] font-bold uppercase tracking-widest text-base-content/35 mb-3">
+                Tautan
+              </p>
+              <div class="space-y-0.5">
+                <%= for {platform, url} <- @profile.social_links, url != nil and url != "" do %>
+                  <a
+                    href={normalize_social_url(platform, url)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="flex items-center gap-2.5 -mx-2 px-2 py-2 rounded-xl hover:bg-base-200 text-sm text-base-content/65 hover:text-primary transition-all group"
+                  >
+                    <.icon
+                      name="hero-arrow-top-right-on-square"
+                      class="w-3.5 h-3.5 text-base-content/25 group-hover:text-primary transition-colors shrink-0"
+                    />
+                    <span class="capitalize font-medium">{platform}</span>
+                  </a>
+                <% end %>
+              </div>
+            </section>
+
+            <%!-- Webinar attended big number --%>
+            <section
+              :if={@profile.webinar_attended_count > 0}
+              class="bg-primary/8 border border-primary/20 rounded-2xl p-5"
+            >
+              <p class="text-[10px] font-bold uppercase tracking-widest text-primary/60 mb-1">
+                Webinar Diikuti
+              </p>
+              <p class="text-5xl font-bold text-primary tabular-nums leading-none mt-2">
+                {@profile.webinar_attended_count}
+              </p>
+            </section>
           </div>
         </div>
       </div>
