@@ -40,9 +40,9 @@ vocab = [
   },
   %{
     namespace_url: "https://kandaga.unpad.ac.id/vocab/book/",
-    prefix: "kandaga_book",
-    label: "Kandaga Book Vocabulary",
-    information: "Vocabulary for Kandaga book metadata"
+    prefix: "slims_book",
+    label: "SLiMS Book Vocabulary",
+    information: "Vocabulary for Senayan Library Management System book metadata"
   }
 ]
 
