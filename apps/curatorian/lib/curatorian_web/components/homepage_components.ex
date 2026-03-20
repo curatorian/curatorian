@@ -136,7 +136,7 @@ defmodule CuratorianWeb.HomepageComponents do
       %{
         title: "Courses",
         description:
-          "Memberikan fitur bagi pengguna untuk mengikuti kursus, workshop, seminar, dan pelatihan.",
+          "Memberikan fitur bagi pengguna untuk mengkaji kursus, workshop, seminar, dan pelatihan.",
         icon: "hero-academic-cap-solid",
         status: "soon"
       }

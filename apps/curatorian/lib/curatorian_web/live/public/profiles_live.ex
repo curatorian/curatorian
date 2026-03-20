@@ -228,7 +228,7 @@ defmodule CuratorianWeb.Public.ProfilesLive do
         </p>
 
         <div class="flex items-center justify-between mt-2">
-          <span class="text-xs text-base-content/50">{@profile.follower_count} pengikut</span>
+          <span class="text-xs text-base-content/50">{@profile.follower_count} pengkaji</span>
           <%= if @profile.institution_type do %>
             <span class="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full capitalize">
               {@profile.institution_type}
@@ -239,7 +239,7 @@ defmodule CuratorianWeb.Public.ProfilesLive do
         <div class="mt-3">
           <.link
             navigate={~p"/u/#{@profile.username}"}
-            class="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl text-sm font-medium text-primary border border-primary/30 group-hover:bg-primary group-hover:text-primary-content group-hover:border-primary transition-all duration-200"
+            class="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl text-sm font-medium text-primary border border-primary/30 group-hover:bg-primary group-hover:!text-primary-content group-hover:border-primary transition-all duration-200"
           >
             Lihat Profil
           </.link>

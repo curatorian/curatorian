@@ -109,7 +109,7 @@ defmodule CuratorianWeb.Public.ProfileShowLive do
               {@profile.follower_count}
             </span>
             <span class="text-[10px] uppercase tracking-widest text-base-content/45 mt-0.5">
-              Pengikut
+              Pengkaji
             </span>
           </div>
           <div class="w-px h-8 bg-base-300 hidden sm:block"></div>
@@ -118,7 +118,7 @@ defmodule CuratorianWeb.Public.ProfileShowLive do
               {@profile.following_count}
             </span>
             <span class="text-[10px] uppercase tracking-widest text-base-content/45 mt-0.5">
-              Mengikuti
+              Mengkaji
             </span>
           </div>
           <div
@@ -230,7 +230,7 @@ defmodule CuratorianWeb.Public.ProfileShowLive do
                       <p class="font-semibold text-sm leading-snug">{cert["name"]}</p>
                       <p :if={cert["issuer"]} class="text-xs text-base-content/50 mt-0.5">
                         {cert["issuer"]}
-                        <span :if={cert["year"]} class="font-mono"> ·  {cert["year"]}</span>
+                        <span :if={cert["year"]} class="font-mono"> ·   {cert["year"]}</span>
                       </p>
                     </div>
                   </div>

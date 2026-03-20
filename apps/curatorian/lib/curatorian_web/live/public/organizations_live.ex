@@ -247,7 +247,7 @@ defmodule CuratorianWeb.Public.OrganizationsLive do
         <div class="mt-3">
           <.link
             navigate={~p"/orgs/#{@org.id}"}
-            class="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl text-sm font-medium text-primary border border-primary/30 group-hover:bg-primary group-hover:text-primary-content group-hover:border-primary transition-all duration-200"
+            class="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl text-sm font-medium text-primary border border-primary/30 group-hover:bg-primary group-hover:!text-primary-content group-hover:border-primary transition-all duration-200"
           >
             Lihat Organisasi
           </.link>
