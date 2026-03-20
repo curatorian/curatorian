@@ -49,16 +49,16 @@ defmodule CuratorianWeb.Layouts do
         <img src="/images/lib.webp" alt="hero img" class="relative w-full h-40 object-cover" />
         <div class="absolute top-0 bg-black/80 w-full h-40"></div>
 
-        <div class="absolute bottom-0 w-full h-12 bg-gradient-to-t from-violet-100 dark:from-gray-600 to-transparent">
+        <div class="absolute bottom-0 w-full h-12 bg-gradient-to-t from-base-100 to-transparent">
         </div>
       </div>
 
       <%= if @current_uri === "/" do %>
-        <section class="min-h-screen h-full bg-violet-100 dark:bg-gray-600">
+        <section class="min-h-screen h-full bg-base-100">
           {render_slot(@inner_block)}
         </section>
       <% else %>
-        <section class="pt-48 px-5 min-h-screen h-full bg-violet-100 dark:bg-gray-600">
+        <section class="pt-48 px-5 min-h-screen h-full bg-base-100">
           {render_slot(@inner_block)}
         </section>
       <% end %>

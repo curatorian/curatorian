@@ -27,6 +27,7 @@ defmodule CuratorianWeb.Public.OrganizationShowLive do
       %{profile: profile, node: node} ->
         org = %{
           id: profile.id,
+          voile_node_id: profile.voile_node_id,
           name: profile.institution_name || node.name,
           abbr: node.abbr,
           node_image: Public.asset_url(node.image),
@@ -40,119 +41,426 @@ defmodule CuratorianWeb.Public.OrganizationShowLive do
           type_label: Map.get(@institution_type_labels, profile.institution_type, nil)
         }
 
+        collection_count = Public.count_collections_for_node(profile.voile_node_id)
+
         {:noreply,
          socket
          |> assign(:page_title, org.name)
-         |> assign(:org, org)}
+         |> assign(:org, org)
+         |> assign(:active_tab, "info")
+         |> assign(:collection_count, collection_count)
+         |> assign(:collections_page, 1)
+         |> assign(:collections_loaded, false)
+         |> assign(:has_more_collections, false)
+         |> assign(:staff_loaded, false)
+         |> assign(:staff_members, [])
+         |> stream(:collections, [])}
     end
+  end
+
+  def handle_event("switch_tab", %{"tab" => tab}, socket) do
+    socket =
+      cond do
+        tab == "collections" and not socket.assigns.collections_loaded ->
+          collections =
+            Public.list_collections_for_node(socket.assigns.org.voile_node_id, page: 1)
+
+          socket
+          |> assign(:collections_loaded, true)
+          |> assign(:collections_page, 1)
+          |> assign(:has_more_collections, length(collections) == Public.page_size())
+          |> stream(:collections, collections, reset: true)
+
+        tab == "staff" and not socket.assigns.staff_loaded ->
+          staff_members = Public.list_staff_for_node(socket.assigns.org.voile_node_id)
+
+          socket
+          |> assign(:staff_loaded, true)
+          |> assign(:staff_members, staff_members)
+
+        true ->
+          socket
+      end
+
+    {:noreply, assign(socket, :active_tab, tab)}
+  end
+
+  def handle_event("load_more_collections", _, socket) do
+    next_page = socket.assigns.collections_page + 1
+
+    collections =
+      Public.list_collections_for_node(socket.assigns.org.voile_node_id, page: next_page)
+
+    {:noreply,
+     socket
+     |> assign(:collections_page, next_page)
+     |> assign(:has_more_collections, length(collections) == Public.page_size())
+     |> stream(:collections, collections)}
   end
 
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <div class="max-w-4xl mx-auto pb-12 px-4">
-        <%!-- Cover placeholder --%>
-        <div class="relative -mx-4 -mt-8 mb-0 h-48 md:h-64 overflow-hidden">
-          <div class="w-full h-full bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-600">
-          </div>
-          <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+      <div class="max-w-5xl mx-auto pb-16 animate-fade-in">
+        <%!-- ── Back navigation ─────────────────────────────────────────────── --%>
+        <div class="mb-5">
+          <.link
+            navigate={~p"/orgs"}
+            class="inline-flex items-center gap-1.5 text-sm font-medium text-base-content/50 hover:text-primary transition-colors duration-150 group"
+          >
+            <.icon
+              name="hero-arrow-left"
+              class="size-4 transition-transform duration-150 group-hover:-translate-x-0.5"
+            /> Kembali ke daftar organisasi
+          </.link>
         </div>
 
-        <%!-- Org header --%>
-        <div class="relative -mt-16 px-4 pb-4">
-          <div class="flex flex-col sm:flex-row sm:items-end gap-4">
+        <%!-- ── Hero cover ───────────────────────────────────────────────────── --%>
+        <div class="relative rounded-3xl overflow-hidden h-40 md:h-52">
+          <div class="absolute inset-0 bg-gradient-to-br from-secondary/30 via-primary/25 to-accent/45">
+          </div>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent">
+          </div>
+        </div>
+
+        <%!-- ── Identity block — overlaps cover ─────────────────────────────── --%>
+        <div class="relative -mt-14 px-1 mb-6 animate-slide-in-left">
+          <div class="flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-5">
             <%!-- Logo / avatar --%>
-            <div class="w-28 h-28 rounded-2xl ring-4 ring-base-100 overflow-hidden bg-emerald-200 dark:bg-emerald-800 flex items-center justify-center shrink-0">
+            <div class="size-24 md:size-28 rounded-2xl ring-4 ring-base-100 overflow-hidden bg-base-200 border border-base-300 flex items-center justify-center shrink-0 shadow-md">
               <%= if @org.node_image do %>
                 <img src={@org.node_image} alt={@org.name} class="w-full h-full object-cover" />
               <% else %>
-                <span class="text-4xl font-bold text-emerald-700 dark:text-emerald-300">
+                <span class="text-4xl font-bold text-primary/70">
                   {String.first(@org.name || "O")}
                 </span>
               <% end %>
             </div>
 
-            <%!-- Name & meta --%>
-            <div class="pb-1 min-w-0">
-              <h1 class="text-2xl md:text-3xl font-bold leading-tight">{@org.name}</h1>
-              <p :if={@org.abbr} class="text-base-content/50 text-sm mt-0.5">{@org.abbr}</p>
-              <div class="flex items-center gap-2 flex-wrap mt-1">
-                <span :if={@org.type_label} class="badge badge-outline">
+            <%!-- Name & metadata --%>
+            <div class="pb-2 min-w-0 flex-1">
+              <p class="text-2xl md:text-3xl font-semibold text-base-content leading-tight">
+                {@org.name}
+              </p>
+              <p :if={@org.abbr} class="text-sm text-base-content/50 mt-0.5 font-mono">
+                {@org.abbr}
+              </p>
+              <div class="flex flex-wrap items-center gap-2 mt-2">
+                <span
+                  :if={@org.type_label}
+                  class="text-xs font-medium bg-primary/10 text-primary px-2.5 py-0.5 rounded-full"
+                >
                   {@org.type_label}
                 </span>
-              </div>
-            </div>
-          </div>
-
-          <%!-- Location row --%>
-          <div :if={@org.city} class="flex flex-wrap gap-6 mt-4 text-sm text-base-content/60">
-            <span class="flex items-center gap-1">
-              <.icon name="hero-map-pin" class="w-4 h-4" />
-              {@org.city}
-              <%= if @org.province do %>
-                , {@org.province}
-              <% end %>
-            </span>
-          </div>
-        </div>
-
-        <%!-- Main content grid --%>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4 px-4">
-          <%!-- Left: address --%>
-          <div class="md:col-span-2 space-y-6">
-            <div :if={@org.address} class="card bg-base-100 border border-base-300 shadow-sm">
-              <div class="card-body py-4">
-                <h2 class="card-title text-base flex items-center gap-2">
-                  <.icon name="hero-map-pin" class="w-5 h-5 text-primary" /> Lokasi
-                </h2>
-                <p class="text-sm text-base-content/80 leading-relaxed">{@org.address}</p>
-                <p :if={@org.city} class="text-sm text-base-content/60">
+                <span
+                  :if={@org.city}
+                  class="flex items-center gap-1 text-xs text-base-content/50"
+                >
+                  <.icon name="hero-map-pin-micro" class="size-3.5 shrink-0" />
                   {@org.city}
                   <%= if @org.province do %>
                     , {@org.province}
                   <% end %>
-                </p>
+                </span>
               </div>
             </div>
           </div>
+        </div>
 
-          <%!-- Right: contact --%>
+        <%!-- ── Tab bar ─────────────────────────────────────────────────────── --%>
+        <div class="flex border-b border-base-300 mb-6 gap-1">
+          <button
+            phx-click="switch_tab"
+            phx-value-tab="info"
+            class={[
+              "flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-all duration-150",
+              @active_tab == "info" &&
+                "border-primary text-primary",
+              @active_tab != "info" &&
+                "border-transparent text-base-content/50 hover:text-base-content hover:border-base-300"
+            ]}
+          >
+            <.icon name="hero-information-circle" class="size-4" /> Informasi
+          </button>
+          <button
+            phx-click="switch_tab"
+            phx-value-tab="collections"
+            class={[
+              "flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-all duration-150",
+              @active_tab == "collections" &&
+                "border-primary text-primary",
+              @active_tab != "collections" &&
+                "border-transparent text-base-content/50 hover:text-base-content hover:border-base-300"
+            ]}
+          >
+            <.icon name="hero-rectangle-stack" class="size-4" /> Koleksi
+            <span
+              :if={@collection_count > 0}
+              class="text-xs bg-base-300 text-base-content/60 px-1.5 py-0.5 rounded-full tabular-nums leading-none"
+            >
+              {@collection_count}
+            </span>
+          </button>
+          <button
+            phx-click="switch_tab"
+            phx-value-tab="staff"
+            class={[
+              "flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-all duration-150",
+              @active_tab == "staff" &&
+                "border-primary text-primary",
+              @active_tab != "staff" &&
+                "border-transparent text-base-content/50 hover:text-base-content hover:border-base-300"
+            ]}
+          >
+            <.icon name="hero-user-group" class="size-4" /> Tim
+          </button>
+        </div>
+
+        <%!-- ── Tab: Informasi ─────────────────────────────────────────────── --%>
+        <div :if={@active_tab == "info"} class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <%!-- Main column: location --%>
+          <div class="md:col-span-2 space-y-4">
+            <section
+              :if={@org.address}
+              class="bg-base-100 rounded-2xl border border-base-300 p-5 hover:shadow-sm transition-shadow duration-200"
+            >
+              <p class="text-[10px] font-bold uppercase tracking-widest text-base-content/40 mb-3 flex items-center gap-1.5">
+                <.icon name="hero-map-pin" class="size-3.5 text-primary" /> Lokasi & Alamat
+              </p>
+              <p class="text-sm text-base-content/80 leading-relaxed">{@org.address}</p>
+              <p :if={@org.city} class="text-xs text-base-content/50 mt-1.5">
+                {@org.city}
+                <%= if @org.province do %>
+                  , {@org.province}
+                <% end %>
+              </p>
+            </section>
+
+            <%!-- Empty state when no info at all --%>
+            <section
+              :if={!@org.address and !@org.website and !@org.phone}
+              class="bg-base-100 rounded-2xl border border-base-300 border-dashed p-12 flex flex-col items-center text-center"
+            >
+              <div class="size-12 rounded-2xl bg-base-200 flex items-center justify-center mb-3">
+                <.icon name="hero-building-office-2" class="size-6 text-base-content/20" />
+              </div>
+              <p class="text-sm font-medium text-base-content/40">Informasi belum tersedia</p>
+              <p class="text-xs text-base-content/30 mt-1">
+                Detail organisasi ini belum dilengkapi
+              </p>
+            </section>
+          </div>
+
+          <%!-- Sidebar: contact --%>
           <div class="space-y-4">
-            <div class="card bg-base-100 border border-base-300 shadow-sm">
-              <div class="card-body py-4 gap-3">
-                <h2 class="font-semibold text-sm text-base-content/60 uppercase tracking-wide">
-                  Kontak
-                </h2>
-
+            <section class="bg-base-100 rounded-2xl border border-base-300 p-5">
+              <p class="text-[10px] font-bold uppercase tracking-widest text-base-content/40 mb-3">
+                Kontak
+              </p>
+              <div class="space-y-3">
                 <a
                   :if={@org.website}
                   href={@org.website}
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="flex items-center gap-2 text-sm text-primary hover:underline"
+                  class="flex items-start gap-2.5 text-sm text-primary transition-opacity hover:opacity-75"
                 >
-                  <.icon name="hero-globe-alt" class="w-4 h-4 shrink-0" />
-                  <span class="truncate">{@org.website}</span>
+                  <.icon name="hero-globe-alt" class="size-4 shrink-0 mt-0.5 text-base-content/30" />
+                  <span class="break-all leading-relaxed">{@org.website}</span>
                 </a>
-
-                <span :if={@org.phone} class="flex items-center gap-2 text-sm text-base-content/80">
-                  <.icon name="hero-phone" class="w-4 h-4 shrink-0" />
+                <span
+                  :if={@org.phone}
+                  class="flex items-center gap-2.5 text-sm text-base-content/70"
+                >
+                  <.icon name="hero-phone" class="size-4 shrink-0 text-base-content/30" />
                   {@org.phone}
                 </span>
+                <p
+                  :if={!@org.website and !@org.phone}
+                  class="text-sm text-base-content/35 italic"
+                >
+                  Tidak ada kontak tersedia
+                </p>
               </div>
-            </div>
+            </section>
+          </div>
+        </div>
 
-            <%!-- Back link --%>
-            <.link
-              navigate={~p"/orgs"}
-              class="btn btn-sm btn-ghost w-full text-base-content/60 hover:text-base-content"
+        <%!-- ── Tab: Koleksi ──────────────────────────────────────────────── --%>
+        <div :if={@active_tab == "collections"}>
+          <%!-- Empty state --%>
+          <div
+            :if={@collection_count == 0}
+            class="py-20 flex flex-col items-center text-center"
+          >
+            <div class="size-16 rounded-3xl bg-base-200 flex items-center justify-center mb-4">
+              <.icon name="hero-rectangle-stack" class="size-8 text-base-content/20" />
+            </div>
+            <p class="font-medium text-base-content/40">Belum ada koleksi publik</p>
+            <p class="text-xs text-base-content/30 mt-1">
+              Organisasi ini belum mempublikasikan koleksi
+            </p>
+          </div>
+
+          <%!-- Collection grid --%>
+          <div
+            :if={@collection_count > 0}
+            id="org-collections"
+            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+            phx-update="stream"
+          >
+            <div :for={{id, col} <- @streams.collections} id={id}>
+              <.collection_card col={col} />
+            </div>
+          </div>
+
+          <%!-- Load more --%>
+          <div :if={@has_more_collections} class="flex justify-center mt-8">
+            <button
+              phx-click="load_more_collections"
+              class="inline-flex items-center gap-2 px-8 py-2.5 rounded-full border border-primary/50 text-primary text-sm font-medium hover:bg-primary hover:text-primary-content transition-all duration-200"
             >
-              <.icon name="hero-arrow-left" class="w-4 h-4" /> Kembali ke daftar organisasi
-            </.link>
+              <.icon name="hero-arrow-down" class="size-4" /> Muat lebih banyak
+            </button>
+          </div>
+        </div>
+
+        <%!-- ── Tab: Tim ───────────────────────────────────────────────────── --%>
+        <div :if={@active_tab == "staff"}>
+          <%!-- Empty state --%>
+          <div
+            :if={@staff_loaded and @staff_members == []}
+            class="py-20 flex flex-col items-center text-center"
+          >
+            <div class="size-16 rounded-3xl bg-base-200 flex items-center justify-center mb-4">
+              <.icon name="hero-user-group" class="size-8 text-base-content/20" />
+            </div>
+            <p class="font-medium text-base-content/40">Belum ada anggota tim</p>
+            <p class="text-xs text-base-content/30 mt-1">
+              Organisasi ini belum mendaftarkan tim publik
+            </p>
+          </div>
+
+          <%!-- Loading skeleton --%>
+          <div :if={not @staff_loaded} class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div
+              :for={_i <- 1..6}
+              class="bg-base-200 rounded-2xl h-28 animate-shimmer"
+            >
+            </div>
+          </div>
+
+          <%!-- Staff grid --%>
+          <div
+            :if={@staff_loaded and @staff_members != []}
+            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+          >
+            <.staff_card :for={member <- @staff_members} member={member} />
           </div>
         </div>
       </div>
     </Layouts.app>
+    """
+  end
+
+  defp collection_card(assigns) do
+    ~H"""
+    <.link
+      navigate={~p"/collections/#{@col.id}"}
+      class="group block bg-base-100 rounded-2xl border border-base-300/70 hover:border-primary/30 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 overflow-hidden"
+    >
+      <figure class="h-36 overflow-hidden bg-gradient-to-br from-primary/10 to-accent/15">
+        <%= if @col.thumbnail do %>
+          <img
+            src={asset_url(@col.thumbnail)}
+            alt={@col.title}
+            class="w-full h-full object-cover"
+          />
+        <% else %>
+          <div class="w-full h-full flex items-center justify-center">
+            <.icon name="hero-rectangle-stack" class="size-10 text-primary/25" />
+          </div>
+        <% end %>
+      </figure>
+      <div class="p-4 space-y-1.5">
+        <p class="font-semibold text-sm leading-snug line-clamp-2 text-base-content group-hover:text-primary transition-colors duration-150">
+          {@col.title}
+        </p>
+        <p :if={@col.description} class="text-xs text-base-content/55 line-clamp-2 leading-relaxed">
+          {@col.description}
+        </p>
+        <p :if={@col.collection_code} class="text-xs font-mono text-base-content/35">
+          {@col.collection_code}
+        </p>
+      </div>
+    </.link>
+    """
+  end
+
+  defp role_label("super_admin"), do: "Super Admin"
+  defp role_label("admin"), do: "Admin"
+  defp role_label("staff"), do: "Staf"
+  defp role_label("viewer"), do: "Viewer"
+  defp role_label(other), do: other
+
+  defp role_badge_class("super_admin"),
+    do: "bg-secondary/15 text-secondary border border-secondary/30"
+
+  defp role_badge_class("admin"),
+    do: "bg-secondary/10 text-secondary border border-secondary/20"
+
+  defp role_badge_class("staff"),
+    do: "bg-primary/10 text-primary border border-primary/20"
+
+  defp role_badge_class(_),
+    do: "bg-base-300 text-base-content/50 border border-base-300"
+
+  defp staff_card(assigns) do
+    ~H"""
+    <.link
+      navigate={~p"/u/#{@member.username}"}
+      class="group flex items-start gap-4 bg-base-100 rounded-2xl border border-base-300/70 hover:border-primary/30 p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
+    >
+      <%!-- Avatar --%>
+      <div class="size-12 rounded-xl shrink-0 overflow-hidden bg-gradient-to-br from-primary/20 to-accent/30 flex items-center justify-center ring-1 ring-base-300">
+        <%= if @member.avatar_url do %>
+          <img
+            src={Public.asset_url(@member.avatar_url)}
+            alt={@member.display_name}
+            class="w-full h-full object-cover"
+          />
+        <% else %>
+          <span class="text-lg font-bold text-primary/60">
+            {String.first(@member.display_name || @member.username || "?")}
+          </span>
+        <% end %>
+      </div>
+
+      <%!-- Info --%>
+      <div class="min-w-0 flex-1">
+        <div class="flex items-start justify-between gap-2 mb-0.5">
+          <p class="font-semibold text-sm text-base-content group-hover:text-primary transition-colors duration-150 truncate leading-snug">
+            {@member.display_name || @member.username}
+          </p>
+          <span class={[
+            "shrink-0 text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full",
+            role_badge_class(@member.role_name)
+          ]}>
+            {role_label(@member.role_name)}
+          </span>
+        </div>
+        <p :if={@member.headline} class="text-xs text-base-content/55 line-clamp-1 leading-relaxed">
+          {@member.headline}
+        </p>
+        <p :if={@member.city} class="flex items-center gap-1 text-xs text-base-content/35 mt-1">
+          <.icon name="hero-map-pin-micro" class="size-3 shrink-0" />
+          {@member.city}
+          <%= if @member.province do %>
+            , {@member.province}
+          <% end %>
+        </p>
+      </div>
+    </.link>
     """
   end
 end

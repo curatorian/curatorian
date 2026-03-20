@@ -19,7 +19,9 @@ defmodule Curatorian.Public do
     NodeProfile,
     Unit,
     BlogPost,
-    BlogPostComment
+    BlogPostComment,
+    UserRole,
+    Role
   }
 
   @page_size 12
@@ -176,6 +178,32 @@ defmodule Curatorian.Public do
     |> Repo.one()
   end
 
+  def list_collections_for_node(voile_node_id, opts \\ []) do
+    page = Keyword.get(opts, :page, 1)
+    offset = (page - 1) * @page_size
+
+    from(c in Collection,
+      where:
+        c.unit_id == ^voile_node_id and
+          c.status == "published" and
+          c.access_level == "public",
+      order_by: [desc: c.inserted_at],
+      limit: @page_size,
+      offset: ^offset
+    )
+    |> Repo.all()
+  end
+
+  def count_collections_for_node(voile_node_id) do
+    from(c in Collection,
+      where:
+        c.unit_id == ^voile_node_id and
+          c.status == "published" and
+          c.access_level == "public"
+    )
+    |> Repo.aggregate(:count, :id)
+  end
+
   defp search_collections(query, ""), do: query
 
   defp search_collections(query, search) do
@@ -187,6 +215,71 @@ defmodule Curatorian.Public do
 
   defp filter_by_collection_type(query, type) do
     where(query, [c], c.collection_type == ^type)
+  end
+
+  # ---------------------------------------------------------------------------
+  # Staff / Members (atrium.user_roles → atrium.user_profiles)
+  # ---------------------------------------------------------------------------
+
+  @role_order %{"super_admin" => -1, "admin" => 0, "staff" => 1, "viewer" => 2}
+
+  def list_staff_for_node(voile_node_id) do
+    now = DateTime.utc_now()
+
+    role_members_query =
+      from ur in UserRole,
+        join: up in UserProfile,
+        on: up.voile_user_id == ur.voile_user_id,
+        join: r in Role,
+        on: r.id == ur.role_id,
+        where:
+          (ur.voile_node_id == ^voile_node_id or
+             (is_nil(ur.voile_node_id) and r.scope == "platform" and ^voile_node_id == 1)) and
+            ur.status == :active and
+            (is_nil(ur.expires_at) or ur.expires_at > ^now) and
+            up.is_public == true and
+            is_nil(up.deleted_at),
+        select: %{
+          id: up.id,
+          user_id: up.voile_user_id,
+          username: up.username,
+          display_name: up.display_name,
+          avatar_url: up.avatar_url,
+          headline: up.headline,
+          city: up.city,
+          province: up.province,
+          is_verified: up.is_verified,
+          role_name: r.name
+        }
+
+    role_members = Repo.all(role_members_query)
+    user_ids = MapSet.new(Enum.map(role_members, & &1.user_id))
+
+    fallback_query =
+      from up in UserProfile,
+        where:
+          up.voile_node_id == ^voile_node_id and
+            up.is_public == true and
+            is_nil(up.deleted_at) and
+            up.voile_user_id not in ^MapSet.to_list(user_ids),
+        select: %{
+          id: up.id,
+          user_id: up.voile_user_id,
+          username: up.username,
+          display_name: up.display_name,
+          avatar_url: up.avatar_url,
+          headline: up.headline,
+          city: up.city,
+          province: up.province,
+          is_verified: up.is_verified,
+          role_name: "viewer"
+        }
+
+    fallback_members = Repo.all(fallback_query)
+
+    (role_members ++ fallback_members)
+    |> Enum.uniq_by(& &1.user_id)
+    |> Enum.sort_by(fn m -> Map.get(@role_order, m.role_name, 99) end)
   end
 
   # ---------------------------------------------------------------------------

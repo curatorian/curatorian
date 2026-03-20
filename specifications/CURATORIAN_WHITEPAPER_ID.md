@@ -40,28 +40,31 @@
    - 5.7 [Pembuat Pameran Digital](#57-pembuat-pameran-digital)
    - 5.8 [Penggalangan Dana Institusi](#58-penggalangan-dana-institusi)
    - 5.9 [Manajer Program Membaca](#59-manajer-program-membaca)
+   - 5.10 [Bursa Koleksi](#510-bursa-koleksi)
 6. [Arsitektur Teknis](#6-arsitektur-teknis)
    - 6.1 [Prinsip Desain Sistem](#61-prinsip-desain-sistem)
    - 6.2 [Arsitektur Tiga Lapisan](#62-arsitektur-tiga-lapisan)
    - 6.3 [Strategi Database](#63-strategi-database)
    - 6.4 [Autentikasi dan Keamanan](#64-autentikasi-dan-keamanan)
-   - 6.5 [Strategi Data Bibliografi](#65-strategi-data-bibliografi)
-   - 6.6 [Tumpukan Teknologi](#66-tumpukan-teknologi)
+   - 6.5 [Integritas Platform dan Verifikasi](#65-integritas-platform-dan-verifikasi)
+   - 6.6 [Strategi Data Bibliografi](#66-strategi-data-bibliografi)
+   - 6.7 [Tumpukan Teknologi](#67-tumpukan-teknologi)
 7. [Filosofi Open Source](#7-filosofi-open-source)
    - 7.1 [Model Open Core](#71-model-open-core)
    - 7.2 [Apa yang Terbuka dan Apa yang Tidak](#72-apa-yang-terbuka-dan-apa-yang-tidak)
    - 7.3 [Mengapa Model Ini Cocok untuk GLAM Indonesia](#73-mengapa-model-ini-cocok-untuk-glam-indonesia)
 8. [Model Bisnis dan Keberlanjutan](#8-model-bisnis-dan-keberlanjutan)
    - 8.1 [Filosofi](#81-filosofi)
-   - 8.2 [Tingkatan Layanan](#82-tingkatan-layanan)
-   - 8.3 [Sumber Pendapatan](#83-sumber-pendapatan)
-   - 8.4 [Jalan Menuju Keberlanjutan](#84-jalan-menuju-keberlanjutan)
+   - 8.2 [Akses Penuh untuk Semua](#82-akses-penuh-untuk-semua)
+   - 8.3 [Keanggotaan Penyokong](#83-keanggotaan-penyokong)
+   - 8.4 [Donasi dan Apresiasi](#84-donasi-dan-apresiasi)
+   - 8.5 [Jalan Menuju Keberlanjutan](#85-jalan-menuju-keberlanjutan)
 9. [Lanskap Kompetitif](#9-lanskap-kompetitif)
 10. [Peta Jalan Pengembangan](#10-peta-jalan-pengembangan)
-    - 10.1 [Fase 1 — Fondasi (2026, Q1–Q2)](#101-fase-1--fondasi-2026-q1q2)
-    - 10.2 [Fase 2 — Peluncuran Komunitas (2026, Q2–Q3)](#102-fase-2--peluncuran-komunitas-2026-q2q3)
-    - 10.3 [Fase 3 — Ekspansi Platform (2026, Q3–Q4)](#103-fase-3--ekspansi-platform-2026-q3q4)
-    - 10.4 [Fase 4 — Marketplace dan Pendalaman (2027)](#104-fase-4--marketplace-dan-pendalaman-2027)
+    - 10.1 [Fase 1 — Fondasi](#101-fase-1--fondasi)
+    - 10.2 [Fase 2 — Peluncuran Komunitas](#102-fase-2--peluncuran-komunitas)
+    - 10.3 [Fase 3 — Ekspansi Platform](#103-fase-3--ekspansi-platform)
+    - 10.4 [Fase 4 — Marketplace dan Pendalaman](#104-fase-4--marketplace-dan-pendalaman)
 11. [Bergabunglah Bersama Kami](#11-bergabunglah-bersama-kami)
 
 ---
@@ -251,7 +254,7 @@ Inti dari apa yang Curatorian lakukan. Setiap kurator di platform memiliki akses
 
 **Katalogisasi.** Item dibuat dengan metadata bibliografi yang fleksibel: judul, subjudul, penulis, penerbit, tahun, edisi, bahasa, kategori subjek, format fisik, kondisi, dan lokasi dalam ruang fisik. Sistem field yang bisa dikustomisasi (EAV — Entity-Attribute-Value) membuat platform yang sama bisa bekerja dengan baik untuk buku, objek museum, dokumen arsip, gulungan film, dan jenis koleksi apa pun lainnya. Skema datanya tidak mengistimewakan satu disiplin GLAM di atas yang lain.
 
-**Pencarian ISBN dan Cache Bibliografi.** Saat mengkatalogisasi buku, pengguna bisa mengetik atau memindai ISBN. Sistem memeriksa rantai sumber bibliografi secara berurutan — cache lokal terlebih dahulu, lalu Open Library, OpenAlex, Google Books, dan katalog Perpustakaan Nasional — dan mengisi form secara otomatis dengan judul, penulis, penerbit, tahun, dan sampul buku. Hasilnya disimpan di cache lokal sehingga pencarian berikutnya langsung. ISBN selalu opsional: banyak buku Indonesia dari penerbit kecil tidak memiliki ISBN, dan sistem bekerja sepenuhnya tanpa ISBN.
+**Pengambilan Metadata.** Saat mengkatalogisasi buku, pengguna bisa memasukkan identifikasi atau judul untuk mengambil data bibliografi dari sumber eksternal — Open Library, OpenAlex, dan Google Books — yang mengisi form secara otomatis dengan judul, penulis, penerbit, tahun, dan sampul buku. ISBN selalu opsional: banyak buku Indonesia dari penerbit kecil tidak memiliki ISBN, dan sistem bekerja sepenuhnya tanpa ISBN. Sumber data bibliografi Indonesia dan sumber tambahan lainnya akan diintegrasikan seiring platform berkembang.
 
 **Beberapa Koleksi per Node.** Sebuah institusi bisa mengorganisasi item ke dalam beberapa koleksi bernama dalam node mereka — "Koleksi Umum," "Koleksi Referensi," "Koleksi Anak" — masing-masing dengan pengaturan privasi, aturan akses, dan tampilan katalog tersendiri.
 
@@ -279,6 +282,8 @@ Fitur komunitas profesional yang mengubah Curatorian dari sekadar alat menjadi s
 
 **Pesan Komunitas.** Pesan langsung dan grup antar pengguna platform. Percakapan dukungan sesama yang saat ini terjadi melalui WhatsApp — terpecah-pecah, sulit dicari, hilang ketika ganti ponsel — bisa terjadi di lingkungan yang tepat, persisten, dan bisa dicari.
 
+**Profil Pembaca dan Kolektor Perorangan.** Curatorian bukan hanya untuk kurator institusional — ini juga rumah bagi siapa pun yang mencintai buku, materi arsip, atau koleksi apa pun. Pembaca dan kolektor individual bisa membangun profil publik di sekitar kehidupan membaca mereka: berbagi apa yang sedang mereka baca, menulis catatan dan refleksi tentang item di koleksi mereka, bercerita tentang penemuan baru, dan mendokumentasikan perjalanan mengumpulkan koleksi mereka. Platform ini menciptakan ruang untuk bertemu orang-orang dengan minat literasi yang sama, mengikuti kurator dengan selera serupa, dan berpartisipasi dalam komunitas yang menganggap serius hubungan personal dengan koleksi dan gagasan. Baik seseorang punya lima ratus buku atau hanya lima — hubungan mereka dengan benda-benda dan ide-ide itu layak untuk dibagikan.
+
 ### 5.3 Platform Acara dan Webinar
 
 Sistem manajemen acara lengkap untuk komunitas profesional GLAM Indonesia.
@@ -289,7 +294,7 @@ Webinar, workshop, dan seri seminar adalah inti dari pengembangan profesional GL
 
 **Bagi peserta:** Jelajahi acara mendatang di `curatorian.id/events`. Daftar dengan satu form, bayar via Midtrans untuk acara berbayar. Terima tiket QR melalui email. Unduh sertifikat kehadiran setelah acara, dengan URL verifikasi (`curatorian.id/verify/[kode-sertifikat]`) yang bisa ditautkan dari CV atau profil LinkedIn.
 
-**Biaya platform:** 5% dari pendapatan tiket acara berbayar. Acara gratis tidak dikenakan biaya apa pun.
+**Biaya platform:** Persentase kecil dari pendapatan tiket acara berbayar. Acara gratis tidak dikenakan biaya apa pun.
 
 ### 5.4 Papan Lowongan Kerja
 
@@ -301,7 +306,7 @@ Lulusan baru Ilmu Perpustakaan dan Informasi, arsiparis freelance, dan profesion
 
 **Bagi pencari kerja:** Jelajahi dan cari lowongan dengan filter untuk lokasi, jenis, dan kategori institusi. Lamar dalam platform atau ikuti tautan eksternal, bisa dikonfigurasi per lowongan.
 
-**Biaya platform:** Rp 75.000 per posting untuk institusi for-profit. Gratis untuk institusi nirlaba dan komunitas.
+**Biaya platform:** Biaya posting yang terjangkau untuk institusi for-profit. Gratis untuk institusi nirlaba dan komunitas.
 
 ### 5.5 Marketplace Tenaga Ahli dan Freelance
 
@@ -315,7 +320,7 @@ Marketplace ini menutup celah tersebut.
 
 **Bagi institusi:** Jelajahi profil freelancer dan daftar layanan. Posting permintaan proyek ke papan permintaan. Pesan dan bayar melalui platform dengan perlindungan escrow — dana ditahan sampai institusi mengkonfirmasi penyelesaian yang memuaskan.
 
-**Biaya platform:** Komisi 10–12% dari engagement yang diselesaikan. Ini adalah mesin pendapatan utama jangka panjang platform — biaya transaksi berganda seiring pertumbuhan jaringan dengan cara yang tidak bisa dilakukan biaya langganan.
+**Biaya platform:** Komisi dari engagement yang diselesaikan. Ini adalah mesin pendapatan utama jangka panjang platform — biaya transaksi berganda seiring pertumbuhan jaringan dengan cara yang tidak bisa dilakukan biaya langganan.
 
 ### 5.6 Jaringan Bibliografi Bersama
 
@@ -345,13 +350,27 @@ TBM dan perpustakaan komunitas sering butuh dukungan finansial dari komunitas �
 
 Institusi bisa memelihara halaman donasi permanen atau menjalankan kampanye dengan target, tenggat waktu, dan pelacakan kemajuan yang spesifik. Donatur menerima lencana pendukung digital di profil Curatorian mereka.
 
-**Biaya platform:** 3–5% dari dana yang terkumpul, untuk menutupi biaya transaksi.
+**Biaya platform:** Persentase kecil dari dana yang terkumpul, untuk menutupi biaya transaksi.
 
 ### 5.9 Manajer Program Membaca
 
 Alat terstruktur untuk menjalankan, melacak, dan melaporkan program membaca.
 
 Program Gerakan Literasi, tantangan membaca, dan program buku klub adalah inti dari misi TBM dan perpustakaan sekolah. Program-program ini saat ini dikelola melalui lembar pendaftaran kertas dan pelacakan manual. Curatorian mengelola siklus hidup program secara penuh: pembuatan, pendaftaran peserta, log membaca individual, visualisasi kemajuan, sertifikat penyelesaian, dan halaman program publik untuk pelaporan kepada pendonor dan organisasi mitra.
+
+### 5.10 Bursa Koleksi
+
+Platform pertukaran antar sesama untuk mendonasikan dan meminta item koleksi fisik — antara institusi maupun individu.
+
+Setiap perpustakaan dan koleksi mengalami evolusi yang wajar. Sebuah TBM yang dulunya berfokus pada buku bergambar anak-anak kini beralih ke program literasi orang dewasa, dan buku-buku bergambar itu tidak lagi melayani komunitasnya. Sebuah perpustakaan sekolah memiliki salinan ganda dari judul-judul yang banyak didonasikan dan tidak bisa dimanfaatkan. Seorang peneliti memiliki koleksi spesialis yang dikemas dalam kardus — yang akan sangat berharga bagi arsip universitas. Sementara itu, institusi lain punya daftar keinginan: mereka sedang membangun koleksi sejarah lokal dan aktif mencari donasi materi yang relevan.
+
+Ketidaksesuaian ini — surplus di satu tempat, kebutuhan di tempat lain — saat ini tidak memiliki lapisan koordinasi. Diselesaikan melalui jaringan personal yang informal, atau tidak sama sekali.
+
+Curatorian menyediakan infrastruktur pencocokannya. Institusi dan individu bisa menandai item yang sudah terkatalogisasi sebagai tersedia untuk didonasikan, dengan catatan singkat tentang kondisi dan kesesuaiannya. Mereka juga bisa menerbitkan daftar keinginan berisi item koleksi yang aktif mereka cari — judul tertentu, bidang subjek, atau format tertentu. Kedua sisi terlihat oleh komunitas dan bisa dicari di seluruh platform.
+
+Platform ini adalah lapisan pencocokan dan visibilitas saja. Curatorian tidak menangani logistik, pengiriman, atau transfer legal — semua itu diatur langsung antara para pihak begitu kecocokan ditemukan. Nilainya ada pada memunculkan apa yang tersedia dan apa yang dibutuhkan dalam satu tempat, untuk pertama kalinya, di ribuan koleksi Indonesia.
+
+Setiap pertukaran yang selesai dicatat sebagai kontribusi komunitas di profil kedua pihak — membangun rekam jejak kedermawanan dan timbal balik yang terlihat di dalam komunitas GLAM.
 
 ---
 
@@ -386,7 +405,7 @@ VOILE (open source, Apache 2.0)
         ↓
 CURATORIAN (open source)
   Aplikasi Phoenix LiveView — platform publik
-  Port 4000 — auth, komunitas, OPAC publik, semua rute baca
+  Auth, komunitas, OPAC publik, semua rute baca
   DB: skema voile + public
   Repository: github.com/curatorian/curatorian
         │
@@ -394,7 +413,7 @@ CURATORIAN (open source)
         ↓
 ATRIUM (proprietary)
   Aplikasi Phoenix LiveView — dasbor manajemen
-  Port 4001 — manajemen koleksi, billing, acara, marketplace
+  Manajemen koleksi, billing, acara, marketplace
   DB: skema atrium
   Repository: privat
 ```
@@ -409,67 +428,52 @@ Secara eksternal, hanya nama **Curatorian** yang ada. Pengguna berinteraksi deng
 
 ### 6.3 Strategi Database
 
-Curatorian dan Atrium berbagi satu instance database PostgreSQL (`curatorian_prod`), dipisahkan oleh skema:
+Curatorian dan Atrium berbagi satu instance database PostgreSQL, dipisahkan ke dalam skema yang berbeda sesuai tanggung jawab masing-masing lapisan. Skema Voile menyimpan data GLAM inti: koleksi, item, catatan sirkulasi, data anggota, dan tabel referensi. Skema Atrium menyimpan data manajemen platform: langganan, acara, lowongan kerja, engagement marketplace, analitik, dan notifikasi.
 
-```
-curatorian_prod
-├── skema voile    — Tabel core GLAM
-│   ├── users, nodes
-│   ├── collections, items, collection_fields
-│   ├── lib_transactions, lib_fines, lib_reservations
-│   ├── patrons
-│   └── mst_* (data master/referensi)
-│
-├── skema atrium   — Tabel manajemen platform
-│   ├── node_profiles, user_profiles
-│   ├── subscriptions, payments, invoices, donations
-│   ├── feature_flags, usage_snapshots
-│   ├── events, event_registrations, event_certificates
-│   ├── job_postings, job_applications
-│   ├── freelance_listings, freelance_engagements
-│   ├── bibliographic_cache, shared_bibliographic_entries
-│   ├── analytics_events, visitor_logs
-│   └── notifications, timeline_events
-│
-└── skema public   — Kosong (sengaja tidak digunakan)
-```
+Pemisahan skema memberikan batas logis yang bersih. Migrasi Atrium ada di repositori privat Atrium dan tidak pernah muncul di repositori Curatorian yang publik — batas open source dijaga di level kode.
 
-Pemisahan skema memberikan batas logis yang bersih: `search_path` Atrium diatur ke `atrium,voile,public`, mencegah query yang tidak sengaja masuk ke skema yang salah. Migrasi Atrium ada di repositori privat Atrium dan tidak pernah muncul di repositori Curatorian yang publik — batas open source dijaga di level kode.
+Tidak ada constraint foreign key yang melintas batas skema. Referensi lintas skema disimpan sebagai nilai identifikasi biasa — menjaga pemisahan yang bersih sekaligus memungkinkan pola akses data yang dibutuhkan platform.
 
-Tidak ada constraint foreign key yang melintas batas skema. Referensi lintas skema disimpan sebagai nilai `BIGINT` atau `UUID` biasa. Tabel dengan volume tinggi — `analytics_events`, `notifications`, `timeline_events` — dipartisi per bulan sejak deployment pertama, investasi awal kecil yang mencegah masalah besar saat skala bertumbuh.
+Tabel operasional dengan volume tinggi dirancang dengan skalabilitas sejak deployment pertama, menghindari kebutuhan restrukturisasi yang mahal seiring platform berkembang.
 
 ### 6.4 Autentikasi dan Keamanan
 
-Semua autentikasi ditangani oleh Curatorian (port 4000). Atrium (port 4001) tidak pernah mengelola login — ia memverifikasi identitas dari token yang telah ditandatangani.
+Autentikasi ditangani secara terpusat dalam aplikasi Curatorian. Dasbor manajemen memverifikasi identitas melalui token lintas aplikasi yang telah ditandatangani — bukan mengelola login secara independen — memastikan satu titik autentikasi yang konsisten bagi pengguna di seluruh bagian platform.
 
-**Alur autentikasi lintas aplikasi:**
+Semua akses data sensitif dibatasi sesuai node pengguna yang terautentikasi. Soft deletion digunakan di seluruh platform — tidak ada data pengguna yang dihapus secara permanen tanpa tindakan yang disengaja. Rate limiting diterapkan pada endpoint autentikasi sebelum peluncuran publik apa pun.
 
-1. Pengguna login di Curatorian. Kredensial diverifikasi terhadap tabel `users`.
-2. Curatorian menandatangani Phoenix.Token yang berisi: `user_id`, `node_id`, `node_name`, `node_slug`, dan `roles`.
-3. Token disimpan dalam cookie: `_curatorian_cross_app_token`.
-4. Ketika pengguna mengakses Atrium, token dibaca dari cookie dan diverifikasi menggunakan `SECRET_KEY_BASE` yang sama.
-5. Token valid memberikan klaim ke koneksi. Token yang kadaluarsa atau dimanipulasi mengalihkan ke halaman login Curatorian.
+### 6.5 Integritas Platform dan Verifikasi
 
-Token berlaku selama 24 jam. Kedua aplikasi menggunakan salt yang identik dan `SECRET_KEY_BASE` yang identik — merotasi keduanya mengharuskan pembaruan kedua aplikasi secara bersamaan. Semua query Atrium yang sensitif dibatasi oleh `node_id` atau `user_id` dari klaim token — tidak pernah menggunakan `Repo.all()` global. Semua entitas yang menghadap pengguna menggunakan soft deletion (timestamp `deleted_at`) daripada penghapusan permanen.
+Platform komunitas yang terbuka dan mudah diakses juga menjadi target. Komunitas GLAM Indonesia berhak mendapatkan ruang yang bebas dari spam, manipulasi, dan aktor tidak bertanggung jawab — dan desain Curatorian mencerminkan tanggung jawab itu sejak deployment pertama.
 
-### 6.5 Strategi Data Bibliografi
+**Masalah spam dan judi online.** Platform publik dengan domain `.id` yang memiliki otoritas SEO yang sah secara sistematis menjadi target operator judi yang mencari tautan balik. Ini adalah pengalaman langsung pada platform komunitas Indonesia lainnya. Curatorian dirancang untuk membuat dirinya tidak bernilai sebagai target manipulasi SEO sejak hari pertama.
 
-Ketika pustakawan memasukkan atau memindai ISBN, Curatorian memeriksa rantai sumber secara berurutan:
+Semua tautan eksternal yang diposting pengguna secara otomatis mendapat atribut `rel="nofollow ugc"` — menghilangkan nilai tautan balik yang memotivasi sebagian besar operasi spam. Profil yang belum terverifikasi dan konten yang baru dibuat tidak diindeks oleh mesin pencari sampai akun telah diverifikasi dan menunjukkan aktivitas nyata. Tidak ada nilai SEO, tidak ada motif spam.
 
-1. **Cache bibliografi lokal** — instan, tidak ada request eksternal
-2. **Open Library** — tidak perlu API key, cakupan umum yang luas
-3. **OpenAlex** — tidak perlu API key, cakupan akademik yang kuat
-4. **Google Books** — cakupan populer yang luas, perlu key untuk volume tinggi
-5. **Katalog Perpustakaan Nasional** — judul khusus Indonesia
-6. **Input manual** — selalu tersedia, selalu menjadi fallback
+**Verifikasi nomor telepon.** Pendaftaran akun memerlukan verifikasi OTP WhatsApp. Nomor telepon Indonesia adalah hambatan yang berarti — operasi spam luar negeri dan bot otomatis tidak bisa mendapatkannya dalam skala besar. Ini juga secara kultural sangat wajar: hampir semua orang dalam komunitas target Curatorian sudah menggunakan WhatsApp setiap hari. Verifikasi cepat, familiar, dan bukan hambatan bagi pengguna yang tulus.
 
-Hasil dari sumber eksternal mana pun di-cache secara lokal. Begitu sebuah ISBN pernah dicari oleh pengguna mana pun di platform, semua pencarian berikutnya untuk ISBN tersebut dilayani dari cache — instan dan tanpa biaya.
+**Karantina konten akun baru.** Node baru bisa langsung menggunakan platform — mengkatalogisasi koleksi dan mengelolanya secara internal — tetapi konten yang menghadap publik (bio profil, posting blog, tautan eksternal, listing bursa koleksi) tunduk pada jendela karantina singkat sebelum muncul di halaman yang diindeks publik. Ini menangkap posting otomatis tanpa merepotkan pengguna baru yang tulus.
 
-OpenAlex menyediakan dump data bulk yang bisa diimpor untuk mengisi cache sebelumnya dengan jutaan rekaman sebelum pengguna pertama pun mengetikkan ISBN. Ini sangat meningkatkan pengalaman pertama kali digunakan.
+**Daftar blokir domain berbahaya.** Daftar domain judi, spam, dan berbahaya yang terpelihara diperiksa terhadap semua field URL pada saat penulisan. Upaya memposting URL yang ditandai ditolak secara diam-diam dengan pesan validasi umum. Daftar ini diperbarui saat domain baru teridentifikasi.
 
-Cache bibliografi adalah sumber daya tingkat platform, bukan per institusi. Rekaman yang di-cache oleh perpustakaan sekolah di Bandung langsung tersedia untuk TBM di Surabaya yang mencari buku yang sama.
+**Field honeypot.** Form pendaftaran dan pengiriman berisi field tersembunyi yang tidak pernah dilihat atau diisi pengguna nyata. Bot otomatis yang membabi buta mengisi semua field form memicu penolakan diam-diam. Tidak ada gesekan CAPTCHA bagi pengguna manusia.
 
-### 6.6 Tumpukan Teknologi
+**Pelaporan komunitas.** Setiap pengguna terautentikasi bisa melaporkan profil, posting, atau listing sebagai mencurigakan. Konten yang dilaporkan disembunyikan sementara menunggu peninjauan — terlihat oleh pemilik akun, tidak terlihat oleh publik. Dalam komunitas yang erat dan berorientasi profesional ini, aktor jahat teridentifikasi dengan cepat.
+
+**Verifikasi sebagai fondasi kepercayaan.** Verifikasi telepon berfungsi ganda: sebagai penghalang spam sekaligus sinyal kepercayaan. Akun terverifikasi dengan katalog aktif dan riwayat komunitas memiliki kredibilitas yang nyata. Lapisan verifikasi yang sama yang memblokir bot spam juga menjadi dasar sistem deklarasi mandiri untuk keanggotaan penyokong — sebuah institusi dengan nomor telepon nyata, katalog aktif, dan kehadiran komunitas telah menaruh sesuatu yang nyata.
+
+### 6.6 Strategi Data Bibliografi
+
+Ketika pustakawan memasukkan identifikasi atau mencari berdasarkan judul, Curatorian mengambil metadata bibliografi dari rantai sumber eksternal secara berurutan:
+
+1. **Open Library** — tidak perlu API key, cakupan umum yang luas
+2. **OpenAlex** — tidak perlu API key, cakupan akademik yang kuat
+3. **Google Books** — cakupan populer yang luas
+4. **Input manual** — selalu tersedia, selalu menjadi fallback
+
+Sistem ini dirancang untuk mengakomodasi sumber tambahan — termasuk database khusus Indonesia — seiring platform berkembang dan kebutuhannya menjadi lebih jelas. Semua pengambilan data bersifat opsional: kurator selalu bisa memasukkan metadata secara manual, dan tidak ada fitur platform yang membutuhkan identifikasi untuk bisa berfungsi.
+
+### 6.7 Tumpukan Teknologi
 
 | Komponen | Teknologi | Alasan Pemilihan |
 |----------|-----------|-----------------|
@@ -483,7 +487,7 @@ Cache bibliografi adalah sumber daya tingkat platform, bukan per institusi. Reka
 | Email | Swoosh + Mailgun | Email transaksional; tier gratis cukup untuk tahap awal |
 | Generasi PDF | ChromicPDF | PDF berbasis HTML/CSS untuk sertifikat, invoice, laporan; kontrol desain maksimal |
 | Background Jobs | Oban | Pemrosesan job async yang andal berbasis database; generasi PDF, email, pemanasan cache |
-| Sumber ISBN | Open Library, OpenAlex, Google Books, Perpusnas | Rantai prioritas yang mencakup data bibliografi internasional dan Indonesia |
+| Sumber Bibliografi | Open Library, OpenAlex, Google Books | Rantai prioritas yang mencakup data bibliografi internasional; sumber tambahan akan ditambahkan seiring waktu |
 | Penyimpanan Gambar | Cloudflare R2 | Penyimpanan objek kompatibel S3 untuk gambar sampul item koleksi |
 
 Pilihan Elixir dan Phoenix adalah keputusan yang disengaja dan signifikan. VM BEAM — runtime yang mendasari Elixir — dirancang untuk sistem konkuren dan toleran kesalahan. Phoenix LiveView memungkinkan UI real-time dan kolaboratif (pencarian katalog langsung, pemindaian check-in real-time, pembaruan sirkulasi langsung) tanpa kompleksitas frontend JavaScript terpisah. Aplikasi Elixir dikompilasi menjadi rilis mandiri yang berjalan efisien di hardware yang sederhana.
@@ -528,54 +532,54 @@ Batas ini dijaga di level kode. Migrasi database Atrium ada di repositori Atrium
 
 ### 8.1 Filosofi
 
-Model bisnis ini mencerminkan keyakinan tertentu tentang jenis institusi seperti apa yang Curatorian perlu menjadi agar berhasil di komunitas GLAM Indonesia.
+Curatorian dibangun di atas keyakinan sederhana: akses ke alat untuk melestarikan dan berbagi pengetahuan tidak seharusnya bergantung pada kemampuan membayar. Pengelola TBM yang menjalankan ruang baca dari rumahnya sendiri dan perpustakaan universitas dengan anggaran resmi sama-sama sedang melakukan pekerjaan yang penting. Platform ini seharusnya melayani keduanya secara penuh, tanpa perbedaan.
 
-Komunitas perpustakaan dan GLAM Indonesia mempercayai alat yang dibangun oleh praktisi, diadopsi secara bebas, dan dikelola dengan jujur. Mereka dengan wajar curiga terhadap praktik komersial yang agresif, penetapan harga yang tidak transparan, dan platform asing yang tidak benar-benar berinvestasi dalam konteks Indonesia. Curatorian mendapatkan kepercayaan dengan memberikan nilai nyata terlebih dahulu, hanya menagih mereka yang punya kemampuan komersial, dan transparan tentang bagaimana operasionalnya dibiayai.
+Komunitas GLAM Indonesia mempercayai alat yang dibangun oleh praktisi, diadopsi secara bebas, dan dikelola dengan jujur. Mereka dengan wajar curiga terhadap platform komersial yang memperlakukan komunitas sebagai segmen pasar. Curatorian mendapatkan kepercayaan dengan memberikan nilai nyata terlebih dahulu — dan menopang dirinya melalui kontribusi sukarela dan proporsional dari mereka yang mendapat manfaat dari platform dan memiliki kemampuan untuk berkontribusi.
 
-Ini bukan filantropi. Ini adalah strategi komersial yang memperlakukan kepercayaan komunitas sebagai aset utama dan membangun keberlanjutan finansial di atasnya. Kepercayaan komunitas, begitu diperoleh, sangat sulit direplikasi oleh kompetitor hanya dengan menawarkan harga yang lebih rendah.
+Ini bukan filantropi dan ini bukan bisnis berlangganan. Ini adalah model kooperatif: platform ini milik komunitas yang dilayaninya, dan komunitas menopangnya secara kolektif, masing-masing sesuai kemampuannya.
 
-### 8.2 Tingkatan Layanan
+### 8.2 Akses Penuh untuk Semua
 
-| Tier | Harga | Siapa yang Dilayani |
-|------|-------|---------------------|
-| **Komunitas** | Gratis, selamanya | Kolektor individual, TBM, perpustakaan komunitas, institusi nirlaba, perpustakaan sekolah |
-| **Institusi** | Rp 150.000–250.000/bulan | Bisnis for-profit, institusi komersial, perusahaan dengan perpustakaan CSR, usaha swasta |
+Setiap fitur Curatorian tersedia bagi setiap pengguna, sejak hari pertama, selamanya. Tidak ada tingkatan fitur, tidak ada batas penggunaan, tidak ada fungsi yang dikunci di balik pembayaran. Kolektor buku perorangan dan BUMN dengan perpustakaan CSR seribu item memiliki akses ke alat yang identik.
 
-**Verifikasi status nirlaba** dilakukan melalui deklarasi mandiri dengan form sederhana. Platform tidak memperketat akses secara agresif atau meminta dokumentasi. Sebagian besar TBM dan institusi komunitas benar-benar memenuhi syarat, dan membuat deklarasi palsu menanggung risiko reputasi di komunitas di mana orang saling mengenal. Percayai dulu, penegakan bila diperlukan.
+Ini bukan model freemium dengan jalur upgrade tersembunyi. Ini adalah pilihan struktural yang disengaja: begitu akses menjadi bersyarat pada pembayaran, platform berhenti menjadi infrastruktur komunitas dan menjadi produk. Curatorian adalah infrastruktur.
 
-### 8.3 Sumber Pendapatan
+Pertanyaan praktis — bagaimana infrastruktur menopang dirinya — dijawab bukan dengan membatasi akses, tetapi dengan membangun budaya kontribusi proporsional di antara mereka yang memiliki kapasitas untuk berkontribusi.
 
-**1. Langganan Institusi**
-Sumber pendapatan fondasi. Langganan bulanan dari institusi for-profit memberikan garis dasar yang menutupi hosting dan biaya operasional. Pada Rp 150.000–250.000 per bulan, komitmennya mudah dibenarkan dengan waktu yang dihemat dalam manajemen koleksi dan nilai kepatuhan yang diberikan untuk institusi dengan kewajiban CSR.
+### 8.3 Keanggotaan Penyokong
 
-**2. Donasi Sukarela**
-Pengguna tier gratis yang menemukan nilai nyata bisa berkontribusi secara sukarela dalam jumlah berapa pun. Prompt donasi muncul di momen yang wajar: setelah mendaftar, setelah membuat laporan atau sertifikat, dan di halaman Tentang Kami. Tidak ada tekanan, tidak ada batasan fitur untuk yang tidak berdonasi. Donasi dibingkai dengan jujur: *"Curatorian gratis dan akan tetap gratis. Kalau mau bantu operasional, boleh donasi seiklasnya."*
+Institusi komersial dan for-profit — bisnis, perpustakaan CSR perusahaan, sekolah swasta, co-working space — diundang untuk menjadi Anggota Penyokong. Keanggotaan penyokong adalah kontribusi, bukan pembelian. Ini tidak membuka fitur baru. Ini adalah pengakuan bahwa institusi mendapat manfaat dari platform dan memiliki anggaran untuk mendukung apa yang digunakan komunitas yang lebih luas secara gratis.
 
-**3. Biaya Platform Acara**
-5% dari pendapatan tiket acara berbayar. Acara gratis tidak dikenakan biaya apa pun. Penyelenggara menggunakan akun Zoom mereka sendiri; Curatorian menyediakan infrastruktur pendaftaran, tiket, dan sertifikat.
+Jumlah kontribusi fleksibel dan diserahkan pada penilaian institusi. Yang penting adalah pengakuan publik: Anggota Penyokong mendapat lencana terlihat di profil node mereka — "Anggota Penyokong Curatorian" — yang menandakan dukungan mereka kepada komunitas. Dalam konteks di mana reputasi institusional penting — audit CSR, akreditasi, hubungan mitra — lencana ini adalah sinyal bermakna dari investasi dalam infrastruktur GLAM Indonesia.
 
-**4. Biaya Posting Lowongan Kerja**
-Rp 75.000 per posting untuk institusi for-profit. Gratis untuk institusi nirlaba dan komunitas. Aliran pendapatan kecil dan berulang dari institusi yang aktif merekrut.
+Untuk institusi yang proses pengadaannya memerlukan dokumentasi formal, Curatorian menghasilkan invoice atau tanda terima kontribusi yang proper sesuai permintaan, dilabeli dengan jelas sebagai kontribusi keberlanjutan platform. Ini menghilangkan gesekan administrasi yang menghalangi institusi yang sebetulnya bersedia berkontribusi.
 
-**5. Komisi Marketplace Freelance**
-Komisi 10–12% dari engagement freelance yang diselesaikan, diproses melalui escrow Midtrans. Ini adalah sumber pendapatan berpotensi tertinggi karena skala seiring volume dan nilai total pekerjaan yang difasilitasi — lebih cepat dari linier pada skala. Marketplace yang matang dengan ratusan engagement aktif per bulan menghasilkan pendapatan signifikan tanpa biaya infrastruktur tambahan.
+Anggota Penyokong juga mendapat suara yang lebih berbobot dalam pengembangan platform — akses ke forum kontributor di mana prioritas roadmap bisa diusulkan dan didiskusikan. Mereka tidak mengontrol platform, tetapi mereka didengar lebih langsung dari pengguna anonim. Ini adalah manfaat yang bermakna bagi institusi komersial yang mengandalkan pengembangan platform yang berkelanjutan.
 
-**6. Biaya Platform Penggalangan Dana**
-3–5% dari dana yang terkumpul melalui kampanye donasi institusional. Menutupi biaya transaksi dan berkontribusi pada operasional platform.
+### 8.4 Donasi dan Apresiasi
 
-### 8.4 Jalan Menuju Keberlanjutan
+Di luar keanggotaan penyokong institusional, Curatorian mempertahankan lapisan donasi sukarela terbuka bagi individu dan organisasi dari jenis apa pun.
 
-**Fase 1 — Berbasis Donasi (Peluncuran hingga Bulan ke-6).**
-Semua fitur gratis. Operasional didanai oleh donasi sukarela. Tujuan fase ini adalah kepercayaan komunitas, bukan pendapatan. Mendapatkan 50 node aktif yang menggunakan platform dengan kepuasan nyata lebih berharga pada tahap ini daripada mendapatkan lima pelanggan berbayar melalui pemasaran agresif. Bukti sosial dalam komunitas GLAM adalah sinyal komersial paling kuat yang tersedia.
+**Untuk individu.** Pengguna mana pun yang menemukan nilai nyata dalam platform bisa berkontribusi dalam jumlah berapa pun, kapan saja. Prompt donasi muncul di momen yang wajar — setelah mendaftar, setelah membuat laporan atau sertifikat, setelah menyelesaikan pertukaran koleksi — dibingkai tanpa tekanan: *"Curatorian gratis dan akan tetap gratis. Kalau mau bantu operasional, boleh donasi seiklasnya."* Kontributor mendapat lencana pendukung di profil mereka dan terdaftar secara publik di halaman pendukung Curatorian.
 
-**Fase 2 — Freemium (Bulan ke-4 hingga ke-8).**
-Tier berbayar Institusi diperkenalkan begitu 50+ node aktif gratis menunjukkan platform memberikan nilai nyata. Biaya acara dan papan lowongan mulai begitu fitur-fitur tersebut diluncurkan. Komunitas pada saat ini sudah cukup besar sehingga pengguna komersial baru melihat platform yang aktif dan legit, bukan kota kosong.
+**Untuk organisasi yang memberikan kontribusi lebih besar.** Organisasi — perusahaan, yayasan, instansi pemerintah — yang ingin memberikan kontribusi signifikan bagi infrastruktur dan pengembangan Curatorian diakui secara publik dengan entri khusus di halaman pendukung Curatorian, menampilkan nama mereka, periode kontribusi, dan pernyataan singkat tentang mengapa mereka mendukung infrastruktur GLAM Indonesia. Ini berfungsi sebagai mekanisme transparansi CSR yang nyata: sebuah organisasi bisa menunjuk halaman pendukung Curatorian mereka sebagai bukti yang bisa diaudit atas investasi mereka dalam warisan budaya dan infrastruktur literasi komunitas Indonesia.
 
-**Fase 3 — Marketplace (Bulan ke-9+).**
-Komisi marketplace freelance menjadi sumber pendapatan utama. Pendapatan langganan terus tumbuh secara linier. Pendapatan marketplace tumbuh dengan aktivitas jaringan — lebih cepat dari linier pada skala. Pada titik ini platform sudah mandiri dan bisa berinvestasi dalam pertumbuhan dan fitur yang lebih dalam.
+**Transparansi keuangan publik.** Curatorian menerbitkan dasbor operasional langsung yang menunjukkan biaya platform, apa yang telah diterima dalam kontribusi dan keanggotaan penyokong, dan bagaimana dana dialokasikan. Ini bukan persyaratan regulasi — ini adalah komitmen komunitas. Komunitas yang bisa melihat dengan tepat bagaimana kontribusinya digunakan mempercayai platform lebih dalam, dan kepercayaan itu lebih berharga dari model pendapatan apa pun.
 
-**Target impas: Bulan ke-3.**
-Donasi awal dikombinasikan dengan dua atau tiga pelanggan komersial pertama diperkirakan cukup menutupi biaya hosting pada Bulan ke-3.
+**Lingkaran umpan balik.** Kontributor — baik donatur individual maupun anggota penyokong — diundang ke dalam hubungan yang lebih dekat dengan platform: akses awal ke fitur baru, saluran masukan langsung ke pengembang, dan pengakuan publik atas peran mereka dalam menjaga infrastruktur komunitas tetap berjalan. Inilah cara budaya kooperatif menopang dirinya: bukan melalui kewajiban, tetapi dengan membuat kontribusi terasa bermakna, terlihat, dan timbal balik.
+
+### 8.5 Jalan Menuju Keberlanjutan
+
+**Fase 1 — Kepercayaan komunitas terlebih dahulu.**
+Semua fitur gratis. Operasional didanai oleh donasi sukarela. Tujuan fase ini adalah kepercayaan komunitas, bukan pendapatan. Basis node aktif yang puas lebih berharga pada tahap ini daripada tekanan kontribusi komersial lebih awal. Bukti sosial dalam komunitas GLAM adalah sinyal paling kuat yang tersedia.
+
+**Fase 2 — Keanggotaan penyokong diperkenalkan.**
+Begitu platform telah menunjukkan nilai nyata kepada cukup banyak node aktif, keanggotaan penyokong diperkenalkan untuk institusi komersial. Biaya acara dan lowongan kerja mulai seiring fitur-fitur tersebut diluncurkan. Pada saat ini komunitas sudah aktif sehingga institusi komersial baru melihat platform yang hidup dan legitim — bukan ruangan kosong.
+
+**Fase 3 — Marketplace dan kedalaman.**
+Komisi marketplace freelance menjadi sumber pendapatan yang signifikan. Kontribusi keanggotaan penyokong dan donasi tumbuh seiring komunitas. Pendapatan marketplace tumbuh dengan aktivitas jaringan. Pada titik ini platform sudah mandiri dan bisa berinvestasi dalam pertumbuhan dan fitur yang lebih dalam tanpa tekanan finansial mengkompromikan nilai-nilai komunitas.
+
+Model ini dirancang untuk mencapai keberlanjutan operasional sebelum membutuhkan pendanaan luar yang signifikan. Kombinasi donasi sukarela, keanggotaan penyokong dari institusi komersial, dan pada akhirnya komisi marketplace menciptakan basis yang terdiversifikasi yang tidak bisa digoyahkan oleh satu kontributor — dan itulah ketahanan yang dibutuhkan infrastruktur komunitas.
 
 ---
 
@@ -583,11 +587,13 @@ Donasi awal dikombinasikan dengan dua atau tiga pelanggan komersial pertama dipe
 
 ### Alat yang Digunakan Orang Saat Ini
 
-**SLiMS (Senayan Library Management System)** adalah solusi yang paling dominan di perpustakaan sekolah dan akademik Indonesia. Fungsional, gratis, dan dikenal luas di komunitas pustakawan. Keterbatasan kritis: harus di-host sendiri. Tidak ada versi cloud. Menginstalnya membutuhkan konfigurasi web server, MySQL, dan PHP. Bagi pengelola TBM atau pustakawan sekolah tanpa dukungan IT, ini adalah hambatan yang tidak bisa diatasi. SLiMS juga tidak punya lapisan komunitas, tidak ada mekanisme penemuan publik, dan tidak ada jalan untuk menjadi sesuatu selain sistem katalog. Curatorian tidak bersaing untuk menggantikan SLiMS di institusi di mana SLiMS bekerja dengan baik — melainkan melayani populasi yang jauh lebih besar di mana SLiMS tidak pernah menjadi pilihan.
+**Sistem manajemen perpustakaan Indonesia yang ada** — paling menonjol SLiMS (Senayan Library Management System) — adalah solusi yang paling dominan di perpustakaan sekolah dan akademik Indonesia. Fungsional, gratis, dan dikenal luas di komunitas pustakawan. Keterbatasan kritis: harus di-host sendiri. Tidak ada versi cloud. Menginstalnya membutuhkan konfigurasi web server, database, dan stack aplikasi yang harus dipasang dan dirawat secara lokal. Bagi pengelola TBM atau pustakawan sekolah tanpa dukungan IT, ini adalah hambatan yang tidak bisa diatasi. Sistem-sistem ini juga tidak punya lapisan komunitas, tidak ada mekanisme penemuan publik, dan tidak ada jalan untuk menjadi sesuatu selain sistem katalog.
+
+Bahkan untuk institusi yang punya kapasitas teknis untuk menjalankannya, sistem self-hosted menimbulkan masalah struktural yang lebih dalam di lingkungan dengan operasional yang kompleks dan terdistribusi — seperti universitas dengan banyak fakultas, masing-masing dengan perpustakaannya sendiri, stafnya sendiri, dan konvensi katalogisasinya sendiri. Setiap fakultas memasang dan mengelola database independennya masing-masing. Hasilnya adalah fragmentasi: judul yang sama dikatalogisasi secara terpisah di puluhan instance, tidak ada katalog bersama, tidak ada tampilan manajemen terpadu, dan tidak ada cara untuk memahami koleksi secara keseluruhan. Inilah pengalaman langsung yang mendorong pembangunan sistem terpadu yang kini mendasari Curatorian — dua puluh database terpisah di Unpad, masing-masing secara teknis fungsional secara sendiri-sendiri, tidak ada yang terhubung, dan pengetahuan institusional terkunci di dalam masing-masing. Arsitektur berbasis node — di mana setiap fakultas atau unit beroperasi secara mandiri dalam satu sistem yang terintegrasi — adalah jawaban struktural atas fragmentasi ini. Itulah prinsip yang dibawa Curatorian ke setiap institusi yang bergabung.
 
 **Produk SaaS dari luar negeri** seperti LibraryThing, TinyCat, dan Koha Cloud melayani pasar mereka dengan baik. Harganya untuk pasar Barat, antarmukanya dalam bahasa Inggris, dirancang untuk jenis koleksi dan konvensi katalogisasi Barat, dan dibangun tanpa konteks Indonesia. Tidak menerima QRIS atau transfer bank. Tidak punya komunitas untuk praktisi Indonesia. Dan mereka tidak akan membangunnya untuk pasar yang tidak mereka prioritaskan. Pasar yang mereka layani dan pasar yang Curatorian layani hampir tidak tumpang tindih.
 
-**Platform dan alat sejenis yang baru** adalah kompetitor yang sah untuk katalogisasi dasar di beberapa segmen. Respons terhadap persaingan ini bukan perlombaan fitur — melainkan kedalaman platform yang tidak bisa menjadi hal lain selain sistem katalog murni. Komunitas dengan acara, papan lowongan kerja, marketplace freelance, dan jaringan bibliografi bersama menciptakan switching cost yang jauh melampaui migrasi data.
+**Alat dan platform lokal yang lebih baru** adalah kompetitor yang sah untuk katalogisasi dasar di beberapa segmen. Respons terhadap persaingan ini bukan perlombaan fitur — melainkan kedalaman platform yang tidak bisa dicapai oleh sistem katalog murni. Komunitas dengan acara, papan lowongan kerja, marketplace freelance, dan jaringan bibliografi bersama menciptakan switching cost yang jauh melampaui migrasi data.
 
 **Spreadsheet dan grup WhatsApp** adalah status quo yang sesungguhnya bagi kebanyakan koleksi kecil di Indonesia. Merekalah produk yang paling perlu Curatorian gantikan. Pendekatannya bukan mengkritisi mereka tapi membuat transisi dari mereka selancar mungkin: import CSV menangani data spreadsheet yang sudah ada, dan alur onboarding menghasilkan katalog publik yang berfungsi dalam tiga puluh menit.
 
@@ -605,15 +611,15 @@ Fitur individual bisa direplikasi. Tiga hal tidak bisa direplikasi tanpa bertahu
 
 ## 10. Peta Jalan Pengembangan
 
-Peta jalan di bawah ini menggambarkan apa yang sedang dibangun, dalam urutan apa, dan mengapa. Fitur hanya dibangun ketika sinyal permintaan dikonfirmasi — baik karena merupakan fondasi platform, atau karena pengguna nyata telah memintanya. Disiplin ini bukan keterbatasan ambisi tapi perlindungan dari mode kegagalan yang umum: membangun untuk pengguna hipotetis.
+Peta jalan di bawah ini menggambarkan apa yang sedang dibangun, dalam urutan apa, dan mengapa. Fitur hanya dibangun ketika sinyal permintaan dikonfirmasi — baik karena merupakan fondasi platform, atau karena pengguna nyata telah memintanya. Disiplin ini bukan keterbatasan ambisi tapi perlindungan dari mode kegagalan yang umum: membangun untuk pengguna hipotetis. Sebagai proyek dengan pengembang tunggal, kecepatan setiap fase secara sengaja jujur: setiap fase ditutup ketika tujuannya benar-benar tercapai, bukan ketika tanggal kalender tiba.
 
-### 10.1 Fase 1 — Fondasi (2026, Q1–Q2)
+### 10.1 Fase 1 — Fondasi
 
 **Status: Sedang berlangsung.**
 
 Tujuan fase ini adalah melengkapi produk layak minimum: kurator mana pun bisa mendaftar, mengkatalogisasi koleksi mereka, dan punya halaman publik yang berfungsi. Semua yang ada di fase ini adalah sesuatu yang pengguna nyata akan temui dalam tiga puluh menit pertama mereka.
 
-**Manajemen koleksi** — Alur CRUD lengkap untuk item melalui dasbor Atrium, termasuk pencarian ISBN, gambar sampul, field metadata fleksibel, dan pengorganisasian koleksi.
+**Manajemen koleksi** — Alur CRUD lengkap untuk item melalui dasbor Atrium, termasuk pengambilan metadata, gambar sampul, field metadata fleksibel, dan pengorganisasian koleksi.
 
 **Sirkulasi dan manajemen anggota** — Pelacakan pinjaman, pemrosesan pengembalian, manajemen denda, dan data anggota untuk institusi yang meminjamkan kepada anggota.
 
@@ -625,37 +631,37 @@ Tujuan fase ini adalah melengkapi produk layak minimum: kurator mana pun bisa me
 
 **Hasil akhir Fase 1:** Pengelola TBM di Bandung bisa mendaftar saat jam makan siang, mengkatalogisasi sepuluh buku pertama mereka, dan membagikan halaman katalog publik yang berfungsi ke komunitasnya — sebelum jam istirahat berakhir.
 
-### 10.2 Fase 2 — Peluncuran Komunitas (2026, Q2–Q3)
+### 10.2 Fase 2 — Peluncuran Komunitas
 
-**Target: 50+ node aktif, aktivitas komunitas yang nyata.**
+**Tujuan: Jumlah node aktif yang bermakna, aktivitas komunitas yang nyata.**
 
 **Alur onboarding** — Wizard pasca-pendaftaran, desain empty state yang bermakna, rangkaian email minggu pertama. Setiap node baru mendapat sambutan pribadi dari pendiri.
 
-**Import CSV** — Migrasi dari spreadsheet dengan pemetaan kolom, pratinjau import, dan kompatibilitas format SLiMS.
+**Import CSV** — Migrasi dari spreadsheet dengan pemetaan kolom, pratinjau import, dan kompatibilitas dengan format yang umum digunakan.
 
 **Analitik per node** — Dasbor penggunaan dan laporan ringkasan yang bisa diekspor untuk pelaporan akreditasi dan donatur.
 
-**Tier berbayar Institusi** — Diluncurkan ketika 50+ node aktif gratis menunjukkan nilai platform. Perbandingan fitur yang jelas, alur upgrade, dan onboarding yang dipimpin pendiri untuk pelanggan komersial pertama.
+**Tier berbayar Institusi** — Diluncurkan ketika node aktif gratis yang cukup telah menunjukkan nilai platform. Perbandingan fitur yang jelas, alur upgrade, dan onboarding yang dipimpin pendiri untuk pelanggan komersial pertama.
 
-**Konten komunitas** — Publikasi mingguan di blog Curatorian, jangkauan personal ke jaringan pustakawan dan TBM di Jawa Barat, keterlibatan di grup Facebook dan Telegram pustakawan Indonesia.
+**Konten komunitas** — Publikasi rutin di blog Curatorian, jangkauan personal ke jaringan pustakawan dan TBM di Jawa Barat, keterlibatan di grup Facebook dan Telegram pustakawan Indonesia.
 
-### 10.3 Fase 3 — Ekspansi Platform (2026, Q3–Q4)
+### 10.3 Fase 3 — Ekspansi Platform
 
-**Target: 100+ node aktif, fitur platform SaaS pertama di luar manajemen koleksi.**
+**Tujuan: Jaringan node yang terus tumbuh, fitur platform pertama di luar manajemen koleksi.**
 
 Fitur dalam fase ini dibatasi oleh permintaan — dibangun ketika permintaan pengguna tertentu dikonfirmasi, sesuai urutan permintaan datang.
 
-**Platform acara dan webinar** — Jika 3+ pengguna memintanya secara eksplisit. Manajemen siklus hidup acara lengkap dengan tiket, check-in QR, generasi sertifikat dan verifikasi, serta integrasi Zoom.
+**Platform acara dan webinar** — Dibangun ketika pengguna memintanya secara eksplisit. Manajemen siklus hidup acara lengkap dengan tiket, check-in QR, generasi sertifikat dan verifikasi, serta integrasi Zoom.
 
-**Papan lowongan kerja** — Jika 3+ pengguna memintanya secara eksplisit. Lowongan sektor GLAM dengan lamaran dalam platform, biaya posting untuk institusi komersial, dan posting gratis untuk nirlaba.
+**Papan lowongan kerja** — Dibangun ketika pengguna memintanya secara eksplisit. Lowongan sektor GLAM dengan lamaran dalam platform, biaya posting untuk institusi komersial, dan posting gratis untuk nirlaba.
 
-**Jaringan bibliografi bersama** — Ketika 10+ node aktif dan 5+ sudah ikut berpartisipasi. Pencarian katalog lintas institusi dan katalogisasi salinan satu klik.
+**Jaringan bibliografi bersama** — Ketika cukup banyak node aktif telah ikut berpartisipasi. Pencarian katalog lintas institusi dan katalogisasi salinan satu klik.
 
-### 10.4 Fase 4 — Marketplace dan Pendalaman (2027)
+### 10.4 Fase 4 — Marketplace dan Pendalaman
 
-**Target: 200+ node aktif, pendapatan marketplace pertama, platform mandiri secara finansial.**
+**Tujuan: Jaringan node yang lebih luas, pendapatan marketplace pertama, platform mandiri secara finansial.**
 
-**Marketplace freelance** — Ketika 5+ profil freelancer organik ada dan 3+ institusi sudah posting permintaan proyek. Escrow penuh, pencocokan, konfirmasi penyelesaian, dan sistem rating.
+**Marketplace freelance** — Ketika profil freelancer organik sudah ada dan institusi telah memposting permintaan proyek. Escrow penuh, pencocokan, konfirmasi penyelesaian, dan sistem rating.
 
 **Pembuat pameran digital** — Ketika node museum dan galeri mulai aktif. Pembuatan dan publikasi pameran tematik.
 
@@ -663,7 +669,7 @@ Fitur dalam fase ini dibatasi oleh permintaan — dibangun ketika permintaan pen
 
 **Manajer program membaca** — Ketika node TBM atau sekolah memintanya. Pembuatan program, log membaca, visualisasi kemajuan, dan sertifikat penyelesaian.
 
-**Koordinasi pinjam antar perpustakaan** — Ketika 50+ node institusional ada di wilayah yang sama dan menyatakan minat.
+**Koordinasi pinjam antar perpustakaan** — Ketika cukup banyak node institusional di satu wilayah menyatakan minat.
 
 **Akses API** — Akses integrasi pihak ketiga untuk pelanggan komersial.
 

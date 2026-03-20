@@ -42,7 +42,7 @@ defmodule CuratorianWeb.Public.CollectionShowLive do
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-4">
           <%!-- Left: thumbnail --%>
           <div class="md:col-span-1">
-            <div class="aspect-[3/4] rounded-2xl overflow-hidden shadow-xl border border-base-300 bg-gradient-to-br from-violet-100 to-purple-200 dark:from-violet-900 dark:to-purple-800">
+            <div class="aspect-[3/4] rounded-2xl overflow-hidden shadow-xl border border-base-300 bg-gradient-to-br from-primary/10 to-accent/15">
               <%= if @collection.thumbnail do %>
                 <img
                   src={asset_url(@collection.thumbnail)}
@@ -53,7 +53,7 @@ defmodule CuratorianWeb.Public.CollectionShowLive do
                 <div class="w-full h-full flex flex-col items-center justify-center gap-4 p-6">
                   <.icon
                     name="hero-rectangle-stack"
-                    class="w-20 h-20 text-violet-300 dark:text-violet-500"
+                    class="w-20 h-20 text-primary/30"
                   />
                   <p class="text-xs text-base-content/40 text-center font-medium">
                     Tidak ada thumbnail
@@ -69,7 +69,7 @@ defmodule CuratorianWeb.Public.CollectionShowLive do
             <div>
               <div class="flex items-start gap-2 flex-wrap mb-2">
                 <span :if={@type_label} class="badge badge-secondary">{@type_label}</span>
-                <span class="badge badge-outline badge-sm text-emerald-600 border-emerald-400">
+                <span class="badge badge-outline badge-sm text-success border-success">
                   Dipublikasikan
                 </span>
               </div>
@@ -87,7 +87,7 @@ defmodule CuratorianWeb.Public.CollectionShowLive do
               :if={@collection.unit}
               class="flex items-center gap-3 p-4 rounded-xl border border-base-300 bg-base-100"
             >
-              <div class="w-10 h-10 rounded-lg overflow-hidden bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center shrink-0">
+              <div class="w-10 h-10 rounded-lg overflow-hidden bg-primary/10 flex items-center justify-center shrink-0">
                 <%= if @collection.unit.image do %>
                   <img
                     src={asset_url(@collection.unit.image)}
@@ -95,7 +95,7 @@ defmodule CuratorianWeb.Public.CollectionShowLive do
                     class="w-full h-full object-cover"
                   />
                 <% else %>
-                  <.icon name="hero-building-library" class="w-5 h-5 text-emerald-600" />
+                  <.icon name="hero-building-library" class="w-5 h-5 text-primary" />
                 <% end %>
               </div>
               <div class="min-w-0">

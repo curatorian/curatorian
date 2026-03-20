@@ -113,9 +113,19 @@ defmodule CuratorianWeb.Public.OrganizationsLive do
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <div class="max-w-6xl mx-auto py-8 px-4">
         <%!-- Page header --%>
-        <div class="mb-8">
-          <h1 class="text-4xl font-bold text-base-content mb-2">Organisasi</h1>
-          <p class="text-base-content/60 text-lg">
+        <div class="mb-10 relative animate-fade-in">
+          <div
+            aria-hidden="true"
+            class="pointer-events-none absolute -top-6 -right-6 size-48 rounded-full bg-secondary/8 blur-3xl"
+          >
+          </div>
+          <div
+            aria-hidden="true"
+            class="pointer-events-none absolute -bottom-2 -left-2 size-32 rounded-full bg-primary/8 blur-3xl"
+          >
+          </div>
+          <h1 class="text-3xl sm:text-4xl font-semibold text-base-content mb-2">Organisasi</h1>
+          <p class="text-base-content/60 text-base leading-relaxed">
             Temukan perpustakaan, museum, galeri, dan institusi pengelola koleksi
           </p>
         </div>
@@ -124,7 +134,7 @@ defmodule CuratorianWeb.Public.OrganizationsLive do
         <div class="relative mb-4">
           <.icon
             name="hero-magnifying-glass"
-            class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-base-content/40"
+            class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-base-content/40"
           />
           <input
             id="org-search"
@@ -132,22 +142,24 @@ defmodule CuratorianWeb.Public.OrganizationsLive do
             name="q"
             value={@search}
             placeholder="Cari organisasi berdasarkan nama atau kota..."
-            class="input input-bordered w-full pl-10"
+            class="w-full bg-base-100 border border-base-300 focus:border-primary focus:outline-none rounded-xl pl-10 pr-4 h-11 text-sm text-base-content placeholder:text-base-content/40 transition-colors duration-150"
             phx-change="search"
             phx-debounce="300"
           />
         </div>
 
         <%!-- Institution type filter --%>
-        <div class="flex gap-2 flex-wrap mb-6 pb-4 border-b border-base-300">
+        <div class="flex gap-2 flex-wrap mb-6 pb-4 border-b border-base-300/60">
           <%= for {label, val} <- @institution_type_options do %>
             <button
               phx-click="filter_type"
               phx-value-type={val || ""}
               class={[
-                "btn btn-sm",
-                @institution_type == val && "btn-primary",
-                @institution_type != val && "btn-ghost border border-base-300"
+                "px-3.5 py-1.5 rounded-full text-sm font-medium transition-all duration-150",
+                @institution_type == val &&
+                  "bg-primary text-primary-content shadow-sm",
+                @institution_type != val &&
+                  "text-base-content/60 border border-base-300 hover:border-primary/40 hover:text-base-content hover:bg-primary/5"
               ]}
             >
               {label}
@@ -168,8 +180,11 @@ defmodule CuratorianWeb.Public.OrganizationsLive do
 
         <%!-- Load more --%>
         <div :if={@has_more} class="flex justify-center mt-10">
-          <button phx-click="load_more" class="btn btn-outline btn-primary px-10">
-            Muat lebih banyak
+          <button
+            phx-click="load_more"
+            class="inline-flex items-center gap-2 px-8 py-2.5 rounded-full border border-primary/50 text-primary text-sm font-medium hover:bg-primary hover:text-primary-content transition-all duration-200"
+          >
+            <.icon name="hero-arrow-down" class="size-4" /> Muat lebih banyak
           </button>
         </div>
       </div>
@@ -186,37 +201,41 @@ defmodule CuratorianWeb.Public.OrganizationsLive do
       )
 
     ~H"""
-    <div class="card bg-base-100 shadow border border-base-300 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 overflow-hidden">
+    <div class="group bg-base-100 rounded-2xl border border-base-300/70 hover:border-primary/30 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 overflow-hidden">
       <%!-- Cover placeholder --%>
       <div class="h-24 overflow-hidden">
-        <div class="w-full h-full bg-gradient-to-br from-emerald-400 to-teal-600"></div>
+        <div class="w-full h-full bg-gradient-to-br from-secondary/25 to-primary/35"></div>
       </div>
 
-      <div class="card-body pt-0 -mt-8">
+      <div class="px-4 pb-4 pt-0 -mt-8">
         <%!-- Avatar / logo --%>
-        <div class="w-16 h-16 rounded-xl ring-4 ring-base-100 overflow-hidden bg-emerald-200 dark:bg-emerald-800 flex items-center justify-center">
+        <div class="w-16 h-16 rounded-xl ring-4 ring-base-100 overflow-hidden bg-primary/15 flex items-center justify-center">
           <%= if @org.node_image do %>
             <img src={@org.node_image} alt={@org.name} class="w-full h-full object-cover" />
           <% else %>
-            <span class="text-2xl font-bold text-emerald-700 dark:text-emerald-300">
+            <span class="text-2xl font-bold text-primary/80">
               {String.first(@org.name || "O")}
             </span>
           <% end %>
         </div>
 
-        <div class="mt-1">
-          <h3 class="font-bold text-base leading-tight line-clamp-1">{@org.name}</h3>
+        <div class="mt-2">
+          <h3 class="font-semibold text-base leading-tight line-clamp-1 text-base-content">
+            {@org.name}
+          </h3>
           <span :if={@org.abbr} class="text-xs text-base-content/50">{@org.abbr}</span>
-          <div :if={@type_label} class="mt-0.5">
-            <span class="badge badge-sm badge-outline">{@type_label}</span>
+          <div :if={@type_label} class="mt-1">
+            <span class="text-xs bg-secondary/10 text-secondary px-2 py-0.5 rounded-full">
+              {@type_label}
+            </span>
           </div>
         </div>
 
         <p
           :if={@org.city}
-          class="text-xs text-base-content/50 flex items-center gap-1"
+          class="text-xs text-base-content/50 flex items-center gap-1 mt-2"
         >
-          <.icon name="hero-map-pin-micro" class="w-3 h-3 shrink-0" />
+          <.icon name="hero-map-pin-micro" class="size-3 shrink-0" />
           <span class="truncate">
             {@org.city}
             <%= if @org.province do %>
@@ -225,10 +244,10 @@ defmodule CuratorianWeb.Public.OrganizationsLive do
           </span>
         </p>
 
-        <div class="card-actions mt-2">
+        <div class="mt-3">
           <.link
             navigate={~p"/orgs/#{@org.id}"}
-            class="btn btn-sm btn-outline btn-primary w-full"
+            class="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl text-sm font-medium text-primary border border-primary/30 group-hover:bg-primary group-hover:text-primary-content group-hover:border-primary transition-all duration-200"
           >
             Lihat Organisasi
           </.link>

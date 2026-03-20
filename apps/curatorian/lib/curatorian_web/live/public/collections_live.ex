@@ -78,9 +78,19 @@ defmodule CuratorianWeb.Public.CollectionsLive do
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <div class="max-w-6xl mx-auto py-8 px-4">
         <%!-- Page header --%>
-        <div class="mb-8">
-          <h1 class="text-4xl font-bold text-base-content mb-2">Koleksi</h1>
-          <p class="text-base-content/60 text-lg">
+        <div class="mb-10 relative animate-fade-in">
+          <div
+            aria-hidden="true"
+            class="pointer-events-none absolute -top-6 -right-6 size-48 rounded-full bg-accent/8 blur-3xl"
+          >
+          </div>
+          <div
+            aria-hidden="true"
+            class="pointer-events-none absolute -bottom-2 -left-2 size-32 rounded-full bg-primary/8 blur-3xl"
+          >
+          </div>
+          <h1 class="text-3xl sm:text-4xl font-semibold text-base-content mb-2">Koleksi</h1>
+          <p class="text-base-content/60 text-base leading-relaxed">
             Jelajahi koleksi kurasi dari berbagai institusi dan kurator
           </p>
         </div>
@@ -89,7 +99,7 @@ defmodule CuratorianWeb.Public.CollectionsLive do
         <div class="relative mb-4">
           <.icon
             name="hero-magnifying-glass"
-            class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-base-content/40"
+            class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-base-content/40"
           />
           <input
             id="collection-search"
@@ -97,22 +107,24 @@ defmodule CuratorianWeb.Public.CollectionsLive do
             name="q"
             value={@search}
             placeholder="Cari koleksi berdasarkan judul atau deskripsi..."
-            class="input input-bordered w-full pl-10"
+            class="w-full bg-base-100 border border-base-300 focus:border-primary focus:outline-none rounded-xl pl-10 pr-4 h-11 text-sm text-base-content placeholder:text-base-content/40 transition-colors duration-150"
             phx-change="search"
             phx-debounce="300"
           />
         </div>
 
         <%!-- Type filter --%>
-        <div class="flex gap-2 flex-wrap mb-6 pb-4 border-b border-base-300">
+        <div class="flex gap-2 flex-wrap mb-6 pb-4 border-b border-base-300/60">
           <%= for {label, val} <- @type_options do %>
             <button
               phx-click="filter_type"
               phx-value-type={val || ""}
               class={[
-                "btn btn-sm",
-                @collection_type == val && "btn-primary",
-                @collection_type != val && "btn-ghost border border-base-300"
+                "px-3.5 py-1.5 rounded-full text-sm font-medium transition-all duration-150",
+                @collection_type == val &&
+                  "bg-primary text-primary-content shadow-sm",
+                @collection_type != val &&
+                  "text-base-content/60 border border-base-300 hover:border-primary/40 hover:text-base-content hover:bg-primary/5"
               ]}
             >
               {label}
@@ -133,8 +145,11 @@ defmodule CuratorianWeb.Public.CollectionsLive do
 
         <%!-- Load more --%>
         <div :if={@has_more} class="flex justify-center mt-10">
-          <button phx-click="load_more" class="btn btn-outline btn-primary px-10">
-            Muat lebih banyak
+          <button
+            phx-click="load_more"
+            class="inline-flex items-center gap-2 px-8 py-2.5 rounded-full border border-primary/50 text-primary text-sm font-medium hover:bg-primary hover:text-primary-content transition-all duration-200"
+          >
+            <.icon name="hero-arrow-down" class="size-4" /> Muat lebih banyak
           </button>
         </div>
       </div>
@@ -156,24 +171,26 @@ defmodule CuratorianWeb.Public.CollectionsLive do
       assign(assigns, :type_label, Map.get(@type_labels, assigns.col.collection_type, nil))
 
     ~H"""
-    <div class="card bg-base-100 shadow border border-base-300 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 overflow-hidden">
+    <div class="group bg-base-100 rounded-2xl border border-base-300/70 hover:border-primary/30 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 overflow-hidden">
       <%!-- Thumbnail --%>
-      <figure class="h-40 overflow-hidden bg-gradient-to-br from-violet-100 to-purple-200 dark:from-violet-900 dark:to-purple-800">
+      <figure class="h-40 overflow-hidden bg-gradient-to-br from-primary/10 to-accent/15">
         <%= if @col.thumbnail do %>
           <img src={asset_url(@col.thumbnail)} alt={@col.title} class="w-full h-full object-cover" />
         <% else %>
           <div class="w-full h-full flex items-center justify-center">
-            <.icon name="hero-rectangle-stack" class="w-12 h-12 text-violet-300 dark:text-violet-500" />
+            <.icon name="hero-rectangle-stack" class="size-12 text-primary/30" />
           </div>
         <% end %>
       </figure>
 
-      <div class="card-body p-4 gap-2">
+      <div class="p-4 space-y-2">
         <div class="flex items-start justify-between gap-2">
-          <h3 class="font-bold text-sm leading-snug line-clamp-2">{@col.title}</h3>
+          <h3 class="font-semibold text-sm leading-snug line-clamp-2 text-base-content">
+            {@col.title}
+          </h3>
           <span
             :if={@type_label}
-            class="badge badge-sm badge-secondary shrink-0"
+            class="text-xs bg-accent/10 text-accent px-2 py-0.5 rounded-full shrink-0"
           >
             {@type_label}
           </span>
@@ -190,7 +207,7 @@ defmodule CuratorianWeb.Public.CollectionsLive do
           :if={@col.unit}
           class="text-xs text-base-content/50 flex items-center gap-1"
         >
-          <.icon name="hero-building-library-micro" class="w-3 h-3 shrink-0" />
+          <.icon name="hero-building-library-micro" class="size-3 shrink-0" />
           <span class="truncate">{@col.unit.name}</span>
         </p>
 
@@ -201,10 +218,10 @@ defmodule CuratorianWeb.Public.CollectionsLive do
           {@col.collection_code}
         </p>
 
-        <div class="card-actions mt-1">
+        <div class="pt-1">
           <.link
             navigate={~p"/collections/#{@col.id}"}
-            class="btn btn-xs btn-outline btn-primary w-full"
+            class="flex items-center justify-center gap-1.5 w-full py-1.5 rounded-xl text-xs font-medium text-primary border border-primary/30 group-hover:bg-primary group-hover:text-primary-content group-hover:border-primary transition-all duration-200"
           >
             Lihat Koleksi
           </.link>

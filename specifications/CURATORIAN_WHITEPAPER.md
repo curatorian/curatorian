@@ -40,28 +40,31 @@
    - 5.7 [Digital Exhibition Builder](#57-digital-exhibition-builder)
    - 5.8 [Institutional Crowdfunding](#58-institutional-crowdfunding)
    - 5.9 [Reading Program Manager](#59-reading-program-manager)
+   - 5.10 [Collection Exchange](#510-collection-exchange)
 6. [Technical Architecture](#6-technical-architecture)
    - 6.1 [System Design Principles](#61-system-design-principles)
    - 6.2 [The Three-Layer Architecture](#62-the-three-layer-architecture)
    - 6.3 [Database Strategy](#63-database-strategy)
    - 6.4 [Authentication & Security](#64-authentication--security)
-   - 6.5 [Bibliographic Data Strategy](#65-bibliographic-data-strategy)
-   - 6.6 [Technology Stack](#66-technology-stack)
+   - 6.5 [Platform Integrity & Verification](#65-platform-integrity--verification)
+   - 6.6 [Bibliographic Data Strategy](#66-bibliographic-data-strategy)
+   - 6.7 [Technology Stack](#67-technology-stack)
 7. [Open Source Philosophy](#7-open-source-philosophy)
    - 7.1 [The Open Core Model](#71-the-open-core-model)
    - 7.2 [What Is Open and What Is Not](#72-what-is-open-and-what-is-not)
    - 7.3 [Why This Model Serves Indonesian GLAM](#73-why-this-model-serves-indonesian-glam)
 8. [Business Model & Sustainability](#8-business-model--sustainability)
    - 8.1 [Philosophy](#81-philosophy)
-   - 8.2 [Pricing Tiers](#82-pricing-tiers)
-   - 8.3 [Revenue Streams](#83-revenue-streams)
-   - 8.4 [The Path to Sustainability](#84-the-path-to-sustainability)
+   - 8.2 [Unlimited Access for All](#82-unlimited-access-for-all)
+   - 8.3 [Sustaining Membership](#83-sustaining-membership)
+   - 8.4 [Donation & Appreciation](#84-donation--appreciation)
+   - 8.5 [The Path to Sustainability](#85-the-path-to-sustainability)
 9. [Competitive Landscape](#9-competitive-landscape)
 10. [Roadmap](#10-roadmap)
-    - 10.1 [Phase 1 — Foundation (2026, Q1–Q2)](#101-phase-1--foundation-2026-q1q2)
-    - 10.2 [Phase 2 — Community Launch (2026, Q2–Q3)](#102-phase-2--community-launch-2026-q2q3)
-    - 10.3 [Phase 3 — Platform Expansion (2026, Q3–Q4)](#103-phase-3--platform-expansion-2026-q3q4)
-    - 10.4 [Phase 4 — Marketplace & Depth (2027)](#104-phase-4--marketplace--depth-2027)
+    - 10.1 [Phase 1 — Foundation](#101-phase-1--foundation)
+    - 10.2 [Phase 2 — Community Launch](#102-phase-2--community-launch)
+    - 10.3 [Phase 3 — Platform Expansion](#103-phase-3--platform-expansion)
+    - 10.4 [Phase 4 — Marketplace & Depth](#104-phase-4--marketplace--depth)
 11. [Join the Movement](#11-join-the-movement)
 
 ---
@@ -257,7 +260,7 @@ The core of what Curatorian does. Every curator on the platform has access to a 
 
 **Cataloging.** Items are created with flexible bibliographic metadata: title, subtitle, authors, publisher, year, edition, language, subject categories, physical format, condition, and location within the physical space. A customizable field system (EAV — Entity-Attribute-Value) means the same platform works equally well for books, museum objects, archive documents, film reels, and any other collection type. The schema does not privilege one GLAM discipline over another.
 
-**ISBN Lookup and Bibliographic Cache.** When cataloging books, users can type or scan an ISBN. The system consults a prioritized chain of bibliographic sources — a local cache first, then Open Library, OpenAlex, Google Books, and the Perpustakaan Nasional catalog — and pre-fills the form with title, author, publisher, year, and cover image. Results are cached locally so subsequent lookups are instant. ISBN is always optional: many Indonesian books from small publishers do not have ISBNs, and the system works fully without one.
+**Metadata Lookup.** When cataloging books, users can enter an identifier or title to fetch bibliographic data from external sources — Open Library, OpenAlex, and Google Books — which pre-fill the form with title, author, publisher, year, and cover image. ISBN is always optional: many Indonesian books from small publishers do not have ISBNs, and the system works fully without one. Perpustakaan Nasional data and additional sources may be integrated as the platform develops.
 
 **Multiple Collections per Node.** An institution can organize items into multiple named collections within their node — "Koleksi Umum," "Koleksi Referensi," "Koleksi Anak" — each with its own privacy settings, access rules, and catalog display.
 
@@ -285,6 +288,8 @@ The professional community features that turn Curatorian from a tool into a plat
 
 **Community Messaging.** Direct and group messaging between platform users. Peer support conversations that currently happen through WhatsApp — fragmented, hard to search, lost when a phone changes — can happen in a proper, persistent, searchable environment.
 
+**Personal Reader & Collector Profiles.** Curatorian is not only for institutional curators — it is also a home for anyone who loves books, archival materials, or any kind of collection. Individual readers and collectors can build a public profile around their reading life: share what they are reading, write notes and reflections on items in their collection, post about discoveries, and document their collecting journey. The platform creates a space to meet people with the same literary interests, follow curators whose taste aligns with yours, and participate in a community that takes personal relationships with collections seriously. Whether someone has five hundred books or five, their relationship with those objects and ideas is worth sharing.
+
 ### 5.3 Event & Webinar Platform
 
 A complete event management system for the Indonesian GLAM professional community.
@@ -295,7 +300,7 @@ Webinars, workshops, and seminar series are central to GLAM professional develop
 
 **For attendees:** Browse upcoming events at `curatorian.id/events`. Register with a single form, paying via Midtrans for paid events. Receive a QR code ticket by email. Download a certificate of attendance after the event, with a verification URL (`curatorian.id/verify/[cert-code]`) that can be linked from a CV or LinkedIn profile.
 
-**Platform fee:** 5% of paid event ticket revenue. Free events carry no fee.
+**Platform fee:** A small percentage of paid event ticket revenue. Free events carry no fee.
 
 ### 5.4 Job Board
 
@@ -307,7 +312,7 @@ Fresh Library and Information Science graduates, freelance archivists, and infor
 
 **For job seekers:** Browse and search listings with filters for location, type, and institution category. Apply in-platform or follow an external link, configurable per posting.
 
-**Platform fee:** Rp 75,000 per posting for for-profit institutions. Free for non-profit and community institutions.
+**Platform fee:** A modest posting fee for for-profit institutions. Free for non-profit and community institutions.
 
 ### 5.5 Freelance & Expert Marketplace
 
@@ -321,7 +326,7 @@ The marketplace closes this gap.
 
 **For institutions:** Browse freelancer profiles and service listings. Post a project request to the request board. Book and pay through the platform with escrow protection — funds are held until the institution confirms satisfactory completion.
 
-**Platform fee:** 10–12% commission on completed engagements. This is the long-term primary revenue engine of the platform — transaction fees compound with network growth in a way that subscription fees do not.
+**Platform fee:** A commission on completed engagements. This is the long-term primary revenue engine of the platform — transaction fees compound with network growth in a way that subscription fees do not.
 
 ### 5.6 Shared Bibliographic Network
 
@@ -351,13 +356,27 @@ TBM and community libraries regularly need community financial support — to bu
 
 Institutions can maintain a permanent donation page or run campaigns with specific goals, deadlines, and progress tracking. Donors receive a digital supporter badge on their Curatorian profile.
 
-**Platform fee:** 3–5% of funds raised, covering transaction costs.
+**Platform fee:** A small percentage of funds raised, covering transaction costs.
 
 ### 5.9 Reading Program Manager
 
 A structured tool for running, tracking, and reporting on reading programs.
 
 Gerakan Literasi, reading challenges, and book club programs are central to TBM and school library missions. These programs are currently managed through paper sign-up sheets and manual tracking. Curatorian hosts the full program lifecycle: creation, participant enrollment, individual reading logs, progress visualization, completion certificates, and a public program page for reporting to funders and partner organizations.
+
+### 5.10 Collection Exchange
+
+A peer-to-peer platform for donating and requesting physical collection items across institutions and individuals.
+
+Every library and collection goes through natural evolution — a TBM that once focused on children's picture books has shifted toward adult literacy programs, and the picture books no longer serve their community. A school library has duplicate copies of widely-donated titles it cannot use. A researcher has boxed up a specialist collection that would be invaluable to a university archive. Meanwhile, another institution has a wishlist: they are building a collection on local history and are actively seeking donations of relevant material.
+
+This mismatch — surplus in one place, need in another — currently has no coordination layer. It gets resolved through informal personal networks or not at all.
+
+Curatorian provides the matching infrastructure. Institutions and individuals can mark cataloged items as available for donation, with a brief note on condition and suitability. They can also publish a wishlist of collection items they are actively seeking — specific titles, subject areas, or formats. Both sides are visible to the community and searchable across the platform.
+
+The platform is a matching and visibility layer only. Curatorian does not handle logistics, shipping, or legal transfer — those are arranged directly between the parties once a match is made. The value is in surfacing what exists and what is wanted in one place, for the first time, across thousands of Indonesian collections.
+
+Each completed exchange is recorded as a community contribution on both parties' profiles — building a visible history of generosity and reciprocity within the GLAM community.
 
 ---
 
@@ -392,7 +411,7 @@ VOILE (open source, Apache 2.0)
         ↓
 CURATORIAN (open source)
   Phoenix LiveView application — the public platform
-  Port 4000 — auth, community, public OPAC, all read routes
+  Auth, community, public OPAC, all read routes
   DB: voile + public schemas
   Repository: github.com/curatorian/curatorian
         │
@@ -400,7 +419,7 @@ CURATORIAN (open source)
         ↓
 ATRIUM (proprietary)
   Phoenix LiveView application — the management dashboard
-  Port 4001 — collection management, billing, events, marketplace
+  Collection management, billing, events, marketplace
   DB: atrium schema
   Repository: private
 ```
@@ -415,71 +434,54 @@ Externally, only the name **Curatorian** exists. Users interact with Curatorian.
 
 ### 6.3 Database Strategy
 
-Both Curatorian and Atrium share one PostgreSQL database instance (`curatorian_prod`), separated by schemas:
+Curatorian and Atrium share a single PostgreSQL database instance, separated into distinct schemas that correspond to each layer's responsibility. The Voile schema holds core GLAM data: collections, items, circulation records, patron data, and reference tables. The Atrium schema holds platform management data: subscriptions, events, job listings, marketplace engagements, analytics, and notifications.
 
-```
-curatorian_prod
-├── voile schema    — Core GLAM tables
-│   ├── users, nodes
-│   ├── collections, items, collection_fields
-│   ├── lib_transactions, lib_fines, lib_reservations
-│   ├── patrons
-│   └── mst_* (master/reference data)
-│
-├── atrium schema   — Platform management tables
-│   ├── node_profiles, user_profiles
-│   ├── subscriptions, payments, invoices, donations
-│   ├── feature_flags, usage_snapshots
-│   ├── events, event_registrations, event_certificates
-│   ├── job_postings, job_applications
-│   ├── freelance_listings, freelance_engagements
-│   ├── bibliographic_cache, shared_bibliographic_entries
-│   ├── analytics_events, visitor_logs
-│   └── notifications, timeline_events
-│
-└── public schema   — Empty (intentionally unused)
-```
+Schema separation provides clean logical boundaries. Atrium's migrations live in the private Atrium repository and never appear in the public Curatorian repository, preserving the open source boundary at the code level.
 
-Schema separation provides clean logical boundaries: Atrium's `search_path` is set to `atrium,voile,public`, preventing accidental cross-schema queries. Atrium's migrations live in the private Atrium repository and never appear in the public Curatorian repository, preserving the open source boundary at the code level.
+No foreign key constraints cross schema boundaries. Cross-schema references are stored as plain identifier values — maintaining clean separation while allowing the data access patterns the platform requires.
 
-No foreign key constraints cross schema boundaries. Cross-schema references are stored as plain `BIGINT` or `UUID` values — clean enough for the data access patterns required, preserving the ability to split into separate databases later if scaling demands it.
-
-High-volume tables — `analytics_events`, `notifications`, `timeline_events` — are partitioned by month from the first deployment. This is a small upfront investment that prevents significant pain at scale.
+High-volume operational tables are designed with scaling in mind from the first deployment, avoiding the need for costly restructuring as the platform grows.
 
 ### 6.4 Authentication & Security
 
-All authentication is handled by Curatorian (port 4000). Atrium (port 4001) never manages login — it verifies identity from a signed token.
+Authentication is handled centrally within the Curatorian application. The management dashboard verifies identity through a signed cross-application token rather than managing login independently — ensuring a single, consistent authentication point for users across all parts of the platform.
 
-**Cross-app authentication flow:**
-
-1. User logs in at Curatorian. Credentials are verified against the `users` table.
-2. Curatorian signs a Phoenix.Token containing: `user_id`, `node_id`, `node_name`, `node_slug`, and `roles`.
-3. The token is stored in a cookie: `_curatorian_cross_app_token`.
-4. When the user accesses Atrium, the token is read from the cookie and verified using the shared `SECRET_KEY_BASE`.
-5. A valid token assigns claims to the connection. An expired or tampered token redirects to the Curatorian login page.
-
-Tokens are valid for 24 hours. Both applications use an identical salt (`"cross_app_user_auth"`) and an identical `SECRET_KEY_BASE` — rotating either requires updating both applications simultaneously. All sensitive Atrium queries are scoped by `node_id` or `user_id` from token claims — never by global `Repo.all()` calls.
+All sensitive data access is scoped to the authenticated user's node. Soft deletion is used throughout — no user data is permanently destroyed without deliberate action. Rate limiting is applied to authentication endpoints before any public launch.
 
 All user-facing entities use soft deletion (`deleted_at` timestamp) rather than hard deletion. UUID primary keys throughout Atrium. Rate limiting is applied to authentication endpoints before any public launch.
 
-### 6.5 Bibliographic Data Strategy
+### 6.5 Platform Integrity & Verification
 
-When a librarian enters or scans an ISBN, Curatorian consults a prioritized chain of sources:
+A community platform that is open and accessible is also a target. The Indonesian GLAM community deserves a space that is free of spam, manipulation, and bad-faith actors — and the design of Curatorian reflects that responsibility from the first deployment.
 
-1. **Local bibliographic cache** — instant, no external request
-2. **Open Library** — no API key required, broad general coverage
-3. **OpenAlex** — no API key required, strong academic coverage
-4. **Google Books** — broad popular coverage, key required for high volume
-5. **Perpustakaan Nasional catalog** — Indonesian-specific titles
-6. **Manual entry** — always available, always the fallback
+**The spam and gambling problem.** Public platforms with `.id` domains and legitimate SEO authority are systematically targeted by gambling operators seeking backlinks. This was a direct experience on other community platforms in the Indonesian web space. Curatorian is designed to make itself worthless as an SEO manipulation target from day one.
 
-Results from any external source are cached locally. Once an ISBN has been looked up by any user anywhere on the platform, all subsequent lookups for that ISBN are served from the cache — instant and free.
+All external links posted by users carry `rel="nofollow ugc"` automatically — removing the backlink value that motivates the majority of spam operations. Unverified profiles and newly created content are not indexed by search engines until the account has been verified and has demonstrated genuine activity. No SEO value, no spam incentive.
 
-OpenAlex provides a bulk data dump that can be imported to pre-populate the cache with millions of records before any user ever types an ISBN. This dramatically improves the first-use experience.
+**Phone number verification.** Account registration requires WhatsApp OTP verification. Indonesian phone numbers are a meaningful barrier — offshore spam operations and automated bots cannot easily acquire them at scale. This is also culturally natural: virtually every person in Curatorian's target community already uses WhatsApp daily. Verification is fast, familiar, and not an obstacle for genuine users.
 
-The bibliographic cache is a platform-level resource, not per-institution. A record cached by a school library in Bandung is immediately available to a TBM in Surabaya looking up the same book.
+**New account content quarantine.** New nodes can use the platform immediately — cataloging their collection and managing it internally — but public-facing content (profile bio, blog posts, external links, exchange listings) is subject to a brief quarantine window before appearing on public-indexed pages. This catches automated posting without inconveniencing genuine new users.
 
-### 6.6 Technology Stack
+**Known harmful domain blocklist.** A maintained list of known gambling, spam, and malicious domains is checked against all URL fields at write time. Attempts to post flagged URLs are silently rejected with a generic validation message. The list is updated as new domains are identified.
+
+**Honeypot fields.** Signup and submission forms contain hidden fields that real users never see or fill. Automated bots that blindly populate all form fields trigger silent rejection. No CAPTCHA friction for human users.
+
+**Community flagging.** Any authenticated user can flag a profile, post, or listing as suspicious. Flagged content is soft-hidden pending review — visible to the account owner, invisible to the public. In a community this tight-knit and professionally oriented, genuine bad actors are identified quickly.
+
+**Verification as trust foundation.** Phone verification serves double duty: it is a spam barrier and a trust signal. A verified account with an active catalog and community history is credible. The same verification layer that blocks spam bots also grounds the self-declaration system for sustaining membership — an institution with a real phone number, an active catalog, and community presence has put something real on the line.
+
+### 6.6 Bibliographic Data Strategy
+
+When a librarian enters an identifier or searches by title, Curatorian fetches bibliographic metadata from a prioritized chain of external sources:
+
+1. **Open Library** — no API key required, broad general coverage
+2. **OpenAlex** — no API key required, strong academic coverage
+3. **Google Books** — broad popular coverage
+4. **Manual entry** — always available, always the fallback
+
+The system is designed to accommodate additional sources — including Indonesian-specific databases — as the platform matures and demand clarifies. All lookups are optional: a curator can always enter metadata manually, and no feature of the platform requires an identifier to function.
+
+### 6.7 Technology Stack
 
 | Component | Technology | Rationale |
 |-----------|-----------|-----------|
@@ -493,7 +495,7 @@ The bibliographic cache is a platform-level resource, not per-institution. A rec
 | Email | Swoosh + Mailgun | Transactional email; free tier covers early stage |
 | PDF Generation | ChromicPDF | HTML/CSS-based PDF for certificates, invoices, reports; maximum design control |
 | Background Jobs | Oban | Reliable, database-backed async job processing; PDF generation, email, cache warming |
-| ISBN Sources | Open Library, OpenAlex, Google Books, Perpusnas | Prioritized chain covering international and Indonesian bibliographic data |
+| Bibliographic Sources | Open Library, OpenAlex, Google Books | Prioritized chain covering international bibliographic data; additional sources to be added over time |
 | Image Storage | Cloudflare R2 | S3-compatible object storage for collection item cover images |
 
 The choice of Elixir and Phoenix is intentional and significant. The BEAM virtual machine — the runtime underlying Elixir — is designed for concurrent, fault-tolerant systems. Phoenix LiveView enables real-time, collaborative UI (live catalog search, real-time check-in scanning, live circulation updates) without the complexity of a separate JavaScript frontend. Elixir applications compile to self-contained releases that run efficiently on modest hardware — relevant during early stages and important for any future self-hosted community editions.
@@ -538,54 +540,54 @@ The boundary is maintained at the code level. Atrium's database migrations live 
 
 ### 8.1 Philosophy
 
-The business model reflects a specific belief about what kind of institution Curatorian needs to be to succeed in the Indonesian GLAM community.
+Curatorian is built on a simple belief: access to tools for preserving and sharing knowledge should not be conditional on the ability to pay. A TBM operator running a reading room from their living room and a university library with a proper budget are both doing work that matters. The platform should serve both fully, without distinction.
 
-The Indonesian library and GLAM community trusts tools built by practitioners, adopted freely, and sustained honestly. It is appropriately suspicious of aggressive commercial practices, opaque pricing, and foreign platforms that have no genuine investment in the Indonesian context. Curatorian earns trust by giving genuine value first, by charging only those with commercial means, and by being transparent about how it sustains itself.
+The Indonesian GLAM community trusts tools built by practitioners, adopted freely, and sustained honestly. It is appropriately suspicious of commercial platforms that treat community as a market segment. Curatorian earns trust by giving complete, genuine value first — and sustains itself through the voluntary and proportional contributions of those who benefit from it and have the means to contribute.
 
-This is not philanthropy. It is a commercial strategy that treats community trust as the primary asset and builds financial sustainability on top of it. Community trust, once earned, is very difficult for a competitor to replicate by simply offering a lower price.
+This is not philanthropy and it is not a subscription business. It is a cooperative model: the platform belongs to the community it serves, and the community sustains it collectively, each according to their capacity.
 
-### 8.2 Pricing Tiers
+### 8.2 Unlimited Access for All
 
-| Tier | Price | Who It Serves |
-|------|-------|---------------|
-| **Komunitas** | Free, permanently | Individual collectors, TBM, community libraries, non-profit institutions, school libraries |
-| **Institusi** | Rp 150,000–250,000/month | For-profit businesses, commercial institutions, corporations with CSR libraries, private enterprises |
+Every feature of Curatorian is available to every user, from day one, permanently. There are no feature tiers, no usage limits, no paywalled functions. An individual book collector and a BUMN with a thousand-item CSR library have access to identical tools.
 
-**Non-profit verification** is handled by self-declaration with a simple form. The platform does not aggressively gate access or demand documentation. The vast majority of TBM and community institutions genuinely qualify, and making a false declaration carries reputational risk in a community where people know each other. Trust first, enforcement when necessary.
+This is not a freemium model with a hidden upgrade path. It is a deliberate structural choice: the moment access becomes conditional on payment, the platform stops being a community infrastructure and becomes a product. Curatorian is infrastructure.
 
-### 8.3 Revenue Streams
+The practical question — how does infrastructure sustain itself — is answered not by restricting access but by building a culture of proportional contribution among those with the capacity to contribute.
 
-**1. Institusi Subscriptions**
-The foundational revenue stream. Monthly subscriptions from for-profit institutions provide the baseline that covers hosting and operational costs. At Rp 150,000–250,000 per month, the commitment is easily justifiable against the time saved in collection management and the compliance value delivered for CSR-obligated institutions.
+### 8.3 Sustaining Membership
 
-**2. Voluntary Donations**
-Free-tier users who find genuine value can contribute voluntarily at any amount. Donation prompts appear at natural moments: post-signup, after generating a report or certificate, and on the About page. No guilt, no pressure, no feature restrictions for non-donors. Donations are framed honestly: "Curatorian gratis dan akan tetap gratis. Kalau mau bantu operasional, boleh donasi seiklasnya."
+Commercial and for-profit institutions — businesses, corporate CSR libraries, private schools, co-working spaces — are invited to become Sustaining Members. Sustaining membership is a contribution, not a purchase. It does not unlock features. It is an acknowledgment that the institution benefits from the platform and has the budget to support what the wider community uses for free.
 
-**3. Event Platform Fees**
-5% of paid event ticket revenue. Free events carry no fee. Organizers use their own Zoom accounts; Curatorian provides registration, ticketing, and certificate infrastructure.
+The contribution amount is flexible and left to the institution's judgment. What matters is the public acknowledgment: Sustaining Members receive a visible badge on their node profile — "Anggota Penyokong Curatorian" — that signals their support to the community. In contexts where institutional reputation matters — CSR audits, accreditation, partner relations — this badge is a meaningful signal of investment in Indonesian GLAM infrastructure.
 
-**4. Job Board Posting Fees**
-Rp 75,000 per posting for for-profit institutions. Free for non-profit and community institutions. A small, recurring revenue stream from active hiring institutions.
+For institutions whose procurement processes require formal documentation, Curatorian generates a proper invoice or contribution receipt on request, labelled clearly as a platform sustainability contribution. This removes the paperwork friction that prevents otherwise willing institutions from contributing.
 
-**5. Freelance Marketplace Commission**
-10–12% commission on completed freelance engagements, processed through Midtrans escrow. This is the highest-potential revenue stream because it scales with the volume and total value of work facilitated, not just with the count of subscribing institutions. A mature marketplace with hundreds of active engagements per month generates significant revenue at no additional infrastructure cost.
+Sustaining Members are also given a weighted voice in platform development — access to a contributor forum where roadmap priorities can be proposed and discussed. They do not control the platform, but they are heard more directly than anonymous users. This is a meaningful benefit for commercial institutions that rely on the platform's continued development.
 
-**6. Crowdfunding Platform Fee**
-3–5% of funds raised through institutional donation campaigns. Covers transaction costs and contributes to platform operations.
+### 8.4 Donation & Appreciation
 
-### 8.4 The Path to Sustainability
+Beyond institutional sustaining membership, Curatorian maintains an open, voluntary donation layer for individuals and organizations of any kind.
 
-**Phase 1 — Donation-Based (Launch through Month 6).**
-All features free. Operations funded by voluntary donations. The goal of this phase is community trust, not revenue. Getting 50 active nodes using the platform with genuine satisfaction is more valuable at this stage than getting five paying customers through aggressive marketing. Social proof within the GLAM community is the most powerful commercial signal available.
+**For individuals.** Any user who finds genuine value in the platform can contribute at any amount, at any time. Donation prompts appear at natural moments — post-signup, after generating a report or certificate, after completing a collection exchange — framed without pressure: *"Curatorian gratis dan akan tetap gratis. Kalau mau bantu operasional, boleh donasi seiklasnya."* Contributors receive a supporter badge on their profile and are listed publicly on the Curatorian supporters page.
 
-**Phase 2 — Freemium (Month 4–8).**
-Institusi paid tier introduced once 50+ active free nodes demonstrate the platform delivers real value. Event and job board fees begin as those features launch. The community by this point is large enough that new commercial users see an active, legitimate platform, not a ghost town.
+**For organizations making larger contributions.** Organizations — companies, foundations, government agencies — that wish to make a significant contribution to Curatorian's infrastructure and development are acknowledged publicly with a dedicated entry on the Curatorian supporters page, showing their name, contribution period, and a brief statement about why they support Indonesian GLAM infrastructure. This functions as a genuine CSR transparency mechanism: an organization can point to their Curatorian supporters page as auditable evidence of their investment in Indonesian cultural heritage and community literacy infrastructure.
 
-**Phase 3 — Marketplace (Month 9+).**
-Freelance marketplace commissions become the primary revenue source. Subscription revenue continues to grow linearly. Marketplace revenue grows with network activity — faster than linear at scale. At this point the platform is self-sustaining and can invest in growth and deeper features.
+**Public financial transparency.** Curatorian publishes a live operational dashboard showing what the platform costs to run, what has been received in contributions and sustaining memberships, and how funds have been allocated. This is not a regulatory requirement — it is a community commitment. A community that can see exactly how its contributions are used trusts the platform more deeply, and that trust is more valuable than any revenue model.
 
-**Break-even target: Month 3.**
-Initial donations combined with the first two or three commercial subscribers are expected to cover hosting costs by Month 3. The platform is designed to reach operational sustainability before requiring any significant outside funding.
+**The feedback loop.** Contributors — whether individual donors or sustaining members — are invited into a closer relationship with the platform: early access to new features, direct input channels to the developer, and public recognition of their role in keeping the community infrastructure running. This is how a cooperative culture sustains itself: not through obligation, but through making contribution feel meaningful, visible, and reciprocal.
+
+### 8.5 The Path to Sustainability
+
+**Phase 1 — Community trust first.**
+All features free. Operations funded by voluntary donations. The goal of this phase is community trust, not revenue. A meaningful base of active, satisfied nodes is more valuable at this stage than early commercial contribution pressure. Social proof within the GLAM community is the most powerful signal available.
+
+**Phase 2 — Sustaining membership introduced.**
+Once the platform has demonstrated genuine value to enough active nodes, sustaining membership is introduced for commercial institutions. Event and job board fees begin as those features launch. By this point the community is active enough that new commercial users see a legitimate, thriving platform — not an empty room.
+
+**Phase 3 — Marketplace and depth.**
+Freelance marketplace commissions become a significant revenue source. Sustaining membership and donation contributions grow steadily with the community. Marketplace revenue grows with network activity. At this point the platform is self-sustaining and can invest in growth and deeper features without financial pressure compromising community values.
+
+The model is designed to reach operational sustainability before requiring any significant outside funding. The combination of voluntary donations, sustaining memberships from commercial institutions, and eventually marketplace commissions creates a diversified base that no single contributor can destabilize — which is exactly the resilience a community infrastructure needs.
 
 ---
 
@@ -593,11 +595,13 @@ Initial donations combined with the first two or three commercial subscribers ar
 
 ### The Tools People Use Today
 
-**SLiMS (Senayan Library Management System)** is the dominant existing solution in Indonesian school and academic libraries. It is genuinely functional, free, and well-known in the librarian community. Its critical limitation is that it requires self-hosting: a web server, MySQL, and PHP installation. For the majority of Indonesian community institutions, this barrier is insurmountable. SLiMS has no cloud version, no community platform, and no public discovery mechanism for collections. Curatorian is not competing to replace SLiMS in institutions where SLiMS works — it is serving the far larger population of institutions where SLiMS was never an option.
+**Existing Indonesian library management systems** — most prominently SLiMS (Senayan Library Management System) — are the dominant solutions in Indonesian school and academic libraries. They are genuinely functional, free, and well-known in the librarian community. Their critical limitation is that they require self-hosting: a web server, database, and application stack that must be installed and maintained locally. For the majority of Indonesian community institutions, this barrier is insurmountable. These tools also have no community platform, no public discovery mechanism, and no path to becoming anything other than catalog systems.
+
+Even for institutions with the technical capacity to run them, self-hosted systems introduce a deeper structural problem in environments with complex, distributed operations — such as a university with many faculties, each with its own library, its own staff, and its own cataloging conventions. Each faculty installs and manages its own independent database. The result is fragmentation: the same titles cataloged separately across dozens of instances, no shared catalog, no unified management view, and no way to understand the collection as a whole. This was the direct experience that led to building the unified system now underlying Curatorian — twenty separate databases at Unpad, each technically functional in isolation, none of them connected, and the combined institutional knowledge locked inside each one. A node-based architecture, where each faculty or unit operates independently within one integrated system, is the structural answer to this fragmentation. That principle is what Curatorian brings to every institution that joins.
 
 **Foreign SaaS platforms** (LibraryThing, TinyCat, Koha Cloud) serve their markets well. They are priced in USD, primarily in English, designed for Western cataloging conventions, and built without Indonesian context. They will not build local payment support, Bahasa Indonesia interfaces, or community features for Indonesian GLAM practitioners. The market they serve and the market Curatorian serves barely overlap.
 
-**PoMS and similar newer tools** are legitimate alternatives for basic cataloging in some segments. The response to this competition is not a feature race — it is the platform depth that a pure catalog tool cannot become. A community with events, a job board, a freelance marketplace, and a shared bibliographic network creates switching costs that go far beyond data migration.
+**Newer local tools** are legitimate alternatives for basic cataloging in some segments. The response to this competition is not a feature race — it is the platform depth that a pure catalog tool cannot become. A community with events, a job board, a freelance marketplace, and a shared bibliographic network creates switching costs that go far beyond data migration.
 
 **Spreadsheets and WhatsApp groups** are the actual status quo for most Indonesian small collections. They are the product Curatorian most needs to displace. The approach is not to criticize them but to make the transition from them as frictionless as possible: CSV import handles existing spreadsheet data, and the onboarding flow delivers a working public catalog in thirty minutes.
 
@@ -615,15 +619,15 @@ Individual features can be replicated. Three things cannot be replicated without
 
 ## 10. Roadmap
 
-The roadmap below describes what is being built, in what order, and why. Features are built only when demand signals are confirmed — either because they are foundational to the platform, or because real users have asked for them. This discipline is not a limitation of ambition but a protection against the common failure mode of building for hypothetical users.
+The roadmap below describes what is being built, in what order, and why. Features are built only when demand signals are confirmed — either because they are foundational to the platform, or because real users have asked for them. This discipline is not a limitation of ambition but a protection against the common failure mode of building for hypothetical users. As a solo developer project, the pace of each phase is intentionally honest: each phase closes when its goals are genuinely met, not when a calendar date arrives.
 
-### 10.1 Phase 1 — Foundation (2026, Q1–Q2)
+### 10.1 Phase 1 — Foundation
 
 **Status: In progress.**
 
 The goal of this phase is to complete the minimum viable platform: any curator can sign up, catalog their collection, and have a working public page. Everything in this phase is blocked by something a real user will encounter within their first thirty minutes.
 
-**Collection management** — Full create-read-update-delete workflow for items through the Atrium dashboard, including ISBN lookup, cover images, flexible metadata fields, and collection organization.
+**Collection management** — Full create-read-update-delete workflow for items through the Atrium dashboard, including metadata lookup, cover images, flexible metadata fields, and collection organization.
 
 **Circulation and patron management** — Loan tracking, return processing, fine management, and patron records for institutions that lend to patrons.
 
@@ -635,37 +639,37 @@ The goal of this phase is to complete the minimum viable platform: any curator c
 
 **End of Phase 1 deliverable:** A TBM operator in Bandung can sign up during a lunch break, catalog their first ten books, and share a working public catalog page with their community before the break ends.
 
-### 10.2 Phase 2 — Community Launch (2026, Q2–Q3)
+### 10.2 Phase 2 — Community Launch
 
-**Goal: 50+ active nodes, genuine community activity.**
+**Goal: Meaningful active node count, genuine community activity.**
 
 **Onboarding flow** — Post-signup wizard, empty state designs, first-week email sequence. Every new node gets a personal welcome from the founder.
 
-**CSV import** — Migration from spreadsheets with column mapping, import preview, and SLiMS format compatibility.
+**CSV import** — Migration from spreadsheets with column mapping, import preview, and compatibility with common existing formats.
 
 **Analytics per node** — Usage dashboard and exportable summary reports for accreditation and donor reporting.
 
-**Institusi paid tier** — Launched when 50+ active free nodes demonstrate platform value. Clear feature comparison, upgrade flow, and founder-led onboarding for first commercial subscribers.
+**Institusi paid tier** — Launched when active free nodes demonstrate platform value. Clear feature comparison, upgrade flow, and founder-led onboarding for first commercial subscribers.
 
-**Community content** — Weekly publication on the Curatorian blog, personal outreach to librarian and TBM networks in West Java, engagement in Indonesian librarian Facebook groups and Telegram channels.
+**Community content** — Regular publication on the Curatorian blog, personal outreach to librarian and TBM networks in West Java, engagement in Indonesian librarian Facebook groups and Telegram channels.
 
-### 10.3 Phase 3 — Platform Expansion (2026, Q3–Q4)
+### 10.3 Phase 3 — Platform Expansion
 
-**Goal: 100+ active nodes, first SaaS platform features beyond collection management.**
+**Goal: Growing node count, first SaaS platform features beyond collection management.**
 
 Features in this phase are demand-gated — built when specific user demand is confirmed, in the order that demand arrives.
 
-**Event and webinar platform** — If 3+ users request it by name. Complete event lifecycle management with ticketing, QR check-in, certificate generation and verification, and Zoom integration.
+**Event and webinar platform** — Built when users request it explicitly. Complete event lifecycle management with ticketing, QR check-in, certificate generation and verification, and Zoom integration.
 
-**Job board** — If 3+ users request it by name. GLAM sector job listings with in-platform application, posting fees for commercial institutions, and free posting for non-profits.
+**Job board** — Built when users request it explicitly. GLAM sector job listings with in-platform application, posting fees for commercial institutions, and free posting for non-profits.
 
-**Shared bibliographic network** — When 10+ active nodes and 5+ opted into sharing. Cross-institutional catalog search and one-click copy cataloging.
+**Shared bibliographic network** — When enough active nodes have opted into sharing. Cross-institutional catalog search and one-click copy cataloging.
 
-### 10.4 Phase 4 — Marketplace & Depth (2027)
+### 10.4 Phase 4 — Marketplace & Depth
 
-**Goal: 200+ active nodes, first marketplace revenue, platform self-sustaining.**
+**Goal: Broader node network, first marketplace revenue, platform self-sustaining.**
 
-**Freelance marketplace** — When 5+ organic freelancer profiles exist and 3+ institutions have posted project requests. Full escrow, matching, completion confirmation, and rating system.
+**Freelance marketplace** — When organic freelancer profiles exist and institutions have posted project requests. Full escrow, matching, completion confirmation, and rating system.
 
 **Digital exhibition builder** — When museum and gallery nodes become active. Thematic exhibition creation and publication.
 
@@ -673,7 +677,7 @@ Features in this phase are demand-gated — built when specific user demand is c
 
 **Reading program manager** — When TBM or school nodes request it. Program creation, reading logs, progress visualization, and completion certificates.
 
-**Inter-library loan coordination** — When 50+ institutional nodes are in the same region and express interest.
+**Inter-library loan coordination** — When enough institutional nodes in a region express interest.
 
 **API access** — Third-party integration access for commercial subscribers.
 

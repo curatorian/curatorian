@@ -122,7 +122,7 @@ defmodule CuratorianWeb.Public.BlogShowLive do
         <div class="flex items-center gap-3 mb-8 pb-6 border-b border-base-300">
           <%= if @author do %>
             <.link navigate={~p"/u/#{@username}"} class="flex items-center gap-3 group">
-              <div class="w-10 h-10 rounded-full overflow-hidden bg-violet-200 dark:bg-violet-800 shrink-0">
+              <div class="w-10 h-10 rounded-full overflow-hidden bg-primary/15 shrink-0">
                 <%= if @author.avatar_url do %>
                   <img
                     src={asset_url(@author.avatar_url)}
@@ -131,7 +131,7 @@ defmodule CuratorianWeb.Public.BlogShowLive do
                   />
                 <% else %>
                   <div class="w-full h-full flex items-center justify-center">
-                    <span class="text-sm font-bold text-violet-600 dark:text-violet-300">
+                    <span class="text-sm font-bold text-primary">
                       {String.first(@author.display_name || "K")}
                     </span>
                   </div>
@@ -220,8 +220,8 @@ defmodule CuratorianWeb.Public.BlogShowLive do
                       class="w-full h-full object-cover"
                     />
                   <% else %>
-                    <div class="w-full h-full bg-violet-100 dark:bg-violet-900 flex items-center justify-center">
-                      <span class="text-xs font-bold text-violet-600 dark:text-violet-300">
+                    <div class="w-full h-full bg-primary/10 flex items-center justify-center">
+                      <span class="text-xs font-bold text-primary">
                         {String.first(comment.author_display_name || "?")}
                       </span>
                     </div>

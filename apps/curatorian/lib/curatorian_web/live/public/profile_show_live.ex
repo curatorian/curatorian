@@ -51,12 +51,10 @@ defmodule CuratorianWeb.Public.ProfileShowLive do
             class="absolute inset-0 w-full h-full object-cover"
           />
         <% else %>
-          <div class="absolute inset-0 bg-gradient-to-br from-violet-600 via-purple-700 to-indigo-900">
-          </div>
+          <div class="absolute inset-0 bg-gradient-to-br from-primary via-accent to-accent/70"></div>
         <% end %>
         <%!-- cinematic vignette --%>
-        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/35">
-        </div>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/35"></div>
         <%!-- verified pill — top right --%>
         <div :if={@profile.is_verified} class="absolute top-20 right-6 z-10">
           <span class="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-md text-white text-xs font-semibold px-3 py-1.5 rounded-full border border-white/20 shadow">
@@ -65,7 +63,7 @@ defmodule CuratorianWeb.Public.ProfileShowLive do
         </div>
         <%!-- avatar + identity — pinned to bottom of cover --%>
         <div class="absolute bottom-0 left-0 right-0 px-6 md:px-10 pb-8 flex items-end gap-5">
-          <div class="w-24 h-24 md:w-32 md:h-32 rounded-3xl ring-4 ring-white/25 shadow-2xl overflow-hidden bg-gradient-to-br from-violet-400 to-purple-600 flex items-center justify-center shrink-0">
+          <div class="w-24 h-24 md:w-32 md:h-32 rounded-3xl ring-4 ring-white/25 shadow-2xl overflow-hidden bg-gradient-to-br from-primary to-accent flex items-center justify-center shrink-0">
             <%= if @profile.avatar_url do %>
               <img
                 src={asset_url(@profile.avatar_url)}
@@ -91,7 +89,10 @@ defmodule CuratorianWeb.Public.ProfileShowLive do
               </span>
             </div>
             <p class="text-white/55 text-sm font-mono mt-1">@{@profile.username}</p>
-            <p :if={@profile.headline} class="text-white/80 text-sm md:text-base mt-2 leading-snug max-w-2xl">
+            <p
+              :if={@profile.headline}
+              class="text-white/80 text-sm md:text-base mt-2 leading-snug max-w-2xl"
+            >
               {@profile.headline}
             </p>
           </div>
@@ -132,7 +133,10 @@ defmodule CuratorianWeb.Public.ProfileShowLive do
               Webinar
             </span>
           </div>
-          <div :if={@profile.city} class="ml-auto flex items-center gap-1.5 text-sm text-base-content/55">
+          <div
+            :if={@profile.city}
+            class="ml-auto flex items-center gap-1.5 text-sm text-base-content/55"
+          >
             <.icon name="hero-map-pin" class="w-4 h-4 text-primary" />
             {if @profile.province,
               do: "#{@profile.city}, #{@profile.province}",
@@ -226,7 +230,7 @@ defmodule CuratorianWeb.Public.ProfileShowLive do
                       <p class="font-semibold text-sm leading-snug">{cert["name"]}</p>
                       <p :if={cert["issuer"]} class="text-xs text-base-content/50 mt-0.5">
                         {cert["issuer"]}
-                        <span :if={cert["year"]} class="font-mono"> · {cert["year"]}</span>
+                        <span :if={cert["year"]} class="font-mono"> ·  {cert["year"]}</span>
                       </p>
                     </div>
                   </div>
@@ -255,7 +259,7 @@ defmodule CuratorianWeb.Public.ProfileShowLive do
                         class="w-16 h-11 rounded-lg object-cover shrink-0"
                       />
                     <% else %>
-                      <div class="w-16 h-11 rounded-lg bg-gradient-to-br from-violet-200 to-purple-300 dark:from-violet-700 dark:to-purple-900 shrink-0">
+                      <div class="w-16 h-11 rounded-lg bg-gradient-to-br from-primary/20 to-accent/30 shrink-0">
                       </div>
                     <% end %>
                     <div class="flex-1 min-w-0">
@@ -265,8 +269,7 @@ defmodule CuratorianWeb.Public.ProfileShowLive do
                       <p class="text-xs text-base-content/40 mt-1 flex items-center gap-1.5">
                         {Calendar.strftime(post.published_at, "%d %b %Y")}
                         <span :if={post.comment_count > 0} class="flex items-center gap-1">
-                          ·
-                          <.icon name="hero-chat-bubble-left-ellipsis-micro" class="w-3 h-3" />
+                          · <.icon name="hero-chat-bubble-left-ellipsis-micro" class="w-3 h-3" />
                           {post.comment_count}
                         </span>
                       </p>

@@ -75,9 +75,19 @@ defmodule CuratorianWeb.Public.ProfilesLive do
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <div class="max-w-6xl mx-auto py-8 px-4">
         <%!-- Page header --%>
-        <div class="mb-8">
-          <h1 class="text-4xl font-bold text-base-content mb-2">Kurator</h1>
-          <p class="text-base-content/60 text-lg">
+        <div class="mb-10 relative animate-fade-in">
+          <div
+            aria-hidden="true"
+            class="pointer-events-none absolute -top-6 -right-6 size-48 rounded-full bg-primary/8 blur-3xl"
+          >
+          </div>
+          <div
+            aria-hidden="true"
+            class="pointer-events-none absolute -bottom-2 -left-2 size-32 rounded-full bg-secondary/8 blur-3xl"
+          >
+          </div>
+          <h1 class="text-3xl sm:text-4xl font-semibold text-base-content mb-2">Kurator</h1>
+          <p class="text-base-content/60 text-base leading-relaxed">
             Temukan para profesional pengelola dan kurator koleksi
           </p>
         </div>
@@ -87,7 +97,7 @@ defmodule CuratorianWeb.Public.ProfilesLive do
           <div class="relative flex-1">
             <.icon
               name="hero-magnifying-glass"
-              class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-base-content/40"
+              class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-base-content/40"
             />
             <input
               id="profile-search"
@@ -95,7 +105,7 @@ defmodule CuratorianWeb.Public.ProfilesLive do
               name="q"
               value={@search}
               placeholder="Cari kurator berdasarkan nama, keahlian, atau kota..."
-              class="input input-bordered w-full pl-10"
+              class="w-full bg-base-100 border border-base-300 focus:border-primary focus:outline-none rounded-xl pl-10 pr-4 h-11 text-sm text-base-content placeholder:text-base-content/40 transition-colors duration-150"
               phx-change="search"
               phx-debounce="300"
             />
@@ -107,9 +117,11 @@ defmodule CuratorianWeb.Public.ProfilesLive do
                 phx-click="filter_type"
                 phx-value-type={val || ""}
                 class={[
-                  "btn btn-sm",
-                  @institution_type == val && "btn-primary",
-                  @institution_type != val && "btn-ghost border border-base-300"
+                  "px-3.5 py-2 rounded-full text-sm font-medium transition-all duration-150",
+                  @institution_type == val &&
+                    "bg-primary text-primary-content shadow-sm",
+                  @institution_type != val &&
+                    "text-base-content/60 border border-base-300 hover:border-primary/40 hover:text-base-content hover:bg-primary/5"
                 ]}
               >
                 {label}
@@ -141,8 +153,11 @@ defmodule CuratorianWeb.Public.ProfilesLive do
 
         <%!-- Load more --%>
         <div :if={@has_more} class="flex justify-center mt-10">
-          <button phx-click="load_more" class="btn btn-outline btn-primary px-10">
-            Muat lebih banyak
+          <button
+            phx-click="load_more"
+            class="inline-flex items-center gap-2 px-8 py-2.5 rounded-full border border-primary/50 text-primary text-sm font-medium hover:bg-primary hover:text-primary-content transition-all duration-200"
+          >
+            <.icon name="hero-arrow-down" class="size-4" /> Muat lebih banyak
           </button>
         </div>
       </div>
@@ -152,19 +167,19 @@ defmodule CuratorianWeb.Public.ProfilesLive do
 
   defp profile_card(assigns) do
     ~H"""
-    <div class="card bg-base-100 shadow border border-base-300 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 overflow-hidden">
+    <div class="group bg-base-100 rounded-2xl border border-base-300/70 hover:border-primary/30 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 overflow-hidden">
       <%!-- Cover image --%>
       <div class="h-24 overflow-hidden">
         <%= if @profile.cover_url do %>
           <img src={asset_url(@profile.cover_url)} alt="" class="w-full h-full object-cover" />
         <% else %>
-          <div class="w-full h-full bg-gradient-to-br from-violet-400 to-purple-600"></div>
+          <div class="w-full h-full bg-gradient-to-br from-primary/25 to-accent/35"></div>
         <% end %>
       </div>
 
-      <div class="card-body pt-0 -mt-8">
+      <div class="px-4 pb-4 pt-0 -mt-8">
         <%!-- Avatar --%>
-        <div class="w-16 h-16 rounded-full ring-4 ring-base-100 overflow-hidden bg-violet-200 dark:bg-violet-800 flex items-center justify-center">
+        <div class="w-16 h-16 rounded-full ring-4 ring-base-100 overflow-hidden bg-primary/15 flex items-center justify-center">
           <%= if @profile.avatar_url do %>
             <img
               src={asset_url(@profile.avatar_url)}
@@ -172,33 +187,38 @@ defmodule CuratorianWeb.Public.ProfilesLive do
               class="w-full h-full object-cover"
             />
           <% else %>
-            <span class="text-2xl font-bold text-violet-600 dark:text-violet-300">
+            <span class="text-2xl font-bold text-primary">
               {String.first(@profile.display_name || "K")}
             </span>
           <% end %>
         </div>
 
-        <div class="mt-1">
+        <div class="mt-2">
           <div class="flex items-center gap-1.5">
-            <h3 class="font-bold text-base leading-tight line-clamp-1">{@profile.display_name}</h3>
+            <h3 class="font-semibold text-base leading-tight line-clamp-1 text-base-content">
+              {@profile.display_name}
+            </h3>
             <.icon
               :if={@profile.is_verified}
               name="hero-check-badge"
-              class="w-4 h-4 text-primary shrink-0"
+              class="size-4 text-primary shrink-0"
             />
           </div>
-          <p class="text-xs text-base-content/50">@{@profile.username}</p>
+          <p class="text-xs text-base-content/50 mt-0.5">@{@profile.username}</p>
         </div>
 
-        <p :if={@profile.headline} class="text-sm text-base-content/70 line-clamp-2 leading-snug">
+        <p
+          :if={@profile.headline}
+          class="text-sm text-base-content/70 line-clamp-2 leading-snug mt-1.5"
+        >
           {@profile.headline}
         </p>
 
         <p
           :if={@profile.city}
-          class="text-xs text-base-content/50 flex items-center gap-1"
+          class="text-xs text-base-content/50 flex items-center gap-1 mt-2"
         >
-          <.icon name="hero-map-pin-micro" class="w-3 h-3 shrink-0" />
+          <.icon name="hero-map-pin-micro" class="size-3 shrink-0" />
           <span class="truncate">
             {@profile.city}
             <%= if @profile.province do %>
@@ -207,17 +227,19 @@ defmodule CuratorianWeb.Public.ProfilesLive do
           </span>
         </p>
 
-        <div class="flex gap-3 text-xs text-base-content/50">
-          <span>{@profile.follower_count} pengikut</span>
+        <div class="flex items-center justify-between mt-2">
+          <span class="text-xs text-base-content/50">{@profile.follower_count} pengikut</span>
           <%= if @profile.institution_type do %>
-            <span class="badge badge-xs badge-outline capitalize">{@profile.institution_type}</span>
+            <span class="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full capitalize">
+              {@profile.institution_type}
+            </span>
           <% end %>
         </div>
 
-        <div class="card-actions mt-2">
+        <div class="mt-3">
           <.link
             navigate={~p"/u/#{@profile.username}"}
-            class="btn btn-sm btn-outline btn-primary w-full"
+            class="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl text-sm font-medium text-primary border border-primary/30 group-hover:bg-primary group-hover:text-primary-content group-hover:border-primary transition-all duration-200"
           >
             Lihat Profil
           </.link>
