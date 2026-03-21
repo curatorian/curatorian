@@ -34,19 +34,56 @@ defmodule CuratorianWeb.Plugs.CrossAppCookieTest do
     refute conn.resp_cookies[CrossAppCookie.cookie_name()]
   end
 
+  test "without remember_me: cookie has no max_age (session cookie)", %{conn: conn} do
+    token = valid_token()
+
+    conn =
+      conn
+      |> init_test_session(%{cross_app_token: token, user_remember_me: false})
+      |> CrossAppCookie.call([])
+
+    cookie = conn.resp_cookies[CrossAppCookie.cookie_name()]
+    assert cookie
+    refute Map.has_key?(cookie, :max_age)
+  end
+
+  test "with remember_me: cookie has max_age set (persists across browser restarts)", %{
+    conn: conn
+  } do
+    token = valid_token()
+
+    conn =
+      conn
+      |> init_test_session(%{cross_app_token: token, user_remember_me: true})
+      |> CrossAppCookie.call([])
+
+    cookie = conn.resp_cookies[CrossAppCookie.cookie_name()]
+    assert cookie
+    assert cookie.max_age == 14 * 24 * 60 * 60
+  end
+
   test "put_cross_app_cookie/2 is a no-op for nil token", %{conn: conn} do
     conn = CrossAppCookie.put_cross_app_cookie(conn, nil)
     refute conn.resp_cookies[CrossAppCookie.cookie_name()]
   end
 
-  test "put_cross_app_cookie/2 sets the cookie with a valid token", %{conn: conn} do
+  test "put_cross_app_cookie/2 sets a session cookie by default", %{conn: conn} do
     token = valid_token()
-    conn = CrossAppCookie.put_cross_app_cookie(conn, token)
+    conn = CrossAppCookie.put_cross_app_cookie(conn, token, [])
 
     cookie = conn.resp_cookies[CrossAppCookie.cookie_name()]
     assert cookie
     assert cookie.value == token
     assert cookie.http_only == true
+    refute Map.has_key?(cookie, :max_age)
+  end
+
+  test "put_cross_app_cookie/2 sets max_age when remember_me: true", %{conn: conn} do
+    token = valid_token()
+    conn = CrossAppCookie.put_cross_app_cookie(conn, token, remember_me: true)
+
+    cookie = conn.resp_cookies[CrossAppCookie.cookie_name()]
+    assert cookie.max_age == 14 * 24 * 60 * 60
   end
 
   test "delete_cross_app_cookie/1 expires the cookie", %{conn: conn} do

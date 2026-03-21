@@ -30,8 +30,11 @@ defmodule Curatorian.CrossAppToken do
   # Must match Atrium's CrossAppToken @salt exactly
   @salt "cross_app_user_auth"
 
-  # 24 hours — must be >= Atrium's @max_age_seconds
-  @max_age_seconds 86_400
+  # 14 days — must match Atrium's @max_age_seconds exactly.
+  # Matches the remember_me cookie lifetime so Atrium stays valid as long as
+  # the cookie lives. The token is re-signed on every Curatorian request anyway,
+  # so a longer max_age only affects dormant Atrium-only sessions.
+  @max_age_seconds 14 * 24 * 60 * 60
 
   @doc """
   Signs a cross-app token from auth_info returned by

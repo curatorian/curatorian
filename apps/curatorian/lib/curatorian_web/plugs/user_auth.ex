@@ -142,7 +142,12 @@ defmodule CuratorianWeb.UserAuth do
         |> maybe_reissue_user_session_token(user, token_inserted_at)
       end
     else
-      nil -> assign(conn, :current_scope, Scope.for_user(nil))
+      nil ->
+        # No valid Curatorian session — also clear the cross-app cookie so Atrium
+        # doesn't remain logged in from a stale cookie after this session expired.
+        conn
+        |> assign(:current_scope, Scope.for_user(nil))
+        |> CuratorianWeb.Plugs.CrossAppCookie.delete_cross_app_cookie()
     end
   end
 
