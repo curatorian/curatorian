@@ -94,16 +94,15 @@ defmodule CuratorianWeb.Router do
   # Authenticated routes — require a logged-in user
   # ---------------------------------------------------------------------------
 
-  # Example authenticated section — expand as features are built:
-  #
-  #   scope "/", CuratorianWeb do
-  #     pipe_through :browser
-  #
-  #     live_session :authenticated,
-  #       on_mount: [{CuratorianWeb.UserAuth, :require_authenticated}] do
-  #       live "/dashboard", DashboardLive, :index
-  #     end
-  #   end
+  scope "/", CuratorianWeb do
+    pipe_through :browser
+
+    live_session :authenticated,
+      on_mount: [{CuratorianWeb.UserAuth, :require_authenticated}] do
+      live "/visitor/check-in", Visitor.CheckInLive, :index
+      live "/visitor/check-out", Visitor.CheckOutLive, :index
+    end
+  end
 
   # ---------------------------------------------------------------------------
   # Internal API — cross-server auth for Atrium
