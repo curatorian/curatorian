@@ -158,9 +158,23 @@ defmodule CuratorianWeb.Layouts do
       |> assign(:menus, [
         %{title: "Beranda", url: "/"},
         %{title: "Tentang", url: "/about"},
-        %{title: "Kurator", url: "/kurator"},
-        %{title: "Organisasi", url: "/orgs"},
-        %{title: "Events", url: "/events"}
+        %{
+          title: "Komunitas",
+          items: [
+            %{title: "Kurator", url: "/kurator"},
+            %{title: "Organisasi", url: "/orgs"},
+            %{title: "Events", url: "/events"},
+            %{title: "Donasi & Crowdfunding", url: "/crowdfunding"}
+          ]
+        },
+        %{
+          title: "Eksplor",
+          items: [
+            %{title: "Foyer", url: "/foyer"},
+            %{title: "Lowongan", url: "/jobs"},
+            %{title: "Tukar Koleksi", url: "/exchange"}
+          ]
+        }
       ])
 
     ~H"""
@@ -174,9 +188,35 @@ defmodule CuratorianWeb.Layouts do
           <div><.link class="nav-link font-bold text-2xl" href="/">Curatorian</.link></div>
 
           <div class="hidden lg:block">
-            <div class="flex space-x-6 font-semibold">
+            <div class="flex space-x-4 font-semibold">
               <%= for menu <- @menus do %>
-                <.link class="nav-link" navigate={menu.url}>{menu.title}</.link>
+                <div class="relative group">
+                  <%= if menu[:items] do %>
+                    <span class="px-3 py-2 rounded hover:bg-base-200 cursor-pointer transition">
+                      {menu.title}
+                    </span>
+
+                    <div class="absolute left-0 mt-2 w-max hidden group-hover:block bg-base-200 border border-base-200 rounded-lg shadow-lg">
+                      <div class="p-2">
+                        <%= for item <- menu.items do %>
+                          <.link
+                            class="block px-4 py-2 text-sm text-base-content hover:bg-base-300 rounded"
+                            navigate={item.url}
+                          >
+                            {item.title}
+                          </.link>
+                        <% end %>
+                      </div>
+                    </div>
+                  <% else %>
+                    <.link
+                      class="px-3 py-2 rounded bg-white/90 dark:bg-gray-800/90 hover:bg-base-200 transition"
+                      navigate={menu.url}
+                    >
+                      {menu.title}
+                    </.link>
+                  <% end %>
+                </div>
               <% end %>
             </div>
           </div>
@@ -185,7 +225,7 @@ defmodule CuratorianWeb.Layouts do
             <div class="hidden lg:block">
               <div class="flex items-center space-x-2">
                 <.theme_toggle />
-                <.link href={"/#{@current_user.username}"}>
+                <.link href={"/u/#{@current_user.username}"}>
                   <%= if @current_user.user_image do %>
                     <img
                       src={@current_user.user_image}
@@ -285,12 +325,28 @@ defmodule CuratorianWeb.Layouts do
 
           <div class="flex flex-col space-y-4">
             <%= for menu <- @menus do %>
-              <.link
-                class="block nav-link hover:font-black transition-all duration-500 dark:text-white"
-                navigate={menu.url}
-              >
-                {menu.title}
-              </.link>
+              <div class="border-b border-base-200 pb-3">
+                <%= if menu[:items] do %>
+                  <p class="text-xs uppercase tracking-wider text-base-content/70 mb-2">
+                    {menu.title}
+                  </p>
+                  <%= for item <- menu.items do %>
+                    <.link
+                      class="block nav-link hover:font-black transition-all duration-500 dark:text-white ml-2"
+                      navigate={item.url}
+                    >
+                      {item.title}
+                    </.link>
+                  <% end %>
+                <% else %>
+                  <.link
+                    class="block nav-link hover:font-black transition-all duration-500 dark:text-white"
+                    navigate={menu.url}
+                  >
+                    {menu.title}
+                  </.link>
+                <% end %>
+              </div>
             <% end %>
           </div>
 

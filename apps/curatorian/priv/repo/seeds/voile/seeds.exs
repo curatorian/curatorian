@@ -117,6 +117,10 @@ System.upsert_setting("app_surface_dark", "#0F0820")
 # Accent / highlight
 System.upsert_setting("app_accent_color", "#C4B5FD")
 
+System.upsert_setting("app_email", "curatorian@proton.me")
+System.upsert_setting("app_instagram_url", "https://instagram.com/curatorian_id")
+System.upsert_setting("app_contact_number", "081573710645")
+
 IO.puts(
   "Seeded: app_name, app_description, contact, website, address, logo, storage_adapter, and theme colors."
 )

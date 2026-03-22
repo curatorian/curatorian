@@ -47,7 +47,7 @@ defmodule Curatorian.Public.OrgPage do
     field :verified_at, :utc_datetime
     field :follower_count, :integer, default: 0
     field :post_count, :integer, default: 0
-    field :webinar_count, :integer, default: 0
+    field :event_count, :integer, default: 0
 
     field :deleted_at, :utc_datetime
 

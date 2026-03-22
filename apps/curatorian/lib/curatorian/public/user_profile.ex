@@ -31,8 +31,8 @@ defmodule Curatorian.Public.UserProfile do
     field :is_public, :boolean, default: true
     field :follower_count, :integer, default: 0
     field :following_count, :integer, default: 0
-    field :webinar_hosted_count, :integer, default: 0
-    field :webinar_attended_count, :integer, default: 0
+    field :event_hosted_count, :integer, default: 0
+    field :event_attended_count, :integer, default: 0
     field :is_verified, :boolean, default: false
     field :verified_at, :utc_datetime
     field :deleted_at, :utc_datetime

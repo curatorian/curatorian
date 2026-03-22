@@ -122,12 +122,12 @@ defmodule CuratorianWeb.Public.ProfileShowLive do
             </span>
           </div>
           <div
-            :if={@profile.webinar_hosted_count > 0}
+            :if={@profile.event_hosted_count > 0}
             class="flex flex-col items-center"
           >
             <div class="w-px h-8 bg-base-300 hidden sm:block -mb-8 mr-8"></div>
             <span class="text-2xl font-bold text-base-content tabular-nums">
-              {@profile.webinar_hosted_count}
+              {@profile.event_hosted_count}
             </span>
             <span class="text-[10px] uppercase tracking-widest text-base-content/45 mt-0.5">
               Webinar
@@ -230,7 +230,7 @@ defmodule CuratorianWeb.Public.ProfileShowLive do
                       <p class="font-semibold text-sm leading-snug">{cert["name"]}</p>
                       <p :if={cert["issuer"]} class="text-xs text-base-content/50 mt-0.5">
                         {cert["issuer"]}
-                        <span :if={cert["year"]} class="font-mono"> ·   {cert["year"]}</span>
+                        <span :if={cert["year"]} class="font-mono"> ·        {cert["year"]}</span>
                       </p>
                     </div>
                   </div>
@@ -362,14 +362,14 @@ defmodule CuratorianWeb.Public.ProfileShowLive do
 
             <%!-- Webinar attended big number --%>
             <section
-              :if={@profile.webinar_attended_count > 0}
+              :if={@profile.event_attended_count > 0}
               class="bg-primary/8 border border-primary/20 rounded-2xl p-5"
             >
               <p class="text-[10px] font-bold uppercase tracking-widest text-primary/60 mb-1">
                 Webinar Diikuti
               </p>
               <p class="text-5xl font-bold text-primary tabular-nums leading-none mt-2">
-                {@profile.webinar_attended_count}
+                {@profile.event_attended_count}
               </p>
             </section>
           </div>

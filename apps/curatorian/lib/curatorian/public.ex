@@ -21,7 +21,16 @@ defmodule Curatorian.Public do
     BlogPost,
     BlogPostComment,
     UserRole,
-    Role
+    Role,
+    JobPosting,
+    JobApplication,
+    Event,
+    EventAttendance,
+    EventRegistration,
+    OrgPageFollower,
+    CrowdfundingCampaign,
+    ExchangeOffer,
+    ExchangeWishlist
   }
 
   @page_size 12
@@ -436,6 +445,239 @@ defmodule Curatorian.Public do
   # ---------------------------------------------------------------------------
   # Helpers
   # ---------------------------------------------------------------------------
+  # Job Postings
+
+  def list_job_postings(opts \\ []) do
+    search = Keyword.get(opts, :search, "")
+    status = Keyword.get(opts, :status)
+    employment_type = Keyword.get(opts, :employment_type)
+    category = Keyword.get(opts, :category)
+    location_type = Keyword.get(opts, :location_type)
+    page = Keyword.get(opts, :page, 1)
+    offset = (page - 1) * @page_size
+
+    from(j in JobPosting,
+      where: is_nil(j.deleted_at)
+    )
+    |> filter_job_status(status)
+    |> filter_job_employment_type(employment_type)
+    |> filter_job_category(category)
+    |> filter_job_location_type(location_type)
+    |> filter_job_search(search)
+    |> order_by([j], desc: j.is_featured, desc: j.posted_at, desc: j.inserted_at)
+    |> limit(@page_size)
+    |> offset(^offset)
+    |> Repo.all()
+  end
+
+  def list_active_job_postings(opts \\ []) do
+    now = DateTime.utc_now()
+
+    opts
+    |> Keyword.put(:status, :active)
+    |> list_job_postings()
+    |> Enum.filter(fn posting ->
+      posting.application_deadline == nil or
+        DateTime.compare(posting.application_deadline, now) == :gt
+    end)
+  end
+
+  def get_job_posting_by_slug(slug) do
+    from(j in JobPosting,
+      where:
+        j.slug == ^slug and
+          j.status == :active and
+          is_nil(j.deleted_at)
+    )
+    |> Repo.one()
+  end
+
+  def get_job_posting!(slug) do
+    case get_job_posting_by_slug(slug) do
+      nil -> raise Ecto.NoResultsError, queryable: JobPosting
+      posting -> posting
+    end
+  end
+
+  def get_job_posting_by_id!(id) do
+    Repo.get!(JobPosting, id)
+  end
+
+  def get_application_by_user_and_posting(user_id, posting_id) do
+    Repo.get_by(JobApplication,
+      voile_user_id: user_id,
+      job_posting_id: posting_id
+    )
+  end
+
+  def list_applications_by_user(user_id) do
+    from(a in JobApplication,
+      where: a.voile_user_id == ^user_id,
+      order_by: [desc: a.applied_at]
+    )
+    |> Repo.all()
+  end
+
+  def create_application(attrs) do
+    attrs = Map.put_new(attrs, "applied_at", DateTime.utc_now())
+
+    %JobApplication{}
+    |> JobApplication.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  defp filter_job_status(query, nil), do: query
+  defp filter_job_status(query, status), do: where(query, [j], j.status == ^status)
+
+  defp filter_job_employment_type(query, nil), do: query
+
+  defp filter_job_employment_type(query, value),
+    do: where(query, [j], j.employment_type == ^value)
+
+  defp filter_job_category(query, nil), do: query
+  defp filter_job_category(query, value), do: where(query, [j], j.category == ^value)
+
+  defp filter_job_location_type(query, nil), do: query
+  defp filter_job_location_type(query, value), do: where(query, [j], j.location_type == ^value)
+
+  defp filter_job_search(query, ""), do: query
+  defp filter_job_search(query, nil), do: query
+
+  defp filter_job_search(query, search) when is_binary(search) do
+    term = "%#{search}%"
+
+    where(
+      query,
+      [j],
+      ilike(j.title, ^term) or
+        ilike(j.institution_name, ^term) or
+        ilike(j.description, ^term) or
+        ilike(j.location_city, ^term)
+    )
+  end
+
+  # ---------------------------------------------------------------------------
+  # Events
+  # ---------------------------------------------------------------------------
+
+  def list_events(search \\ "", opts \\ []) do
+    page = Keyword.get(opts, :page, 1)
+    offset = (page - 1) * @page_size
+    event_type = Keyword.get(opts, :event_type)
+    category = Keyword.get(opts, :category)
+    mode = Keyword.get(opts, :mode)
+    starts_at_after = Keyword.get(opts, :starts_at_after)
+
+    now = DateTime.utc_now()
+
+    from(e in Event,
+      where:
+        is_nil(e.deleted_at) and
+          e.status in [:published, :ongoing] and
+          (e.starts_at >= ^now or e.status == :ongoing)
+    )
+    |> filter_event_type(event_type)
+    |> filter_event_category(category)
+    |> filter_event_mode(mode)
+    |> filter_event_starts_after(starts_at_after)
+    |> filter_event_search(search)
+    |> order_by([e], desc: e.is_paid, desc: e.starts_at)
+    |> limit(@page_size)
+    |> offset(^offset)
+    |> Repo.all()
+  end
+
+  def count_events(search \\ "", opts \\ []) do
+    event_type = Keyword.get(opts, :event_type)
+    category = Keyword.get(opts, :category)
+    mode = Keyword.get(opts, :mode)
+    starts_at_after = Keyword.get(opts, :starts_at_after)
+
+    now = DateTime.utc_now()
+
+    from(e in Event,
+      where:
+        is_nil(e.deleted_at) and
+          e.status in [:published, :ongoing] and
+          (e.starts_at >= ^now or e.status == :ongoing)
+    )
+    |> filter_event_type(event_type)
+    |> filter_event_category(category)
+    |> filter_event_mode(mode)
+    |> filter_event_starts_after(starts_at_after)
+    |> filter_event_search(search)
+    |> Repo.aggregate(:count, :id)
+  end
+
+  def get_event_by_slug(slug) do
+    now = DateTime.utc_now()
+
+    from(e in Event,
+      where:
+        e.slug == ^slug and
+          is_nil(e.deleted_at) and
+          e.status in [:published, :ongoing] and
+          (e.starts_at >= ^now or e.status == :ongoing)
+    )
+    |> Repo.one()
+  end
+
+  def get_event_by_slug!(slug) do
+    case get_event_by_slug(slug) do
+      nil -> raise Ecto.NoResultsError, queryable: Event
+      event -> event
+    end
+  end
+
+  def check_event_registration(user_id, event_id) do
+    Repo.get_by(EventAttendance,
+      voile_user_id: user_id,
+      event_id: event_id
+    )
+  end
+
+  defp filter_event_type(query, nil), do: query
+
+  defp filter_event_type(query, event_type),
+    do: where(query, [e], e.event_type == ^String.to_atom(event_type))
+
+  defp filter_event_category(query, nil), do: query
+
+  defp filter_event_category(query, category),
+    do: where(query, [e], e.category == ^String.to_atom(category))
+
+  defp filter_event_mode(query, nil), do: query
+  defp filter_event_mode(query, mode), do: where(query, [e], e.mode == ^String.to_atom(mode))
+
+  defp filter_event_starts_after(query, nil), do: query
+
+  defp filter_event_starts_after(query, %Date{} = date) do
+    where(query, [e], e.starts_at >= ^DateTime.new!(date, ~T[00:00:00], "Etc/UTC"))
+  end
+
+  defp filter_event_starts_after(query, date_string) when is_binary(date_string) do
+    case Date.from_iso8601(date_string) do
+      {:ok, date} -> filter_event_starts_after(query, date)
+      _ -> query
+    end
+  end
+
+  defp filter_event_search(query, ""), do: query
+
+  defp filter_event_search(query, search) when is_binary(search) do
+    term = "%#{search}%"
+
+    where(
+      query,
+      [e],
+      ilike(e.title, ^term) or
+        ilike(e.description, ^term) or
+        ilike(e.venue_city, ^term) or
+        ilike(e.venue_province, ^term)
+    )
+  end
+
+  # ---------------------------------------------------------------------------
 
   def page_size, do: @page_size
 
@@ -454,5 +696,184 @@ defmodule Curatorian.Public do
       atrium_url = Application.get_env(:curatorian, :atrium_url, "http://localhost:4001")
       atrium_url <> path
     end
+  end
+
+  # ---------------------------------------------------------------------------
+  # Foyer helper queries
+  # ---------------------------------------------------------------------------
+
+  def list_event_registrations_by_user(voile_user_id) do
+    from(r in EventRegistration,
+      where: r.voile_user_id == ^voile_user_id,
+      order_by: [desc: r.registered_at]
+    )
+    |> Repo.all()
+  end
+
+  def list_events_created_by_user(voile_user_id) do
+    from(e in Event,
+      where: e.host_user_id == ^voile_user_id and is_nil(e.deleted_at),
+      order_by: [desc: e.starts_at]
+    )
+    |> Repo.all()
+  end
+
+  def list_job_postings_by_user(voile_user_id) do
+    from(j in JobPosting,
+      where: j.host_user_id == ^voile_user_id,
+      order_by: [desc: j.posted_at]
+    )
+    |> Repo.all()
+  end
+
+  def list_blogs_by_user(voile_user_id) do
+    from(b in BlogPost,
+      where:
+        b.voile_user_id == ^voile_user_id and b.status == "published" and is_nil(b.deleted_at),
+      order_by: [desc: b.published_at]
+    )
+    |> Repo.all()
+  end
+
+  def list_orgs_followed_by_user(voile_user_id) do
+    from(f in OrgPageFollower,
+      where: f.voile_user_id == ^voile_user_id,
+      join: org in OrgPage,
+      on: org.id == f.org_page_id,
+      where: is_nil(org.deleted_at),
+      select: org,
+      order_by: [asc: org.name]
+    )
+    |> Repo.all()
+  end
+
+  def list_collections_for_orgs_by_node_ids(node_ids) when is_list(node_ids) do
+    from(c in Collection,
+      where: c.unit_id in ^node_ids and c.status == "published" and c.access_level == "public",
+      order_by: [desc: c.inserted_at]
+    )
+    |> Repo.all()
+  end
+
+  def list_events_by_ids(ids) when is_list(ids) do
+    from(e in Event,
+      where: e.id in ^ids and is_nil(e.deleted_at),
+      order_by: [desc: e.starts_at]
+    )
+    |> Repo.all()
+  end
+
+  # ---------------------------------------------------------------------------
+  # Crowdfunding Campaigns
+  # ---------------------------------------------------------------------------
+
+  def list_active_campaigns(opts \\ []) do
+    page = Keyword.get(opts, :page, 1)
+    offset = (page - 1) * @page_size
+    campaign_type = Keyword.get(opts, :campaign_type, nil)
+    category = Keyword.get(opts, :category, nil)
+    search = Keyword.get(opts, :search, "")
+
+    from(c in CrowdfundingCampaign,
+      where: c.status == :active and is_nil(c.deleted_at)
+    )
+    |> filter_campaigns_by_type(campaign_type)
+    |> filter_campaigns_by_category(category)
+    |> search_campaigns(search)
+    |> order_by([c], desc: c.inserted_at)
+    |> limit(@page_size)
+    |> offset(^offset)
+    |> Repo.all()
+  end
+
+  def get_campaign_by_slug(slug) do
+    Repo.get_by(CrowdfundingCampaign, slug: slug, status: :active)
+  end
+
+  defp filter_campaigns_by_type(query, nil), do: query
+
+  defp filter_campaigns_by_type(query, type) do
+    from(c in query, where: c.campaign_type == ^type)
+  end
+
+  defp filter_campaigns_by_category(query, nil), do: query
+
+  defp filter_campaigns_by_category(query, category) do
+    from(c in query, where: c.category == ^category)
+  end
+
+  defp search_campaigns(query, ""), do: query
+
+  defp search_campaigns(query, search) do
+    term = "%#{search}%"
+    from(c in query, where: ilike(c.title, ^term) or ilike(c.description, ^term))
+  end
+
+  # ---------------------------------------------------------------------------
+  # Collection Exchange
+  # ---------------------------------------------------------------------------
+
+  def list_exchange_offers(opts \\ []) do
+    page = Keyword.get(opts, :page, 1)
+    offset = (page - 1) * @page_size
+    search = Keyword.get(opts, :search, "")
+    province = Keyword.get(opts, :province, nil)
+
+    from(o in ExchangeOffer,
+      where: o.status == :available and is_nil(o.deleted_at)
+    )
+    |> filter_offers_by_province(province)
+    |> search_offers(search)
+    |> order_by([o], desc: o.inserted_at)
+    |> limit(@page_size)
+    |> offset(^offset)
+    |> Repo.all()
+  end
+
+  def list_exchange_wishlists(opts \\ []) do
+    page = Keyword.get(opts, :page, 1)
+    offset = (page - 1) * @page_size
+    search = Keyword.get(opts, :search, "")
+
+    from(w in ExchangeWishlist,
+      where: w.status == :open and is_nil(w.deleted_at)
+    )
+    |> search_wishlists(search)
+    |> order_by([w], desc: w.inserted_at)
+    |> limit(@page_size)
+    |> offset(^offset)
+    |> Repo.all()
+  end
+
+  defp filter_offers_by_province(query, nil), do: query
+
+  defp filter_offers_by_province(query, province) do
+    from(o in query, where: o.available_province == ^province)
+  end
+
+  defp search_offers(query, ""), do: query
+
+  defp search_offers(query, search) do
+    term = "%#{search}%"
+
+    from(o in query,
+      where:
+        ilike(o.item_title, ^term) or
+          ilike(o.item_type, ^term) or
+          ilike(o.suitability_note, ^term)
+    )
+  end
+
+  defp search_wishlists(query, ""), do: query
+
+  defp search_wishlists(query, search) do
+    term = "%#{search}%"
+
+    from(w in query,
+      where:
+        ilike(w.item_title, ^term) or
+          ilike(w.item_type, ^term) or
+          ilike(w.subject_area, ^term)
+    )
   end
 end

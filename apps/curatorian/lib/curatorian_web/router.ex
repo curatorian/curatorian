@@ -87,6 +87,13 @@ defmodule CuratorianWeb.Router do
       live "/orgs/:slug", Public.OrganizationShowLive, :show
       live "/collections", Public.CollectionsLive, :index
       live "/collections/:id", Public.CollectionShowLive, :show
+      live "/jobs", Public.Jobs.IndexLive, :index
+      live "/jobs/:slug", Public.Jobs.ShowLive, :show
+      live "/events", Public.Events.IndexLive, :index
+      live "/events/:slug", Public.Events.ShowLive, :show
+      live "/crowdfunding", Public.Crowdfunding.IndexLive, :index
+      live "/crowdfunding/:slug", Public.Crowdfunding.ShowLive, :show
+      live "/exchange", Public.CollectionExchange.IndexLive, :index
     end
   end
 
@@ -99,6 +106,9 @@ defmodule CuratorianWeb.Router do
 
     live_session :authenticated,
       on_mount: [{CuratorianWeb.UserAuth, :require_authenticated}] do
+      live "/jobs/my-applications", Public.Jobs.MyApplicationsLive, :index
+      live "/jobs/:slug/apply", Public.Jobs.ApplyLive, :apply
+      live "/foyer", Foyer.FoyerLive, :index
       live "/visitor/check-in", Visitor.CheckInLive, :index
       live "/visitor/check-out", Visitor.CheckOutLive, :index
     end
