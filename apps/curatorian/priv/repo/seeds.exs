@@ -27,9 +27,6 @@ Enum.each(seed_files, fn rel ->
   path = Path.join(__DIR__, rel)
 
   if File.exists?(path) do
-    Mix.shell().info("Running seed: #{path}")
     Code.require_file(path)
-  else
-    Mix.shell().info("Skipping missing seed: #{path}")
   end
 end)
