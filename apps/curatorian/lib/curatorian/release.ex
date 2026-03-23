@@ -8,7 +8,11 @@ defmodule Curatorian.Release do
   def migrate do
     load_app()
 
-    for repo <- repos() do
+    # Curatorian has no migrations — all tables are owned by Voile and Atrium
+    # So we explicitly migrate Voile.Repo here
+    voile_repos = Application.fetch_env!(:voile, :ecto_repos)
+
+    for repo <- voile_repos do
       {:ok, _, _} = Ecto.Migrator.with_repo(repo, &Ecto.Migrator.run(&1, :up, all: true))
     end
   end
