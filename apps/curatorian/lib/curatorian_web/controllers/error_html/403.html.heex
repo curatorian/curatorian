@@ -1,0 +1,23 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <section class="bg-violet-50 dark:bg-gray-900 py-20">
+    <div class="max-w-3xl mx-auto px-4">
+      <div class="bg-white dark:bg-gray-800 rounded-2xl p-10 shadow-md text-center">
+        <div class="text-violet-600 dark:text-violet-300 font-serif text-4xl md:text-5xl font-bold">
+          403
+        </div>
+        <h2 class="mt-4 text-xl md:text-2xl font-semibold text-gray-900 dark:text-white">
+          Terlarang
+        </h2>
+
+        <p class="mt-3 text-sm text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
+          Anda tidak memiliki izin untuk melihat halaman ini. Jika Anda yakin seharusnya dapat mengaksesnya, hubungi administrator.
+        </p>
+
+        <div class="mt-6 flex items-center justify-center gap-3">
+          <.link navigate="/" class="btn btn-primary">Kembali ke Beranda</.link>
+          <.link href="mailto:curatorian.id@gmail.com" class="btn">Hubungi Admin</.link>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layouts.app>

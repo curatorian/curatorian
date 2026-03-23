@@ -1,24 +1,39 @@
 <Layouts.app flash={@flash} current_scope={@current_scope}>
-  <section class="bg-violet-100 dark:bg-gray-600">
-    <div class="error-page">
-      <h1 class="error-status-heading">500</h1>
+  <section class="bg-violet-50 dark:bg-gray-900 py-20">
+    <div class="max-w-3xl mx-auto px-4">
+      <div class="bg-white dark:bg-gray-800 rounded-2xl p-10 shadow-md text-center">
+        <div class="text-violet-600 dark:text-violet-300 font-serif text-6xl md:text-7xl font-bold">
+          500
+        </div>
+        <h2 class="mt-4 text-2xl md:text-3xl font-semibold text-gray-900 dark:text-white">
+          Kesalahan Server Internal
+        </h2>
 
-      <h3>Kesalahan Server Internal</h3>
+        <p class="mt-3 text-sm text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
+          Maaf — sesuatu yang tidak terduga terjadi di server kami. Tim kami telah diberitahu dan sedang menanganinya.
+        </p>
 
-      <h6 class="mb-4">
-        Kamu mencoba untuk mengakses halaman : <pre class="mt-4">{@conn.request_path}</pre>
-      </h6>
+        <div class="mt-4 text-xs text-gray-500 dark:text-gray-400">
+          Permintaan:
+          <span class="font-mono text-sm text-gray-700 dark:text-gray-200">
+            {@conn.request_path}
+          </span>
+        </div>
 
-      <p>
-        Mohon maaf, Curatorian sepertinya sedang bermasalah. <br />
-        Silahkan coba lagi nanti atau hubungi Admin.
-      </p>
+        <div class="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+          <.link navigate="/" class="btn btn-primary">Kembali ke Beranda</.link>
+          <.link href="/status" class="btn btn-ghost">Status Sistem</.link>
+          <.link
+            href={"mailto:curatorian.id@gmail.com?subject=500: " <> URI.encode(@conn.request_path)}
+            class="btn"
+          >
+            Laporkan Masalah
+          </.link>
+        </div>
 
-      <div class="my-4 flex items-center justify-center gap-3">
-        <.link href="mailto:curatorian.id@gmail.com" class="btn no-underline">
-          Hubungi Admin
-        </.link>
-        <.link navigate="/" class="btn no-underline">Kembali ke Beranda</.link>
+        <p class="mt-6 text-xs text-gray-400">
+          Terima kasih atas kesabaran Anda — kami akan menginformasikan setelah masalah diperbaiki.
+        </p>
       </div>
     </div>
   </section>
