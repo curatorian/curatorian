@@ -238,6 +238,33 @@ defmodule CuratorianWeb.CoreComponents do
   end
 
   @doc """
+  Renders a reusable Turnstile CAPTCHA block with validation state.
+
+  This component wraps `Turnstile.widget/1` and renders helpful UX text
+  and failsafe behavior for submit gating.
+  """
+  attr :id, :string, default: "cf-turnstile"
+  attr :theme, :string, default: "light"
+  attr :events, :list, default: [:success, :error, :expired]
+  attr :captcha_valid, :boolean, default: false
+
+  def captcha(assigns) do
+    ~H"""
+    <div class="space-y-2">
+      <Turnstile.widget id={@id} theme={@theme} events={@events} />
+
+      <p class={"text-xs " <> if(@captcha_valid, do: "text-success", else: "text-error")}>
+        <%= if @captcha_valid do %>
+          CAPTCHA completed. You can submit the form.
+        <% else %>
+          Please complete the CAPTCHA first.
+        <% end %>
+      </p>
+    </div>
+    """
+  end
+
+  @doc """
   Renders an input with label and error messages.
 
   A `Phoenix.HTML.FormField` may be passed as argument,

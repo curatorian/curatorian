@@ -12,6 +12,7 @@ defmodule CuratorianWeb.UserRegistrationLive do
   use CuratorianWeb, :live_view
 
   alias Curatorian.Accounts
+  alias Turnstile
   alias Voile.Schema.Accounts.User
 
   def render(assigns) do
@@ -58,10 +59,22 @@ defmodule CuratorianWeb.UserRegistrationLive do
                   autocomplete="new-password"
                 />
 
+                <div style="display:none" aria-hidden="true">
+                  <input type="text" name="user[website]" tabindex="-1" autocomplete="off" />
+                </div>
+
+                <.captcha
+                  id="registration_turnstile"
+                  theme={@turnstile_theme}
+                  events={[:success, :error, :expired]}
+                  captcha_valid={@captcha_valid}
+                />
+
                 <.button
                   type="submit"
-                  class="btn btn-primary w-full"
+                  class={"btn btn-primary w-full " <> if(!@captcha_valid, do: "opacity-50 cursor-not-allowed", else: "")}
                   phx-disable-with="Creating account…"
+                  disabled={!@captcha_valid}
                 >
                   Create account
                 </.button>
@@ -81,6 +94,14 @@ defmodule CuratorianWeb.UserRegistrationLive do
   end
 
   def mount(_params, _session, socket) do
+    remote_ip =
+      socket
+      |> get_connect_info(:peer_data)
+      |> case do
+        %{address: address} -> address
+        _ -> nil
+      end
+
     # Redirect if already authenticated
     if socket.assigns.current_scope && socket.assigns.current_scope.user do
       {:ok, push_navigate(socket, to: "/")}
@@ -91,6 +112,9 @@ defmodule CuratorianWeb.UserRegistrationLive do
         socket
         |> assign(check_errors: false)
         |> assign_form(changeset)
+        |> assign(:captcha_valid, false)
+        |> assign(:turnstile_theme, "light")
+        |> assign(:remote_ip, remote_ip)
 
       {:ok, socket, temporary_assigns: [form: nil]}
     end
@@ -101,40 +125,73 @@ defmodule CuratorianWeb.UserRegistrationLive do
     {:noreply, assign_form(socket, Map.put(changeset, :action, :validate))}
   end
 
-  def handle_event("save", %{"user" => user_params}, socket) do
-    # Derive username from email prefix; add today's registration_date
-    username = user_params["email"] |> String.split("@") |> hd()
+  def handle_event("save", %{"user" => user_params} = params, socket) do
+    if Map.get(user_params, "website", "") != "" do
+      # Honeypot triggered (likely bot). Refresh captcha and block.
+      {:noreply,
+       socket
+       |> put_flash(:error, "Bot detection triggered. Please try again.")
+       |> assign(captcha_valid: false)
+       |> Turnstile.refresh()}
+    else
+      with {:ok, _} <- Turnstile.verify(params, socket.assigns.remote_ip) do
+        # Derive username from email prefix; add today's registration_date
+        username = user_params["email"] |> String.split("@") |> hd()
 
-    registration_date =
-      case User.__schema__(:type, :registration_date) do
-        :date -> Date.utc_today()
-        _ -> Date.utc_today() |> Date.to_iso8601()
+        registration_date =
+          case User.__schema__(:type, :registration_date) do
+            :date -> Date.utc_today()
+            _ -> Date.utc_today() |> Date.to_iso8601()
+          end
+
+        attrs =
+          user_params
+          |> Map.put("username", username)
+          |> Map.put("registration_date", registration_date)
+
+        case Accounts.register_user(attrs) do
+          {:ok, user} ->
+            {:ok, _} =
+              Accounts.deliver_user_confirmation_instructions(
+                user,
+                &url(~p"/users/confirm/#{&1}")
+              )
+
+            {:noreply,
+             socket
+             |> put_flash(
+               :info,
+               "Account created! Please check your email to confirm your address."
+             )
+             |> push_navigate(to: ~p"/users/pending_confirmation?email=#{user.email}")}
+
+          {:error, %Ecto.Changeset{} = changeset} ->
+            {:noreply,
+             socket
+             |> assign(check_errors: true)
+             |> assign_form(changeset)}
+        end
+      else
+        {:error, _} ->
+          {:noreply,
+           socket
+           |> put_flash(:error, "Turnstile verification failed, please try again.")
+           |> assign(captcha_valid: false)
+           |> Turnstile.refresh()}
       end
-
-    attrs =
-      user_params
-      |> Map.put("username", username)
-      |> Map.put("registration_date", registration_date)
-
-    case Accounts.register_user(attrs) do
-      {:ok, user} ->
-        {:ok, _} =
-          Accounts.deliver_user_confirmation_instructions(
-            user,
-            &url(~p"/users/confirm/#{&1}")
-          )
-
-        {:noreply,
-         socket
-         |> put_flash(:info, "Account created! Please check your email to confirm your address.")
-         |> push_navigate(to: ~p"/users/pending_confirmation?email=#{user.email}")}
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply,
-         socket
-         |> assign(check_errors: true)
-         |> assign_form(changeset)}
     end
+  end
+
+  def handle_event("turnstile:success", _params, socket) do
+    {:noreply, assign(socket, :captcha_valid, true)}
+  end
+
+  def handle_event("turnstile:error", _params, socket) do
+    {:noreply, assign(socket, :captcha_valid, false)}
+  end
+
+  def handle_event("turnstile:expired", _params, socket) do
+    {:noreply, assign(socket, :captcha_valid, false)}
   end
 
   # ---------------------------------------------------------------------------

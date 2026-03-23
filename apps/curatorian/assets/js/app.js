@@ -22,11 +22,41 @@ import "phoenix_html";
 // Establish Phoenix Socket and LiveView configuration.
 import { Socket } from "phoenix";
 import { LiveSocket } from "phoenix_live_view";
+import topbar from "../vendor/topbar";
+import Slugify from "./slugify";
+import Trix from "./trix";
 // import { hooks as colocatedHooks } from "phoenix-colocated/curatorian";
 const colocatedHooks = {};
-import topbar from "../vendor/topbar";
-import Trix from "./trix";
-import Slugify from "./slugify";
+
+function callbackEvent(self, name, eventName) {
+  return (payload) => {
+    const events = self.el.dataset.events || "";
+
+    if (events.split(",").indexOf(name) > -1) {
+      self.pushEventTo(self.el, `turnstile:${eventName || name}`, payload);
+    }
+  };
+}
+
+function renderTurnstile(self) {
+  turnstile.render(self.el, {
+    callback: callbackEvent(self, "success"),
+    "error-callback": callbackEvent(self, "error"),
+    "expired-callback": callbackEvent(self, "expired"),
+    "before-interactive-callback": callbackEvent(
+      self,
+      "beforeInteractive",
+      "before-interactive",
+    ),
+    "after-interactive-callback": callbackEvent(
+      self,
+      "afterInteractive",
+      "after-interactive",
+    ),
+    "unsupported-callback": callbackEvent(self, "unsupported"),
+    "timeout-callback": callbackEvent(self, "timeout"),
+  });
+}
 
 // Handle image upload
 let Hooks = {};
@@ -112,6 +142,36 @@ Hooks.ChooseTag = {
 
 Hooks.Trix = Trix;
 Hooks.Slugify = Slugify;
+Hooks.Turnstile = {
+  mounted() {
+    renderTurnstile(this);
+
+    this.handleEvent("turnstile:refresh", (event) => {
+      if (!event.id || event.id === this.el.id) {
+        turnstile.reset(this.el);
+      }
+    });
+
+    this.handleEvent("turnstile:remove", (event) => {
+      if (!event.id || event.id === this.el.id) {
+        turnstile.remove(this.el);
+      }
+    });
+
+    this._themeChangeHandler = (e) => {
+      const theme = e.target.dataset.phxTheme || "light";
+      this.el.dataset.theme = theme;
+      turnstile.remove(this.el);
+      renderTurnstile(this);
+    };
+
+    window.addEventListener("phx:set-theme", this._themeChangeHandler);
+  },
+
+  destroyed() {
+    window.removeEventListener("phx:set-theme", this._themeChangeHandler);
+  },
+};
 
 const csrfToken = document
   .querySelector("meta[name='csrf-token']")

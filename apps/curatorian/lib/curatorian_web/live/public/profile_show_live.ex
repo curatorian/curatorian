@@ -262,25 +262,33 @@ defmodule CuratorianWeb.Public.ProfileShowLive do
         <div class="-mx-5 bg-base-100 border-b border-base-300">
           <div class="max-w-5xl mx-auto px-6 md:px-10 py-3 text-sm text-base-content/75">
             <p class="font-semibold text-base-content mb-1">Pengaturan pesan langsung</p>
-            <p>
-              <%= if @profile.allow_dms do %>
-                <span class="text-success">Pesan langsung diizinkan</span>
-              <% else %>
-                <span class="text-error">Pesan langsung dinonaktifkan</span>
-              <% end %>
-            </p>
-            <p>
-              <%= cond do %>
-                <% !@profile.allow_dms -> %>
-                  <span class="text-base-content/60">Pesan langsung tidak tersedia.</span>
-                <% @profile.dm_from_followers_only -> %>
-                  <span class="text-base-content/60">
-                    Hanya pengikut timbal balik yang dapat mengirim pesan.
-                  </span>
-                <% true -> %>
-                  <span class="text-base-content/60">Siapa pun dapat mengirim pesan langsung.</span>
-              <% end %>
-            </p>
+            <div class="flex items-center gap-2">
+              <div class="relative group">
+                <.icon
+                  name="hero-chat-bubble-left-ellipsis"
+                  class={"w-5 h-5 " <> if(@profile.allow_dms, do: "text-success", else: "text-error")}
+                />
+
+                <div class="glass invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-200 absolute -top-10 left-1/2 -translate-x-1/2 z-10 w-64 px-3 py-2 text-xs text-base-content">
+                  <%= cond do %>
+                    <% !@profile.allow_dms -> %>
+                      "DMs dimatikan oleh pengguna."
+                    <% @profile.dm_from_followers_only -> %>
+                      "DMs hanya untuk pengikut timbal balik."
+                    <% true -> %>
+                      "Siapa pun dapat mengirim DM."
+                  <% end %>
+                </div>
+              </div>
+
+              <span class="text-xs text-base-content/70">
+                <%= if @profile.allow_dms do %>
+                  Bisa mengirim pesan
+                <% else %>
+                  Kurator tidak menerima pesan
+                <% end %>
+              </span>
+            </div>
           </div>
         </div>
 

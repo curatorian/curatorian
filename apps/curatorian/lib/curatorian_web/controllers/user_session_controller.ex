@@ -22,32 +22,40 @@ defmodule CuratorianWeb.UserSessionController do
   end
 
   defp create(conn, %{"user" => user_params} = params, flash_message) do
-    %{"email" => login, "password" => password} = user_params
+    with {:ok, _} <-
+           Turnstile.verify(conn.params, conn.remote_ip || conn.assigns[:remote_ip] || nil) do
+      %{"email" => login, "password" => password} = user_params
 
-    # When coming from registration we trust the user is confirmed (or skip the
-    # check entirely — confirmation emails may not be enabled in all deployments).
-    skip_confirmation_check = Map.get(params, "_action") == "registered"
+      # When coming from registration we trust the user is confirmed (or skip the
+      # check entirely — confirmation emails may not be enabled in all deployments).
+      skip_confirmation_check = Map.get(params, "_action") == "registered"
 
-    case Accounts.get_user_by_login_and_password(login, password) do
-      nil ->
-        conn
-        |> put_flash(:error, "Invalid email/username or password.")
-        |> put_flash(:email, String.slice(login, 0, 160))
-        |> redirect(to: ~p"/login")
-
-      user ->
-        if not skip_confirmation_check and is_nil(user.confirmed_at) do
+      case Accounts.get_user_by_login_and_password(login, password) do
+        nil ->
           conn
-          |> put_flash(
-            :error,
-            "Please confirm your email address before logging in."
-          )
+          |> put_flash(:error, "Invalid email/username or password.")
+          |> put_flash(:email, String.slice(login, 0, 160))
           |> redirect(to: ~p"/login")
-        else
-          conn
-          |> put_flash(:info, flash_message)
-          |> UserAuth.log_in_user(user, user_params)
-        end
+
+        user ->
+          if not skip_confirmation_check and is_nil(user.confirmed_at) do
+            conn
+            |> put_flash(
+              :error,
+              "Please confirm your email address before logging in."
+            )
+            |> redirect(to: ~p"/login")
+          else
+            conn
+            |> put_flash(:info, flash_message)
+            |> UserAuth.log_in_user(user, user_params)
+          end
+      end
+    else
+      {:error, _} ->
+        conn
+        |> put_flash(:error, "Captcha verification failed. Please complete the challenge.")
+        |> redirect(to: ~p"/login")
     end
   end
 

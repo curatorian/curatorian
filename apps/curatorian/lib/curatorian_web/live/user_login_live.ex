@@ -11,6 +11,8 @@ defmodule CuratorianWeb.UserLoginLive do
 
   use CuratorianWeb, :live_view
 
+  alias Turnstile
+
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
@@ -65,7 +67,19 @@ defmodule CuratorianWeb.UserLoginLive do
                   <%!-- TODO: add /users/reset_password route when password-reset LiveView is built --%>
                 </div>
 
-                <.button type="submit" class="btn btn-primary w-full" phx-disable-with="Signing in…">
+                <.captcha
+                  id="login_turnstile"
+                  theme={@turnstile_theme}
+                  events={[:success, :error, :expired]}
+                  captcha_valid={@captcha_valid}
+                />
+
+                <.button
+                  type="submit"
+                  class={"btn btn-primary w-full " <> if(!@captcha_valid, do: "opacity-50 cursor-not-allowed", else: "")}
+                  phx-disable-with="Signing in…"
+                  disabled={!@captcha_valid}
+                >
                   Sign in
                 </.button>
               </.form>
@@ -94,13 +108,41 @@ defmodule CuratorianWeb.UserLoginLive do
   end
 
   def mount(_params, _session, socket) do
+    remote_ip =
+      socket
+      |> get_connect_info(:peer_data)
+      |> case do
+        %{address: address} -> address
+        _ -> nil
+      end
+
     # Redirect if already authenticated
     if socket.assigns.current_scope && socket.assigns.current_scope.user do
       {:ok, push_navigate(socket, to: "/")}
     else
       email = Phoenix.Flash.get(socket.assigns.flash, :email)
       form = to_form(%{"email" => email}, as: :user)
-      {:ok, assign(socket, form: form), temporary_assigns: [form: nil]}
+
+      socket =
+        socket
+        |> assign(form: form)
+        |> assign(captcha_valid: false)
+        |> assign(turnstile_theme: "light")
+        |> assign(remote_ip: remote_ip)
+
+      {:ok, socket, temporary_assigns: [form: nil]}
     end
+  end
+
+  def handle_event("turnstile:success", _params, socket) do
+    {:noreply, assign(socket, :captcha_valid, true)}
+  end
+
+  def handle_event("turnstile:error", _params, socket) do
+    {:noreply, assign(socket, :captcha_valid, false)}
+  end
+
+  def handle_event("turnstile:expired", _params, socket) do
+    {:noreply, assign(socket, :captcha_valid, false)}
   end
 end
