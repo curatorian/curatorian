@@ -119,7 +119,7 @@ defmodule CuratorianWeb.Public.Crowdfunding.IndexLive do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <%!-- Hero Section --%>
-      <div class="bg-gradient-to-br from-primary/10 via-base-100 to-secondary/5 border-b border-base-300">
+      <div class="bg-gradient-to-br from-primary/10 via-base-100 to-secondary/5 border-b border-base-300 rounded-xl">
         <div class="max-w-6xl mx-auto px-4 py-14 text-center">
           <div class="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-1.5 rounded-full text-sm font-medium mb-4">
             <.icon name="hero-heart" class="size-4" /> Dukung GLAM Indonesia

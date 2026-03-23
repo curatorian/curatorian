@@ -178,7 +178,7 @@ defmodule CuratorianWeb.Layouts do
       ])
 
     ~H"""
-    <header class="fixed w-full z-40">
+    <header class="fixed w-full z-50">
       <nav class="p-0 md:p-5">
         <div
           class="bg-white/90 dark:bg-gray-800/90 shadow-xl w-full md:rounded-xl p-5 flex justify-between items-center transition-all-500"
@@ -192,11 +192,14 @@ defmodule CuratorianWeb.Layouts do
               <%= for menu <- @menus do %>
                 <div class="relative group">
                   <%= if menu[:items] do %>
-                    <span class="px-3 py-2 rounded hover:bg-base-200 cursor-pointer transition">
+                    <span class="px-3 py-2 rounded bg-base-200 hover:bg-base-200 cursor-pointer transition">
                       {menu.title}
                     </span>
 
-                    <div class="absolute left-0 mt-2 w-max hidden group-hover:block bg-base-200 border border-base-200 rounded-lg shadow-lg">
+                    <div
+                      class="absolute left-0 top-full mt-0 w-max hidden group-hover:block group-focus-within:block bg-base-200 border border-base-200 rounded-lg shadow-lg transition duration-150 ease-in-out z-40"
+                      style="min-width: 180px;"
+                    >
                       <div class="p-2">
                         <%= for item <- menu.items do %>
                           <.link
@@ -210,7 +213,7 @@ defmodule CuratorianWeb.Layouts do
                     </div>
                   <% else %>
                     <.link
-                      class="px-3 py-2 rounded bg-white/90 dark:bg-gray-800/90 hover:bg-base-200 transition"
+                      class="px-3 py-2 rounded bg-base-200 hover:bg-base-200 transition"
                       navigate={menu.url}
                     >
                       {menu.title}
@@ -241,7 +244,14 @@ defmodule CuratorianWeb.Layouts do
                     />
                   <% end %>
                 </.link>
-                <.link href="http://localhost:4001/dashboard" class="btn-primary no-underline text-xs">
+                <.link
+                  href={
+                    System.get_env("ATRIUM_URL") ||
+                      Application.get_env(:curatorian, :atrium_url, "http://localhost:4001") <>
+                        "/dashboard"
+                  }
+                  class="btn-primary no-underline text-xs"
+                >
                   Dashboard
                 </.link>
                 <.link href="/logout" method="delete" class="no-underline btn-cancel text-xs">

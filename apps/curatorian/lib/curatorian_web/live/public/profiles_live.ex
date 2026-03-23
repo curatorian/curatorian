@@ -41,6 +41,11 @@ defmodule CuratorianWeb.Public.ProfilesLive do
     {:noreply, push_patch(socket, to: ~p"/kurator?#{params}")}
   end
 
+  def handle_event("search", %{"value" => value}, socket) when is_binary(value) do
+    params = build_params(value, socket.assigns.institution_type, 1)
+    {:noreply, push_patch(socket, to: ~p"/kurator?#{params}")}
+  end
+
   def handle_event("filter_type", %{"type" => type}, socket) do
     type_val = if type == "", do: nil, else: type
     params = build_params(socket.assigns.search, type_val, 1)
@@ -106,7 +111,7 @@ defmodule CuratorianWeb.Public.ProfilesLive do
               value={@search}
               placeholder="Cari kurator berdasarkan nama, keahlian, atau kota..."
               class="w-full bg-base-100 border border-base-300 focus:border-primary focus:outline-none rounded-xl pl-10 pr-4 h-11 text-sm text-base-content placeholder:text-base-content/40 transition-colors duration-150"
-              phx-change="search"
+              phx-keyup="search"
               phx-debounce="300"
             />
           </div>

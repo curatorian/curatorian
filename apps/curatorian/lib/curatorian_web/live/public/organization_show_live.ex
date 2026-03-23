@@ -61,7 +61,7 @@ defmodule CuratorianWeb.Public.OrganizationShowLive do
   def handle_event("switch_tab", %{"tab" => tab}, socket) do
     socket =
       cond do
-        tab == "collections" and not socket.assigns.collections_loaded ->
+        tab == "collections" ->
           collections =
             Public.list_collections_for_node(socket.assigns.org.voile_node_id, page: 1)
 
@@ -101,7 +101,7 @@ defmodule CuratorianWeb.Public.OrganizationShowLive do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <div class="max-w-5xl mx-auto pb-16 animate-fade-in">
+      <div class="max-w-6xl mx-auto pb-16 animate-fade-in">
         <%!-- ── Back navigation ─────────────────────────────────────────────── --%>
         <div class="mb-5">
           <.link
@@ -116,18 +116,31 @@ defmodule CuratorianWeb.Public.OrganizationShowLive do
         </div>
 
         <%!-- ── Hero cover ───────────────────────────────────────────────────── --%>
-        <div class="relative rounded-3xl overflow-hidden h-40 md:h-52">
-          <div class="absolute inset-0 bg-gradient-to-br from-secondary/30 via-primary/25 to-accent/45">
+        <div class="relative rounded-3xl overflow-hidden h-56 md:h-72 shadow-inner">
+          <%= if @org.node_image do %>
+            <img
+              src={@org.node_image}
+              alt={@org.name}
+              class="absolute inset-0 w-full h-full object-cover"
+            />
+          <% else %>
+            <div class="absolute inset-0 bg-gradient-to-br from-primary via-secondary to-accent">
+            </div>
+          <% end %>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent">
           </div>
-          <div class="absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent">
+          <div class="absolute inset-0 flex items-center justify-center">
+            <span class="text-base-content/20 text-5xl font-black tracking-widest">
+              {String.upcase(@org.name || "ORGANISASI")}
+            </span>
           </div>
         </div>
 
         <%!-- ── Identity block — overlaps cover ─────────────────────────────── --%>
-        <div class="relative -mt-14 px-1 mb-6 animate-slide-in-left">
-          <div class="flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-5">
+        <div class="relative -mt-16 px-4 mb-6 animate-slide-in-left">
+          <div class="bg-base-100/95 backdrop-blur-xl rounded-3xl border border-base-300 p-5 shadow-lg grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-4 items-center">
             <%!-- Logo / avatar --%>
-            <div class="size-24 md:size-28 rounded-2xl ring-4 ring-base-100 overflow-hidden bg-base-200 border border-base-300 flex items-center justify-center shrink-0 shadow-md">
+            <div class="w-24 h-24 md:w-28 md:h-28 rounded-2xl overflow-hidden border border-base-300 bg-base-200 flex items-center justify-center shadow-inner">
               <%= if @org.node_image do %>
                 <img src={@org.node_image} alt={@org.name} class="w-full h-full object-cover" />
               <% else %>
@@ -138,29 +151,24 @@ defmodule CuratorianWeb.Public.OrganizationShowLive do
             </div>
 
             <%!-- Name & metadata --%>
-            <div class="pb-2 min-w-0 flex-1">
-              <p class="text-2xl md:text-3xl font-semibold text-base-content leading-tight">
+            <div class="min-w-0">
+              <p class="text-2xl md:text-3xl font-bold text-base-content leading-tight line-clamp-1">
                 {@org.name}
               </p>
               <p :if={@org.abbr} class="text-sm text-base-content/50 mt-0.5 font-mono">
                 {@org.abbr}
               </p>
-              <div class="flex flex-wrap items-center gap-2 mt-2">
+
+              <div class="mt-3 flex flex-wrap items-center gap-2">
                 <span
                   :if={@org.type_label}
-                  class="text-xs font-medium bg-primary/10 text-primary px-2.5 py-0.5 rounded-full"
+                  class="text-xs font-semibold uppercase bg-primary/15 text-primary px-2.5 py-1 rounded-full"
                 >
                   {@org.type_label}
                 </span>
-                <span
-                  :if={@org.city}
-                  class="flex items-center gap-1 text-xs text-base-content/50"
-                >
-                  <.icon name="hero-map-pin-micro" class="size-3.5 shrink-0" />
-                  {@org.city}
-                  <%= if @org.province do %>
-                    , {@org.province}
-                  <% end %>
+                <span :if={@org.city} class="text-xs text-base-content/60 flex items-center gap-1">
+                  <.icon name="hero-map-pin-micro" class="size-3" />{@org.city}{if @org.province,
+                    do: ", #{@org.province}"}
                 </span>
               </div>
             </div>

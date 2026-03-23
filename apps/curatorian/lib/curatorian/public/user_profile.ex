@@ -29,6 +29,12 @@ defmodule Curatorian.Public.UserProfile do
     field :social_links, :map, default: %{}
 
     field :is_public, :boolean, default: true
+    field :show_email, :boolean, default: false
+    field :show_phone, :boolean, default: false
+    field :allow_dms, :boolean, default: true
+    field :dm_from_followers_only, :boolean, default: false
+    field :gateway_customer_id, :string
+    field :email_notifications, :boolean, default: true
     field :follower_count, :integer, default: 0
     field :following_count, :integer, default: 0
     field :event_hosted_count, :integer, default: 0

@@ -135,7 +135,7 @@ defmodule CuratorianWeb.Public.CollectionExchange.IndexLive do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <%!-- Hero --%>
-      <div class="bg-gradient-to-br from-secondary/10 via-base-100 to-primary/5 border-b border-base-300">
+      <div class="bg-gradient-to-br from-secondary/10 via-base-100 to-primary/5 border-b border-base-300 rounded-xl">
         <div class="max-w-6xl mx-auto px-4 py-14 text-center">
           <div class="inline-flex items-center gap-2 bg-secondary/10 text-secondary px-4 py-1.5 rounded-full text-sm font-medium mb-4">
             <.icon name="hero-arrows-right-left" class="size-4" /> Tukar Koleksi
@@ -291,14 +291,14 @@ defmodule CuratorianWeb.Public.CollectionExchange.IndexLive do
           <%= if @current_scope do %>
             <.link
               navigate="/in/exchange"
-              class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-secondary text-secondary-content font-semibold hover:bg-secondary/90 transition"
+              class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-secondary-content font-semibold hover:bg-secondary/90 transition"
             >
               <.icon name="hero-plus" class="size-4" /> Tambah Penawaran
             </.link>
           <% else %>
             <.link
               navigate="/login?return_to=/exchange"
-              class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-secondary text-secondary-content font-semibold hover:bg-secondary/90 transition"
+              class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-secondary-content font-semibold hover:bg-secondary/90 transition"
             >
               <.icon name="hero-arrow-right-end-on-rectangle" class="size-4" />
               Masuk untuk Berpartisipasi

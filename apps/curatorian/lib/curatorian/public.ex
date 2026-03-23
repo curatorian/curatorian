@@ -14,6 +14,8 @@ defmodule Curatorian.Public do
 
   alias Curatorian.Public.{
     UserProfile,
+    UserFollow,
+    DirectMessageThread,
     OrgPage,
     Collection,
     NodeProfile,
@@ -67,7 +69,101 @@ defmodule Curatorian.Public do
   end
 
   def get_public_profile(username) do
-    Repo.get_by(UserProfile, username: username, is_public: true)
+    UserProfile
+    |> where([u], u.username == ^username)
+    |> where([u], is_nil(u.deleted_at))
+    |> Repo.one()
+  end
+
+  def follow_user(follower_id, following_id) do
+    Ecto.Multi.new()
+    |> Ecto.Multi.insert(:follow, fn _ ->
+      %UserFollow{}
+      |> UserFollow.changeset(%{follower_id: follower_id, following_id: following_id})
+    end)
+    |> Ecto.Multi.update_all(
+      :inc_follower_count,
+      from(p in UserProfile,
+        where: p.voile_user_id == ^following_id,
+        update: [inc: [follower_count: 1]]
+      ),
+      []
+    )
+    |> Ecto.Multi.update_all(
+      :inc_following_count,
+      from(p in UserProfile,
+        where: p.voile_user_id == ^follower_id,
+        update: [inc: [following_count: 1]]
+      ),
+      []
+    )
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{follow: follow}} -> {:ok, follow}
+      {:error, :follow, changeset, _} -> {:error, changeset}
+      {:error, _step, reason, _} -> {:error, reason}
+    end
+  end
+
+  def unfollow_user(follower_id, following_id) do
+    case Repo.get_by(UserFollow, follower_id: follower_id, following_id: following_id) do
+      nil ->
+        {:error, :not_found}
+
+      follow ->
+        Ecto.Multi.new()
+        |> Ecto.Multi.delete(:unfollow, follow)
+        |> Ecto.Multi.update_all(
+          :dec_follower_count,
+          from(p in UserProfile,
+            where: p.voile_user_id == ^following_id,
+            update: [inc: [follower_count: -1]]
+          ),
+          []
+        )
+        |> Ecto.Multi.update_all(
+          :dec_following_count,
+          from(p in UserProfile,
+            where: p.voile_user_id == ^follower_id,
+            update: [inc: [following_count: -1]]
+          ),
+          []
+        )
+        |> Repo.transaction()
+        |> case do
+          {:ok, _} -> :ok
+          {:error, _step, reason, _} -> {:error, reason}
+        end
+    end
+  end
+
+  def following?(follower_id, following_id) do
+    Repo.exists?(
+      from(f in UserFollow,
+        where: f.follower_id == ^follower_id and f.following_id == ^following_id
+      )
+    )
+  end
+
+  def get_or_create_thread(user_a_id, user_b_id) do
+    {participant_a, participant_b} =
+      if user_a_id < user_b_id, do: {user_a_id, user_b_id}, else: {user_b_id, user_a_id}
+
+    case Repo.get_by(DirectMessageThread,
+           participant_a_id: participant_a,
+           participant_b_id: participant_b
+         ) do
+      nil ->
+        %DirectMessageThread{}
+        |> DirectMessageThread.changeset(%{
+          participant_a_id: participant_a,
+          participant_b_id: participant_b
+        })
+        |> Repo.insert()
+
+      thread ->
+        {:ok, thread}
+    end
   end
 
   defp search_profiles(query, ""), do: query

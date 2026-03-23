@@ -1,92 +1,821 @@
-<Layouts.app flash={@flash} current_scope={@current_scope}>
-  <section class="container mx-auto p-4 max-w-3xl">
-    <h1 class="text-3xl font-bold mb-4">Tentang Curatorian</h1>
+<Layouts.app flash={@flash} current_scope={@current_scope} current_uri={@conn.request_path}>
+  <%!-- ═══════════════════════════════════════════════════ --%>
+  <%!-- Hero --%>
+  <%!-- ═══════════════════════════════════════════════════ --%>
+  <section class="relative overflow-hidden">
+    <div class="relative w-full h-full my-20 flex items-center max-w-7xl mx-auto">
+      <div class="flex flex-col w-full text-white items-center justify-center px-4">
+        <span class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-violet-300 mb-4">
+          <span class="w-6 h-px bg-violet-400"></span>
+          Tentang Curatorian <span class="w-6 h-px bg-violet-400"></span>
+        </span>
 
-    <div class="mb-8">
-      <p class="mb-4 text-justify">
-        Curatorian adalah sebuah inisiatif untuk menciptakan portal berbasis komunitas yang dapat diikuti oleh setiap kurator di berbagai bidang untuk berbagi koleksi kurasi dan pemikiran mereka.
-        Baik Anda memiliki minat pada seni, musik, literatur, teknologi, atau bidang lainnya, Curatorian menyediakan ruang bagi Anda untuk menampilkan perspektif Anda.
-      </p>
+        <h1 class="text-center text-violet-500 dark:text-violet-400 text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
+          Rumah untuk setiap<br />koleksi di Indonesia.
+        </h1>
 
-      <p class="mb-4">
-        Misi kami adalah menghubungkan para kurator di seluruh dunia dan merayakan seni dari pemilihan dan pengorganisasian yang penuh pemikiran.
-      </p>
-    </div>
+        <h6 class="text-sm md:text-base lg:text-lg italic text-center mt-3 text-violet-300">
+          Dari kolektor perorangan hingga perpustakaan universitas — semua punya tempatnya di sini.
+        </h6>
 
-    <div class="mb-8">
-      <h2 class="text-2xl font-semibold mb-3">Apa yang Membuat Curatorian Istimewa</h2>
-
-      <ul class="list-disc pl-5 space-y-2">
-        <li>Platform yang didorong oleh komunitas dan berfokus pada kurasi berkualitas</li>
-
-        <li>Alat untuk mengatur dan menyajikan koleksi Anda dengan cara yang bermakna</li>
-
-        <li>Terhubung dengan sesama kurator dan penggemar di berbagai bidang</li>
-
-        <li>Temukan koleksi yang dipilih dengan cermat di berbagai domain</li>
-      </ul>
-    </div>
-
-    <div class="mb-8">
-      <h2 class="text-2xl font-semibold mb-3">Pelajari Lebih Lanjut</h2>
-
-      <ul class="list-disc pl-5 space-y-2">
-        <li>
-          <a
-            href="https://www.figma.com/board/KUHkwkrbwneDvU8brwkTLv/Curatorian"
-            class="text-blue-600 hover:underline"
-            target="_blank"
+        <div class="bg-gradient-to-br from-violet-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 border-2 border-violet-400 dark:border-violet-500 text-center rounded-xl p-8 mt-10 max-w-2xl mx-auto shadow-2xl">
+          <p
+            class="text-lg md:text-xl font-light text-gray-800 dark:text-gray-100 italic mb-2"
+            style="font-family: Georgia, serif"
           >
-            Konsep dan Desain Asli
-          </a>
-        </li>
+            "Sebuah koleksi yang tidak terkatalogisasi<br />sama saja dengan tidak ada."
+          </p>
+          <p class="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-6">
+            — Prinsip dasar ilmu perpustakaan
+          </p>
 
-        <li>
-          Pengembang:
-          <a
-            href="https://github.com/chrisnaadhi"
-            class="text-blue-600 hover:underline"
-            target="_blank"
-          >
-            Chrisna Adhi Pranoto
-          </a>
-        </li>
-      </ul>
+          <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <a href="/register">
+              <button class="btn-primary bg-violet-600 hover:bg-violet-700 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all">
+                Mulai Gratis &rightarrow;
+              </button>
+            </a>
+            <a href="https://discord.gg/CS6pYuVwZa" target="_blank" rel="noreferrer">
+              <button class="btn-primary bg-white dark:bg-gray-800 text-violet-600 dark:text-violet-400 border-2 border-violet-600 dark:border-violet-500 px-8 py-3 text-lg font-semibold hover:bg-violet-50 dark:hover:bg-gray-700 transition-all">
+                Bergabung di Discord
+              </button>
+            </a>
+          </div>
+        </div>
+
+        <div class="mt-8 flex flex-wrap justify-center gap-6 text-sm text-white/50">
+          <span class="flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+              />
+            </svg>
+            Gratis untuk komunitas
+          </span>
+          <span class="flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+              />
+            </svg>
+            Open source
+          </span>
+          <span class="flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+              />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+            </svg>
+            Dibuat di Indonesia
+          </span>
+        </div>
+      </div>
     </div>
 
-    <div class="mb-8">
-      <h2 class="text-2xl font-semibold mb-3">Berkontribusi</h2>
-
-      <p class="mb-4">
-        Curatorian adalah proyek terbuka yang berkembang berkat keterlibatan komunitas. Anda dapat membantu berkontribusi dengan beberapa cara:
-      </p>
-
-      <ul class="list-disc pl-5 space-y-2">
-        <li>
-          Ajukan ide fitur atau laporan masalah melalui tab issues di
-          <a
-            href="https://github.com/chrisnaadhi/curatorian"
-            class="text-blue-600 hover:underline"
-            target="_blank"
-          >
-            GitHub
-          </a>
-        </li>
-
-        <li>Berkontribusi kode melalui pull requests</li>
-
-        <li>Bantu dengan dokumentasi dan tutorial</li>
-
-        <li>Bagikan umpan balik tentang pengalaman pengguna</li>
-
-        <li>Atau hubungi Pengembang secara pribadi dengan ide-ide Anda</li>
-      </ul>
+    <div class="absolute bottom-0 w-full h-24 bg-gradient-to-t from-violet-100 dark:from-gray-600 to-transparent">
     </div>
+  </section>
 
-    <div class="mt-10 pt-6 border-t border-gray-200">
-      <p class="text-sm text-gray-600">
-        Curatorian © {DateTime.utc_now().year} • Built with Elixir and Phoenix
-      </p>
+  <%!-- ═══════════════════════════════════════════════════ --%>
+  <%!-- Surat dari Pengembang --%>
+  <%!-- ═══════════════════════════════════════════════════ --%>
+  <section class="bg-violet-100 dark:bg-gray-600 py-20">
+    <div class="max-w-7xl mx-auto px-4">
+      <div class="grid gap-12 lg:grid-cols-2 lg:items-start max-w-5xl mx-auto">
+        <%!-- Label + avatar --%>
+        <div class="space-y-6">
+          <span class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-violet-600 dark:text-violet-300">
+            <span class="w-6 h-px bg-violet-400"></span> Dari pengembang
+          </span>
+
+          <div class="flex items-center gap-4">
+            <div class="w-14 h-14 rounded-full bg-violet-200 dark:bg-violet-800 flex items-center justify-center shrink-0">
+              <span
+                class="text-xl font-semibold text-violet-700 dark:text-violet-200"
+                style="font-family: Georgia, serif"
+              >
+                CA
+              </span>
+            </div>
+            <div>
+              <p class="font-semibold text-gray-900 dark:text-white">Chrisna Adhi</p>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                Pustakawan & Pengembang<br />Universitas Padjadjaran, Bandung
+              </p>
+            </div>
+          </div>
+
+          <div class="inline-flex items-center gap-2 bg-amber-100 dark:bg-amber-900/40 border border-amber-300 dark:border-amber-600 text-amber-800 dark:text-amber-300 text-xs font-semibold px-3 py-1.5 rounded-full">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+            Versi Alpha — masih dalam pengembangan
+          </div>
+        </div>
+
+        <%!-- Isi surat --%>
+        <div class="space-y-4 text-base leading-relaxed text-gray-700 dark:text-gray-200">
+          <p>
+            Curatorian dimulai dari frustrasi yang saya alami langsung. Di Universitas
+            Padjadjaran, setiap perpustakaan fakultas berjalan dengan sistemnya
+            masing-masing dengan dua puluh database terpisah, tidak ada katalog peminjaman bersama,
+            sulit untuk melihat dan memantau koleksi secara keseluruhan.
+          </p>
+          <p>
+            Saya seorang pustakawan yang tertarik dengan IT dan pengembangan perangkat lunak.
+            Jadi saya membangun sistem sendiri. Dan dari situlah saya menyadari masalah ini bukan cuma ada
+            di Unpad.
+          </p>
+          <p>
+            Di seluruh Indonesia, ada ribuan taman bacaan masyarakat, perpustakaan sekolah,
+            arsip lokal, dan koleksi pribadi yang menyimpan sesuatu yang layak dijaga —
+            tapi tidak ada yang tahu keberadaannya. Bukan karena tidak ada yang peduli.
+            Mereka sangat peduli. Tapi alatnya belum ada, atau harganya tidak terjangkau,
+            atau terlalu teknis untuk digunakan.
+          </p>
+          <p>
+            Curatorian adalah jawaban atas masalah itu. Dibangun dari awal untuk konteks
+            Indonesia, gratis untuk komunitas, dan dirancang agar pengelola TBM dengan
+            smartphone bisa langsung berjalan dalam tiga puluh menit.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <%!-- ═══════════════════════════════════════════════════ --%>
+  <%!-- 01 — Masalah --%>
+  <%!-- ═══════════════════════════════════════════════════ --%>
+  <section class="bg-white dark:bg-gray-900 py-20">
+    <div class="max-w-7xl mx-auto px-4">
+      <div class="text-center space-y-3 mb-14">
+        <span class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-violet-600 dark:text-violet-400">
+          <span class="w-6 h-px bg-violet-400"></span>
+          01 — Masalah <span class="w-6 h-px bg-violet-400"></span>
+        </span>
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">
+          Masalah yang kami coba jawab.
+        </h2>
+        <p class="text-base text-gray-500 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
+          Terdokumentasi dari pengalaman langsung dan riset di komunitas praktisi GLAM Indonesia.
+        </p>
+      </div>
+
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <%!-- Kartu 1 --%>
+        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6 space-y-3">
+          <div class="w-10 h-10 rounded-lg bg-red-100 dark:bg-red-900/50 flex items-center justify-center">
+            <svg
+              class="w-5 h-5 text-red-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+              />
+            </svg>
+          </div>
+          <h3 class="text-base font-bold text-gray-900 dark:text-white">
+            Koleksi yang tidak bisa ditemukan
+          </h3>
+          <p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+            Puluhan ribu koleksi bermakna di seluruh Indonesia hanya ada dalam catatan tangan,
+            spreadsheet, atau ingatan seseorang. Taman bacaan, perpustakaan sekolah dan arsip lokal
+            yang semuanya jarang terlihat/terpelihara. Para peneliti bahkan pernah pergi ke arsip di Luar Negeri
+            untuk mengakses materi Indonesia yang seharusnya ada di sini.
+          </p>
+        </div>
+
+        <%!-- Kartu 2 --%>
+        <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-6 space-y-3">
+          <div class="w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center">
+            <svg
+              class="w-5 h-5 text-amber-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
+            </svg>
+          </div>
+          <h3 class="text-base font-bold text-gray-900 dark:text-white">
+            Alat yang dibuat bukan untuk kita
+          </h3>
+          <p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+            Kebanyakan solusi open source memerlukan server sendiri dan kemampuan teknis yang memadai.
+            Produk SaaS luar negeri umumnya dengan tarif sesuai pasar Barat, antarmukanya berbahasa Inggris,
+            dan jarang cocok dengan praktik GLAM di Indonesia. Spreadsheet hanya bertahan sementara;
+            ketika jumlah koleksi bertambah, sistem manual jadi tidak praktis. Belum ada solusi yang
+            benar-benar dirancang untuk kebutuhan penuh kurator Indonesia.
+          </p>
+        </div>
+
+        <%!-- Kartu 3 --%>
+        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-6 space-y-3">
+          <div class="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center">
+            <svg
+              class="w-5 h-5 text-blue-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+              />
+            </svg>
+          </div>
+          <h3 class="text-base font-bold text-gray-900 dark:text-white">
+            Praktisi yang bekerja sendirian
+          </h3>
+          <p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+            Pengelola TBM di Bandung dan pustakawan sekolah di Manado menghadapi tantangan yang
+            hampir identik tapi tidak punya infrastruktur bersama. Belum ada rumah digital
+            bersama yang menghubungkan pekerjaan sehari-hari mereka, pengembangan profesional,
+            dan berbagi koleksi mereka satu sama lain. Kegiatan berbagi yang hanya dilakukan melalui
+            Sosial Media atau Media Komunikasi terbatas menjadi hambatan yang tidak perlu terjadi di era digital ini.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <%!-- ═══════════════════════════════════════════════════ --%>
+  <%!-- 02 — Solusi --%>
+  <%!-- ═══════════════════════════════════════════════════ --%>
+  <section class="bg-violet-50 dark:bg-gray-800 py-20">
+    <div class="max-w-7xl mx-auto px-4">
+      <div class="text-center space-y-3 mb-14">
+        <span class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-violet-600 dark:text-violet-400">
+          <span class="w-6 h-px bg-violet-400"></span>
+          02 — Solusi <span class="w-6 h-px bg-violet-400"></span>
+        </span>
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">
+          Apa yang Curatorian lakukan.
+        </h2>
+        <p class="text-base text-gray-500 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
+          Curatorian sengaja menjadi dua hal sekaligus — karena keduanya tidak akan bekerja
+          tanpa yang lain.
+        </p>
+      </div>
+
+      <div class="grid gap-6 lg:grid-cols-2 mb-8">
+        <%!-- Fungsi Pertama --%>
+        <div class="bg-white dark:bg-gray-900 border-2 border-violet-200 dark:border-violet-700 rounded-xl p-8 space-y-5">
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 rounded-lg bg-violet-100 dark:bg-violet-900/50 flex items-center justify-center shrink-0">
+              <svg
+                class="w-5 h-5 text-violet-600 dark:text-violet-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                />
+              </svg>
+            </div>
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-widest text-violet-400 dark:text-violet-500 mb-0.5">
+                Fungsi Pertama
+              </p>
+              <h3 class="text-xl font-bold text-gray-900 dark:text-white">
+                Sistem manajemen koleksi yang layak.
+              </h3>
+            </div>
+          </div>
+
+          <p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+            Katalogisasi item koleksi, lacak peminjaman dan anggota, buat laporan untuk donatur
+            atau akreditasi, dan punya halaman katalog publik — dalam tiga puluh menit setelah
+            mendaftar. Tanpa server. Tanpa instalasi. Tanpa keahlian teknis.
+          </p>
+
+          <ul class="space-y-2.5">
+            <li class="flex items-start gap-2.5 text-sm text-gray-600 dark:text-gray-300">
+              <svg
+                class="w-4 h-4 text-green-500 mt-0.5 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              Katalog fleksibel untuk buku, arsip, objek museum, dan lainnya
+            </li>
+            <li class="flex items-start gap-2.5 text-sm text-gray-600 dark:text-gray-300">
+              <svg
+                class="w-4 h-4 text-green-500 mt-0.5 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              Manajemen sirkulasi, peminjaman, dan data anggota
+            </li>
+            <li class="flex items-start gap-2.5 text-sm text-gray-600 dark:text-gray-300">
+              <svg
+                class="w-4 h-4 text-green-500 mt-0.5 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              Halaman OPAC publik yang bisa dibagikan
+            </li>
+            <li class="flex items-start gap-2.5 text-sm text-gray-600 dark:text-gray-300">
+              <svg
+                class="w-4 h-4 text-green-500 mt-0.5 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              Import CSV dari spreadsheet dan ekspor data katalog
+            </li>
+            <li class="flex items-start gap-2.5 text-sm text-gray-600 dark:text-gray-300">
+              <svg
+                class="w-4 h-4 text-green-500 mt-0.5 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              Analitik dan laporan yang bisa diekspor
+            </li>
+          </ul>
+          <div class="bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-700 rounded-xl p-4">
+            <h5 class="text-sm font-semibold text-violet-700 dark:text-violet-300 uppercase tracking-wide mb-1">
+              Voile, the Magic Library
+            </h5>
+            <p class="text-sm text-gray-700 dark:text-gray-200 leading-relaxed mb-3">
+              merupakan sistem pengelolaan koleksi GLAM yang gratis dan open source, dibangun menggunakan
+              Elixir dan Phoenix Framework. Lisensi Apache 2.0, kode sumber tersedia di GitHub, dan
+              kami menyambut kontribusi dari pengembang mana pun.
+            </p>
+            <div class="flex w-full text-center">
+              <.link
+                href="https://github.com/curatorian/voile"
+                target="_blank"
+                rel="noreferrer"
+                class="btn-primary w-full"
+              >
+                Lihat <span class="italic">Source Code </span> di GitHub
+              </.link>
+            </div>
+          </div>
+        </div>
+
+        <%!-- Fungsi Kedua --%>
+        <div class="bg-white dark:bg-gray-900 border-2 border-purple-200 dark:border-purple-700 rounded-xl p-8 space-y-5">
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center shrink-0">
+              <svg
+                class="w-5 h-5 text-purple-600 dark:text-purple-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                />
+              </svg>
+            </div>
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-widest text-purple-400 dark:text-purple-500 mb-0.5">
+                Fungsi Kedua
+              </p>
+              <h3 class="text-xl font-bold text-gray-900 dark:text-white">
+                Komunitas profesional GLAM.
+              </h3>
+            </div>
+          </div>
+
+          <p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+            Ikuti kurator lain, terbitkan artikel di blog komunitas, hadiri atau selenggarakan
+            acara profesional, cari lowongan di sektor GLAM, tukarkan item koleksi. Inilah
+            yang membuat orang bertahan dan platform tumbuh.
+          </p>
+
+          <ul class="space-y-2.5">
+            <li class="flex items-start gap-2.5 text-sm text-gray-600 dark:text-gray-300">
+              <svg
+                class="w-4 h-4 text-green-500 mt-0.5 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              Blog komunitas dan profil pembaca perorangan
+            </li>
+            <li class="flex items-start gap-2.5 text-sm text-gray-600 dark:text-gray-300">
+              <svg
+                class="w-4 h-4 text-green-500 mt-0.5 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              Sistem follow (penyimak) dan pesan langsung
+            </li>
+            <li class="flex items-start gap-2.5 text-sm text-gray-600 dark:text-gray-300">
+              <svg
+                class="w-4 h-4 text-green-500 mt-0.5 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              Platform acara dan webinar profesional
+            </li>
+            <li class="flex items-start gap-2.5 text-sm text-gray-600 dark:text-gray-300">
+              <svg
+                class="w-4 h-4 text-green-500 mt-0.5 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              Papan lowongan kerja sektor GLAM
+            </li>
+            <li class="flex items-start gap-2.5 text-sm text-gray-600 dark:text-gray-300">
+              <svg
+                class="w-4 h-4 text-green-500 mt-0.5 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              Bursa Koleksi. Donasikan yang tidak terpakai, cari yang dibutuhkan.
+            </li>
+          </ul>
+          <div class="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700 rounded-xl p-4">
+            <h5 class="text-sm font-semibold text-purple-700 dark:text-purple-300 uppercase tracking-wide mb-1">
+              Curatorian, <span class="italic">where the curatorians meet.</span>
+            </h5>
+            <p class="text-sm text-gray-700 dark:text-gray-200 leading-relaxed mb-3">
+              merupakan sistem jejaring sosial profesional untuk praktisi GLAM Indonesia, dibangun
+              menggunakan Elixir dan Phoenix Framework. Lisensi Apache 2.0, kode sumber tersedia di
+              GitHub, dan kami menyambut kontribusi dari pengembang mana pun.
+            </p>
+            <div class="flex w-full text-center">
+              <.link
+                href="https://github.com/curatorian/curatorian"
+                target="_blank"
+                rel="noreferrer"
+                class="btn-primary w-full"
+              >
+                Lihat <span class="italic">Source Code </span> di GitHub
+              </.link>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <%!-- Janji gratis --%>
+      <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-6 flex items-center gap-5">
+        <div class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center shrink-0">
+          <svg
+            class="w-5 h-5 text-green-600 dark:text-green-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"
+            />
+          </svg>
+        </div>
+        <div>
+          <p class="font-bold text-gray-900 dark:text-white text-sm">
+            Gratis selamanya untuk institusi komunitas.
+          </p>
+          <p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mt-0.5">
+            Ini bukan masa percobaan atau fitur yang sengaja dibatasi. Platform lengkap tersedia
+            tanpa bayaran untuk perorangan, TBM, perpustakaan sekolah, dan institusi nirlaba apa
+            pun untuk selamanya. Institusi komersial berkontribusi agar yang lain tidak pernah
+            menemukan paywall.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <%!-- ═══════════════════════════════════════════════════ --%>
+  <%!-- 03 — Tujuan --%>
+  <%!-- ═══════════════════════════════════════════════════ --%>
+  <section class="bg-white dark:bg-gray-900 py-20">
+    <div class="max-w-7xl mx-auto px-4">
+      <div class="grid gap-14 lg:grid-cols-2 lg:items-start max-w-5xl mx-auto">
+        <div class="space-y-5">
+          <span class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-violet-600 dark:text-violet-400">
+            <span class="w-6 h-px bg-violet-400"></span> 03 — Tujuan
+          </span>
+          <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white leading-tight">
+            Ke mana kami menuju.
+          </h2>
+          <p class="text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+            Curatorian, bukan hanya platform, adalah gerakan untuk menjadikan warisan
+            pengetahuan Indonesia lebih terlihat, lebih terjaga, dan lebih mudah diakses
+            oleh siapa saja.
+          </p>
+        </div>
+
+        <div class="divide-y divide-gray-100 dark:divide-gray-800">
+          <div class="flex items-start gap-5 py-5">
+            <span
+              class="text-3xl font-bold text-violet-200 dark:text-violet-800 shrink-0 leading-none"
+              style="font-family: Georgia, serif"
+            >
+              01
+            </span>
+            <div class="space-y-1">
+              <h3 class="font-bold text-gray-900 dark:text-white">
+                Setiap koleksi Indonesia bisa ditemukan.
+              </h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+                Dari rak 50 buku hingga perpustakaan dengan jutaan koleksi yang
+                terkatalogisasi dengan benar, bisa diakses publik, terhubung dengan komunitas
+                yang peduli.
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-5 py-5">
+            <span
+              class="text-3xl font-bold text-violet-200 dark:text-violet-800 shrink-0 leading-none"
+              style="font-family: Georgia, serif"
+            >
+              02
+            </span>
+            <div class="space-y-1">
+              <h3 class="font-bold text-gray-900 dark:text-white">
+                Setiap praktisi GLAM punya rumah profesional.
+              </h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+                Bukan sekadar alat, tapi komunitas. Tempat di mana pekerjaan ini tidak lagi sepi
+                dan pengetahuan dapat dibagikan secara luas.
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-5 py-5">
+            <span
+              class="text-3xl font-bold text-violet-200 dark:text-violet-800 shrink-0 leading-none"
+              style="font-family: Georgia, serif"
+            >
+              03
+            </span>
+            <div class="space-y-1">
+              <h3 class="font-bold text-gray-900 dark:text-white">
+                Akses tidak pernah terhalang kemampuan membayar.
+              </h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+                Platform ini adalah infrastruktur kooperatif. Institusi komersial berkontribusi
+                agar komunitas tidak pernah menemukan paywall.
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-5 py-5">
+            <span
+              class="text-3xl font-bold text-violet-200 dark:text-violet-800 shrink-0 leading-none"
+              style="font-family: Georgia, serif"
+            >
+              04
+            </span>
+            <div class="space-y-1">
+              <h3 class="font-bold text-gray-900 dark:text-white">
+                Koleksi Indonesia terjaga dan bisa diakses dunia.
+              </h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+                Sejarah lokal, bahasa daerah, pengetahuan komunitas dan ekor panjang produksi
+                budaya Indonesia yang tidak dicakup database komersial mana pun.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <%!-- ═══════════════════════════════════════════════════ --%>
+  <%!-- 04 — Open Source / Pembangun --%>
+  <%!-- ═══════════════════════════════════════════════════ --%>
+  <section class="bg-violet-50 dark:bg-gray-800 py-20">
+    <div class="max-w-7xl mx-auto px-4">
+      <div class="grid gap-12 lg:grid-cols-2 lg:items-center">
+        <div class="space-y-6">
+          <span class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-violet-600 dark:text-violet-400">
+            <span class="w-6 h-px bg-violet-400"></span> 04 — Pembangun
+          </span>
+          <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white leading-tight">
+            Dibangun oleh pustakawan yang belajar membuat kode.
+          </h2>
+          <div class="space-y-4 text-base leading-relaxed text-gray-600 dark:text-gray-300">
+            <p>
+              Kebanyakan perangkat lunak perpustakaan dibangun oleh developer yang belajar tentang
+              perpustakaan. Curatorian dibangun oleh pustakawan yang belajar mengembangkan
+              software. Perbedaan itu terlihat di setiap keputusan fitur.
+            </p>
+            <p>
+              ISBN dibuat opsional karena banyak penerbit Indonesia tidak mendaftarkannya. Tier
+              gratis benar-benar fungsional karena komunitas yang tidak punya anggaran tetap layak
+              mendapat software yang bagus. Arsitektur node dibangun sesuai cara institusi sebenarnya
+              beroperasi, seperti per fakultas dan per unit, bukan cara developer membayangkan perpustakaan.
+            </p>
+            <p>
+              Versi pertama lahir dari proyek nyata: membangun ulang dua puluh database SLiMS
+              terpisah di Unpad menjadi satu sistem terpadu. Sistem itu sudah berjalan di produksi.
+              Curatorian adalah langkah berikutnya.
+            </p>
+          </div>
+          <div class="flex flex-wrap gap-3 pt-2">
+            <a href="https://github.com/curatorian" target="_blank" rel="noreferrer">
+              <button class="btn-primary bg-gray-900 hover:bg-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 text-white px-6 py-2.5 text-sm font-semibold transition-all">
+                GitHub &rightarrow;
+              </button>
+            </a>
+            <a href="/whitepaper">
+              <button class="btn-primary bg-white dark:bg-gray-900 text-violet-600 dark:text-violet-400 border-2 border-violet-300 dark:border-violet-600 px-6 py-2.5 text-sm font-semibold hover:bg-violet-50 dark:hover:bg-gray-800 transition-all">
+                Baca Whitepaper
+              </button>
+            </a>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="bg-white dark:bg-gray-900 rounded-xl p-6 text-center space-y-2 border border-violet-100 dark:border-gray-700">
+            <p
+              class="text-3xl font-bold text-violet-600 dark:text-violet-400"
+              style="font-family: Georgia, serif"
+            >
+              GLAM
+            </p>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Fokus domain</p>
+          </div>
+          <div class="bg-white dark:bg-gray-900 rounded-xl p-6 text-center space-y-2 border border-purple-100 dark:border-gray-700">
+            <p
+              class="text-3xl font-bold text-purple-600 dark:text-purple-400"
+              style="font-family: Georgia, serif"
+            >
+              Open
+            </p>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Terbuka dan Transparan</p>
+          </div>
+          <div class="bg-white dark:bg-gray-900 rounded-xl p-6 text-center space-y-2 border border-violet-100 dark:border-gray-700">
+            <p class="text-2xl">🇮🇩</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Berbasis di Indonesia</p>
+          </div>
+          <div class="bg-white dark:bg-gray-900 rounded-xl p-6 text-center space-y-2 border border-violet-100 dark:border-gray-700">
+            <p
+              class="text-xl font-bold text-gray-900 dark:text-white"
+              style="font-family: Georgia, serif"
+            >
+              2024-kini
+            </p>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Pengembangan aktif</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <%!-- ═══════════════════════════════════════════════════ --%>
+  <%!-- CTA Akhir --%>
+  <%!-- ═══════════════════════════════════════════════════ --%>
+  <section class="bg-gradient-to-br from-violet-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 py-20">
+    <div class="max-w-7xl mx-auto px-4">
+      <div class="max-w-3xl mx-auto text-center space-y-6">
+        <div class="inline-flex items-center gap-2 bg-amber-100 dark:bg-amber-900/40 border border-amber-300 dark:border-amber-600 text-amber-800 dark:text-amber-300 text-xs font-semibold px-3 py-1.5 rounded-full">
+          <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+          Versi Alpha | bug mungkin ada, kami siap bantu di Discord
+        </div>
+
+        <h2
+          class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white leading-tight"
+          style="font-family: Georgia, serif"
+        >
+          Mulai koleksimu hari ini.
+        </h2>
+
+        <p class="text-base text-gray-600 dark:text-gray-300 max-w-xl mx-auto leading-relaxed">
+          Curatorian sedang dalam versi alpha. Ada yang belum sempurna. Tapi sudah bisa
+          dipakai, terbuka, dan akan terus membaik bersamamu. Setiap node baru, setiap
+          katalog yang dibangun, setiap laporan bug — semuanya membentuk apa yang akan
+          menjadi platform ini.
+        </p>
+
+        <div class="flex flex-col sm:flex-row gap-4 justify-center items-center pt-2">
+          <a href="/register">
+            <button class="btn-primary bg-violet-600 hover:bg-violet-700 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all">
+              Buat node koleksimu — gratis &rightarrow;
+            </button>
+          </a>
+          <a href="https://discord.gg/CS6pYuVwZa" target="_blank" rel="noreferrer">
+            <button class="btn-primary bg-white dark:bg-gray-800 text-violet-600 dark:text-violet-400 border-2 border-violet-600 dark:border-violet-500 px-8 py-3 text-lg font-semibold hover:bg-violet-50 dark:hover:bg-gray-700 transition-all">
+              Bergabung di Discord
+            </button>
+          </a>
+        </div>
+
+        <p class="text-sm text-gray-400 dark:text-gray-500 pt-2">
+          Gratis selamanya untuk perorangan, TBM, perpustakaan sekolah, dan institusi nirlaba.
+          Tanpa kartu kredit. Tanpa masa percobaan. Tanpa batasan fitur.
+        </p>
+      </div>
     </div>
   </section>
 </Layouts.app>

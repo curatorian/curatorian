@@ -25,7 +25,8 @@ defmodule CuratorianWeb.Public.OrganizationsLive do
      socket
      |> assign(:page_title, "Organisasi")
      |> assign(:institution_type_options, @institution_type_options)
-     |> assign(:institution_type_labels, @institution_type_labels)}
+     |> assign(:institution_type_labels, @institution_type_labels)
+     |> assign(:searching, false)}
   end
 
   def handle_params(params, _uri, socket) do
@@ -40,13 +41,20 @@ defmodule CuratorianWeb.Public.OrganizationsLive do
      |> assign(:search, search)
      |> assign(:institution_type, institution_type)
      |> assign(:page, page)
+     |> assign(:org_count, length(orgs))
+     |> assign(:searching, false)
      |> assign(:has_more, length(orgs) == Public.page_size())
      |> stream(:orgs, orgs |> Enum.map(&flatten_org/1), reset: true)}
   end
 
   def handle_event("search", %{"q" => q}, socket) do
     params = build_params(q, socket.assigns.institution_type, 1)
-    {:noreply, push_patch(socket, to: ~p"/orgs?#{params}")}
+    {:noreply, socket |> assign(:searching, true) |> push_patch(to: ~p"/orgs?#{params}")}
+  end
+
+  def handle_event("search", %{"value" => value}, socket) when is_binary(value) do
+    params = build_params(value, socket.assigns.institution_type, 1)
+    {:noreply, socket |> assign(:searching, true) |> push_patch(to: ~p"/orgs?#{params}")}
   end
 
   def handle_event("filter_type", %{"type" => type}, socket) do
@@ -143,7 +151,7 @@ defmodule CuratorianWeb.Public.OrganizationsLive do
             value={@search}
             placeholder="Cari organisasi berdasarkan nama atau kota..."
             class="w-full bg-base-100 border border-base-300 focus:border-primary focus:outline-none rounded-xl pl-10 pr-4 h-11 text-sm text-base-content placeholder:text-base-content/40 transition-colors duration-150"
-            phx-change="search"
+            phx-keyup="search"
             phx-debounce="300"
           />
         </div>
@@ -166,6 +174,18 @@ defmodule CuratorianWeb.Public.OrganizationsLive do
             </button>
           <% end %>
         </div>
+
+        <%= if @searching do %>
+          <div class="py-10 text-center text-base-content/60">
+            Mencari organisasi untuk "#{@search}" ...
+          </div>
+        <% end %>
+
+        <%= if not @searching and @org_count == 0 and @search != "" do %>
+          <div class="py-10 text-center text-base-content/60">
+            Tidak ada organisasi ditemukan untuk "#{@search}"
+          </div>
+        <% end %>
 
         <%!-- Results grid --%>
         <div

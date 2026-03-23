@@ -11,6 +11,10 @@ defmodule CuratorianWeb.PageController do
     render(conn, :about)
   end
 
+  def roadmap(conn, _) do
+    render(conn, :roadmap)
+  end
+
   def redirect_manage(conn, _params) do
     redirect(conn, to: "/dashboard")
   end

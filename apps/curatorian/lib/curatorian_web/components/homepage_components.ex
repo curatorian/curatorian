@@ -80,21 +80,24 @@ defmodule CuratorianWeb.HomepageComponents do
         description:
           "Berisi profil dan detail biodata dari profesional kurator, tenaga teknis pengelolaan koleksi, fresh graduate maupun mahasiswa.",
         icon: "hero-user-circle-solid",
-        status: "active"
+        status: "active",
+        url: "/register"
       },
       %{
         title: "Profil Lembaga",
         description:
           "Halaman profil dari lembaga, asosiasi, forum maupun organisasi tempat bekerja atau berkarya.",
         icon: "hero-building-library-solid",
-        status: "soon"
+        status: "active",
+        url: "/orgs"
       },
       %{
         title: "Kegiatan & Acara",
         description:
           "Membuat dan membagikan kegiatan serta event yang berkaitan dengan kurasi koleksi.",
         icon: "hero-calendar-days-solid",
-        status: "soon"
+        status: "active",
+        url: "/events"
       }
     ]
 
@@ -124,21 +127,25 @@ defmodule CuratorianWeb.HomepageComponents do
         description:
           "Memberikan fitur bagi pengguna untuk mencari dan menawarkan lowongan kerja di bidang kurasi koleksi.",
         icon: "hero-briefcase-solid",
-        status: "soon"
+        status: "active",
+        url: "/jobs"
       },
       %{
         title: "Forum",
         description:
           "Memberikan fitur bagi pengguna untuk berkomunikasi dalam bentuk grup (kanal) maupun personal.",
         icon: "hero-chat-bubble-left-right-solid",
-        status: "soon"
+        status: "active",
+        url: "/register"
       },
       %{
-        title: "Courses",
+        title: "Crowdfunding",
         description:
-          "Memberikan fitur bagi pengguna untuk mengkaji kursus, workshop, seminar, dan pelatihan.",
-        icon: "hero-academic-cap-solid",
-        status: "soon"
+          "Menyediakan fitur crowdfunding untuk mendanai proyek-proyek kurasi koleksi. Tidak hanya dalam bentuk uang,
+          tetapi juga koleksi, tenaga kerja, dan kolaborasi.",
+        icon: "hero-heart-solid",
+        status: "active",
+        url: "/crowdfunding"
       }
     ]
 
@@ -162,7 +169,7 @@ defmodule CuratorianWeb.HomepageComponents do
               <p class="text-gray-600 dark:text-white text-sm italic">{feature.description}</p>
             </div>
 
-            <div class="mt-2">
+            <div class="my-2">
               <span class={[
                 "text-xs py-1 px-2 rounded-full",
                 feature.status == "active" && "bg-green-500 text-white",
@@ -171,8 +178,60 @@ defmodule CuratorianWeb.HomepageComponents do
                 {String.capitalize(feature.status)}
               </span>
             </div>
+
+            <div class="w-full text-xs my-2">
+              <.link navigate={feature.url}>
+                Lihat &rightarrow;
+              </.link>
+            </div>
           </div>
         <% end %>
+      </div>
+
+      <div class="relative bg-gradient-to-br from-violet-600 to-purple-700 rounded-2xl p-10 my-6 overflow-hidden text-white shadow-xl">
+        <%!-- Decorative background rings --%>
+        <div class="absolute -top-12 -right-12 w-56 h-56 rounded-full bg-white/5"></div>
+        <div class="absolute -bottom-16 -left-16 w-72 h-72 rounded-full bg-white/5"></div>
+
+        <div class="relative z-10 flex flex-col lg:flex-row items-center gap-8">
+          <div class="w-16 h-16 rounded-2xl bg-white/15 flex items-center justify-center shrink-0">
+            <.icon name="hero-archive-box-solid" class="w-8 h-8 text-white" />
+          </div>
+
+          <div class="text-center lg:text-left flex-1">
+            <p class="text-xs font-semibold uppercase tracking-widest text-violet-200 mb-2">
+              Fitur Utama
+            </p>
+            <h4 class="text-xl md:text-2xl font-bold mb-3">
+              Manajemen Koleksi Digital Berbasis GLAM
+            </h4>
+            <p class="text-sm md:text-base text-violet-100 leading-relaxed max-w-2xl">
+              Menyediakan fitur manajemen koleksi berbasis GLAM dalam bentuk digital untuk
+              memudahkan pengguna dalam mengelola koleksi termasuk katalogisasi, pelacakan,
+              dan pemeliharaan koleksi.
+            </p>
+            <p class="text-xs italic">
+              Berbasis
+              <a
+                href="https://github.com/curatorian/voile"
+                class="!text-violet-200 hover:underline"
+                target="_blank"
+              >
+                Voile, the Magic Library
+              </a>
+              yang merupakan sistem pengelolaan koleksi berbasis
+              GLAM yang open source dan sudah digunakan oleh Universitas Padjadjaran untuk mengelola
+              koleksi akademik, penelitian dan warisan budaya.
+            </p>
+          </div>
+
+          <a
+            href="/register"
+            class="shrink-0 inline-flex items-center gap-2 bg-white text-violet-700 font-semibold text-sm px-6 py-3 rounded-xl hover:bg-violet-50 transition-colors shadow-md"
+          >
+            Mulai Gratis <.icon name="hero-arrow-right" class="w-4 h-4" />
+          </a>
+        </div>
       </div>
 
       <div class="flex flex-col md:grid md:grid-cols-2) lg:grid-cols-3 gap-5 py-10">
@@ -210,18 +269,6 @@ defmodule CuratorianWeb.HomepageComponents do
         <div><img src="/images/undraw_referral.png" class="w-full max-w-md" alt="" /></div>
 
         <div>
-          <p class="py-5">Silahkan masukkan E-Mail pengingat untuk informasi rilis Curatorian</p>
-
-          <div class="flex gap-2 max-w-2xl ma w-full">
-            <input
-              type="email"
-              name="email"
-              id="email"
-              placeholder="Email Anda"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
-            /> <button type="submit" class="btn-primary bg-violet-5 text-white">Ingatkan</button>
-          </div>
-
           <div class="pt-5">
             <h6>Ikut Media Sosial Kami :</h6>
 
