@@ -29,15 +29,19 @@ defmodule Curatorian.Release do
   def seed do
     load_app()
 
-    # Run the seeds script if it exists
-    seeds_path = Application.app_dir(@app, "priv/repo/seeds.exs")
-    rbac_seeds_path = Application.app_dir(@app, "priv/repo/seeds_rbac.exs")
+    Ecto.Migrator.with_repo(Curatorian.Repo, fn _repo ->
+      seeds_path = Application.app_dir(@app, "priv/repo/seeds.exs")
+      rbac_seeds_path = Application.app_dir(@app, "priv/repo/seeds_rbac.exs")
 
-    if File.exists?(seeds_path) and File.exists?(rbac_seeds_path) do
-      Code.eval_file(seeds_path)
-      Code.eval_file(rbac_seeds_path)
-    else
-      IO.puts("No seeds file found at #{seeds_path}")
-    end
+      if File.exists?(seeds_path) do
+        IO.puts("Running seeds...")
+        Code.eval_file(seeds_path)
+      end
+
+      if File.exists?(rbac_seeds_path) do
+        IO.puts("Running RBAC seeds...")
+        Code.eval_file(rbac_seeds_path)
+      end
+    end)
   end
 end
