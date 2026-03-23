@@ -30,18 +30,22 @@ defmodule Curatorian.Release do
     load_app()
 
     Ecto.Migrator.with_repo(Curatorian.Repo, fn _repo ->
-      seeds_path = Application.app_dir(@app, "priv/repo/seeds.exs")
-      rbac_seeds_path = Application.app_dir(@app, "priv/repo/seeds_rbac.exs")
+      # Also start Voile.Repo since seeds use it directly
+      {:ok, _, _} =
+        Ecto.Migrator.with_repo(Voile.Repo, fn _voile_repo ->
+          seeds_path = Application.app_dir(@app, "priv/repo/seeds.exs")
+          rbac_seeds_path = Application.app_dir(@app, "priv/repo/seeds_rbac.exs")
 
-      if File.exists?(seeds_path) do
-        IO.puts("Running seeds...")
-        Code.eval_file(seeds_path)
-      end
+          if File.exists?(seeds_path) do
+            IO.puts("Running seeds...")
+            Code.eval_file(seeds_path)
+          end
 
-      if File.exists?(rbac_seeds_path) do
-        IO.puts("Running RBAC seeds...")
-        Code.eval_file(rbac_seeds_path)
-      end
+          if File.exists?(rbac_seeds_path) do
+            IO.puts("Running RBAC seeds...")
+            Code.eval_file(rbac_seeds_path)
+          end
+        end)
     end)
   end
 end
