@@ -8,8 +8,16 @@ seed_path =
     # Development/test - use relative path from apps/curatorian
     "priv/repo/seeds/voile/authorization_seeds.ex"
   else
-    # Production release - use priv_dir
-    Path.join([:code.priv_dir(:voile), "repo", "seeds", "voile", "authorization_seeds.ex"])
+    # Production release - search common locations inside the app's priv dir.
+    base = Path.join([:code.priv_dir(:voile), "repo", "seeds"])
+
+    candidates = [
+      Path.join([base, "voile", "authorization_seeds.ex"]),
+      Path.join([base, "authorization_seeds.ex"])
+    ]
+
+    Enum.find(candidates, fn p -> File.exists?(p) end) ||
+      raise "could not find authorization_seeds.ex in release priv dir; looked in: #{inspect(candidates)}"
   end
 
 Code.require_file(seed_path)
