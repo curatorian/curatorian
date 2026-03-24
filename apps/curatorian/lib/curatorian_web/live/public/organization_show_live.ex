@@ -257,10 +257,12 @@ defmodule CuratorianWeb.Public.OrganizationShowLive do
                 <h2 class="text-xl font-semibold">{gettext("Tentang Organisasi")}</h2>
                 <span class={[
                   "px-2 py-1 rounded-full text-xs font-medium",
-                  @org.is_verified && "bg-success text-success-content",
-                  not @org.is_verified && "bg-base-200 text-base-content/70"
+                  @org.is_verified == true && "bg-success text-success-content",
+                  @org.is_verified != true && "bg-base-200 text-base-content/70"
                 ]}>
-                  {(@org.is_verified && gettext("Terverifikasi")) || gettext("Belum terverifikasi")}
+                  {if @org.is_verified == true,
+                    do: gettext("Terverifikasi"),
+                    else: gettext("Belum terverifikasi")}
                 </span>
               </div>
               <p class="text-sm text-base-content/70 mt-2">
@@ -454,7 +456,10 @@ defmodule CuratorianWeb.Public.OrganizationShowLive do
           </div>
 
           <%!-- Loading skeleton --%>
-          <div :if={not @staff_loaded} class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div
+            :if={@staff_loaded != true}
+            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+          >
             <div
               :for={_i <- 1..6}
               class="bg-base-200 rounded-2xl h-28 animate-shimmer"

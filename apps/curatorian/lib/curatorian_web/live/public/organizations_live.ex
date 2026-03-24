@@ -181,7 +181,7 @@ defmodule CuratorianWeb.Public.OrganizationsLive do
           </div>
         <% end %>
 
-        <%= if not @searching and @org_count == 0 and @search != "" do %>
+        <%= if @searching != true and @org_count == 0 and @search != "" do %>
           <div class="py-10 text-center text-base-content/60">
             Tidak ada organisasi ditemukan untuk "#{@search}"
           </div>

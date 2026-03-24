@@ -98,7 +98,7 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
                   Pendaftaran Ditutup
                 </span>
               <% else %>
-                <%= if not @registration_open do %>
+                <%= if @registration_open != true do %>
                   <span class="inline-flex items-center justify-center w-full px-4 py-2 rounded-xl bg-base-200 text-base-content font-semibold">
                     Pendaftaran Belum Dibuka
                   </span>
