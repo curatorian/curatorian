@@ -39,9 +39,11 @@ defmodule CuratorianWeb.Public.OrganizationShowLive do
           description: Map.get(merged, :description),
           category: Map.get(merged, :category),
           institution_size: Map.get(merged, :institution_size),
-          avatar_url: Public.asset_url(merged.avatar_url || profile.avatar_url),
-          cover_url: Public.asset_url(merged.cover_url || profile.cover_url),
-          website: merged.website || profile.website,
+          avatar_url:
+            Public.asset_url(Map.get(merged, :avatar_url) || Map.get(profile, :avatar_url)),
+          cover_url:
+            Public.asset_url(Map.get(merged, :cover_url) || Map.get(profile, :cover_url)),
+          website: Map.get(merged, :website) || Map.get(profile, :website),
           email: merged.email || profile.email,
           phone: merged.phone || profile.phone,
           whatsapp: merged.whatsapp || profile.whatsapp,
