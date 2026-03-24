@@ -231,7 +231,7 @@ defmodule CuratorianWeb.Layouts do
                 <.link href={"/u/#{@current_user.username}"}>
                   <%= if @current_user.user_image do %>
                     <img
-                      src={@current_user.user_image}
+                      src={asset_url(@current_user.user_image)}
                       class="w-8 h-8 object-cover rounded-full"
                       referrerPolicy="no-referrer"
                       alt={@current_user.username}
@@ -289,7 +289,7 @@ defmodule CuratorianWeb.Layouts do
                 <.link href={"/#{@current_user.username}"}>
                   <%= if @current_user.user_image do %>
                     <img
-                      src={@current_user.user_image}
+                      src={asset_url(@current_user.user_image)}
                       class="w-10 h-10 object-cover rounded-full"
                       referrerPolicy="no-referrer"
                       alt={@current_user.username}
