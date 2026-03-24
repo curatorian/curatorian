@@ -30,8 +30,9 @@ defmodule Curatorian.MixProject do
   defp deps do
     [
       # ===== VOILE DEPENDENCY =====
-      {:voile, github: "curatorian/voile", branch: "main"}
-
+      {:voile, github: "curatorian/voile", branch: "main"},
+      {:earmark, "~> 1.4"},
+      {:html_sanitize_ex, "~> 1.4"}
       # ALL OTHER DEPENDENCIES ARE NOW IN UMBRELLA ROOT!
       # No need to duplicate Phoenix, Ecto, etc.
       # They're inherited from the parent umbrella app

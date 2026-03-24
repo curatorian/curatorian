@@ -10,18 +10,7 @@ defmodule CuratorianUmbrella.MixProject do
       aliases: aliases(),
       releases: releases(),
       elixir: "~> 1.18",
-      listeners: [Phoenix.CodeReloader],
-      releases: [
-        curatorian: [
-          applications: [
-            curatorian: :permanent,
-            # include voile since it's a core dep
-            voile: :permanent,
-            runtime_tools: :permanent
-          ],
-          include_executables_for: [:unix]
-        ]
-      ]
+      listeners: [Phoenix.CodeReloader]
     ]
   end
 
