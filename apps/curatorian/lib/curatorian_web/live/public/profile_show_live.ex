@@ -4,6 +4,7 @@ defmodule CuratorianWeb.Public.ProfileShowLive do
   use CuratorianWeb, :live_view
 
   alias Curatorian.Public
+  alias CuratorianWeb.Utils.Basic.FormatIndonesiaTime
 
   @social_icon_map %{
     "twitter" => "https://twitter.com/",
@@ -416,7 +417,11 @@ defmodule CuratorianWeb.Public.ProfileShowLive do
                           {post.title}
                         </p>
                         <p class="text-xs text-base-content/40 mt-1 flex items-center gap-1.5">
-                          {Calendar.strftime(post.published_at, "%d %b %Y")}
+                          <%= if post.published_at do %>
+                            {FormatIndonesiaTime.format_full_indonesian_date(post.published_at)}
+                          <% else %>
+                            {FormatIndonesiaTime.format_full_indonesian_date(post.inserted_at)}
+                          <% end %>
                           <span :if={post.comment_count > 0} class="flex items-center gap-1">
                             · <.icon name="hero-chat-bubble-left-ellipsis-micro" class="w-3 h-3" />
                             {post.comment_count}

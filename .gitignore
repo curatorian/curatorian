@@ -34,6 +34,7 @@ npm-debug.log
 /assets/node_modules/
 
 .env
+.env.prod
 *.bat
 
 # Language Server
