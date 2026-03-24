@@ -7,11 +7,45 @@
     <.live_title suffix=" · Where the Curators Meet">
       {assigns[:page_title] || "Curatorian"}
     </.live_title>
+    <!-- Open Graph / Twitter Card metadata (can be overridden by assigns from LiveViews/controllers) -->
+    <meta property="og:locale" content="en_US" />
+    <meta
+      property="og:site_name"
+      content={Application.get_env(:curatorian, :site_name, "Curatorian")}
+    />
+    <meta
+      property="og:title"
+      content={assigns[:og_title] || assigns[:page_title] || "Curatorian"}
+    />
+    <meta property="og:description" content={assigns[:og_description] || ""} />
+    <meta property="og:type" content={assigns[:og_type] || "website"} />
+    <meta
+      property="og:image"
+      content={assigns[:og_image] || Application.get_env(:curatorian, :default_og_image, "")}
+    />
+    <meta
+      property="og:url"
+      content={(System.get_env("CURATORIAN_URL") || Application.get_env(:curatorian, :curatorian_url, "http://localhost:4000")) <> (assigns[:current_uri] || "/")}
+    />
+
+    <meta
+      name="twitter:card"
+      content={
+        assigns[:twitter_card] ||
+          if assigns[:og_image], do: "summary_large_image", else: "summary"
+      }
+    />
+    <meta
+      name="twitter:title"
+      content={assigns[:og_title] || assigns[:page_title] || "Curatorian"}
+    />
+    <meta name="twitter:description" content={assigns[:og_description] || ""} />
+    <meta
+      name="twitter:image"
+      content={assigns[:og_image] || Application.get_env(:curatorian, :default_og_image, "")}
+    />
     <link phx-track-static rel="stylesheet" href={~p"/assets/css/app.css"} />
     <link rel="shortcut icon" type="image/x-icon" href={~p"/images/icon.png"} />
-    <link rel="stylesheet" type="text/css" href="https://unpkg.com/trix@2.1.12/dist/trix.css" />
-    <script type="text/javascript" src="https://unpkg.com/trix@2.1.12/dist/trix.umd.min.js">
-    </script>
 
     <script defer phx-track-static type="text/javascript" src={~p"/assets/js/app.js"}>
     </script>

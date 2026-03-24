@@ -25,7 +25,6 @@ defmodule CuratorianWeb.Markdown do
         case Earmark.as_html(markdown, smartypants: false, code_class_prefix: "language-") do
           {:ok, html, _warnings} -> IO.iodata_to_binary(html)
           {:error, html, _errors} -> IO.iodata_to_binary(html)
-          _ -> markdown
         end
       else
         require Logger

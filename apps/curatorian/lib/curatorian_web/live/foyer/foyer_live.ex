@@ -187,7 +187,7 @@ defmodule CuratorianWeb.Foyer.FoyerLive do
                     </p>
                     <.link
                       navigate="/events"
-                      class="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium transition-colors"
+                      class="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 !text-white text-xs font-medium transition-colors"
                     >
                       <.icon name="hero-magnifying-glass" class="w-3.5 h-3.5" /> Jelajahi Event
                     </.link>
@@ -264,8 +264,8 @@ defmodule CuratorianWeb.Foyer.FoyerLive do
                       Belum ada event yang kamu buat.
                     </p>
                     <.link
-                      navigate="/events/new"
-                      class="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-medium transition-colors"
+                      navigate={System.get_env("ATRIUM_URL") <> "/community/events/new"}
+                      class="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 !text-white text-xs font-medium transition-colors"
                     >
                       <.icon name="hero-plus" class="w-3.5 h-3.5" /> Buat Event
                     </.link>
@@ -341,7 +341,7 @@ defmodule CuratorianWeb.Foyer.FoyerLive do
                     <p class="text-sm text-slate-400 dark:text-slate-500">Belum ada lamaran.</p>
                     <.link
                       navigate="/jobs"
-                      class="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium transition-colors"
+                      class="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 !text-white text-xs font-medium transition-colors"
                     >
                       <.icon name="hero-magnifying-glass" class="w-3.5 h-3.5" /> Cari Lowongan
                     </.link>
@@ -398,8 +398,8 @@ defmodule CuratorianWeb.Foyer.FoyerLive do
                     </div>
                     <p class="text-sm text-slate-400 dark:text-slate-500">Belum ada lowongan.</p>
                     <.link
-                      navigate="/jobs/new"
-                      class="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-medium transition-colors"
+                      navigate={System.get_env("ATRIUM_URL") <> "/community/jobs/new"}
+                      class="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 !text-white text-xs font-medium transition-colors"
                     >
                       <.icon name="hero-plus" class="w-3.5 h-3.5" /> Pasang Lowongan
                     </.link>
@@ -474,7 +474,7 @@ defmodule CuratorianWeb.Foyer.FoyerLive do
                       </p>
                       <.link
                         navigate="/orgs"
-                        class="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-medium transition-colors"
+                        class="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 !text-white text-xs font-medium transition-colors"
                       >
                         <.icon name="hero-magnifying-glass" class="w-3.5 h-3.5" /> Temukan Organisasi
                       </.link>
@@ -535,7 +535,7 @@ defmodule CuratorianWeb.Foyer.FoyerLive do
                       </p>
                       <.link
                         navigate="/orgs"
-                        class="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-medium transition-colors"
+                        class="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 !text-white text-xs font-medium transition-colors"
                       >
                         <.icon name="hero-magnifying-glass" class="w-3.5 h-3.5" /> Jelajahi Organisasi
                       </.link>
@@ -588,8 +588,8 @@ defmodule CuratorianWeb.Foyer.FoyerLive do
                     </div>
                     <p class="text-sm text-slate-400 dark:text-slate-500">Belum menulis blog.</p>
                     <.link
-                      navigate={"/u/#{@user.username}/blog/new"}
-                      class="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-medium transition-colors"
+                      navigate={System.get_env("ATRIUM_URL") <> "/community/blog/new"}
+                      class="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 !text-white text-xs font-medium transition-colors"
                     >
                       <.icon name="hero-plus" class="w-3.5 h-3.5" /> Tulis Blog
                     </.link>

@@ -432,8 +432,13 @@ defmodule Curatorian.Public do
       from(np in NodeProfile,
         join: n in Unit,
         on: np.voile_node_id == n.id,
+        left_join: o in OrgPage,
+        on:
+          np.voile_node_id == o.voile_node_id and
+            o.is_public == true and
+            is_nil(o.deleted_at),
         where: np.id == ^id and np.status == :approved,
-        select: %{profile: np, node: n}
+        select: %{profile: np, node: n, org_page: o}
       )
       |> Repo.one()
 

@@ -24,6 +24,26 @@ defmodule CuratorianWeb.Public.BlogShowLive do
         author = Public.get_public_profile(username)
         comments = Public.list_public_comments(post.id)
         comment_form = to_form(%{"body" => ""}, as: :comment)
+        # Prepare Open Graph metadata
+        og_title = "#{post.title} — #{(author && author.display_name) || username}"
+
+        # Simple description: sanitize basic markdown characters and take a short excerpt
+        raw_desc = post.body || ""
+
+        og_description =
+          raw_desc
+          |> String.replace(~r/\r?\n+/, " ")
+          |> String.replace(~r/[#>*`~\[\]\(\)\!]/, "")
+          |> String.trim()
+          |> String.slice(0, 200)
+
+        og_image = post.cover_url && asset_url(post.cover_url)
+
+        base =
+          System.get_env("CURATORIAN_URL") ||
+            Application.get_env(:curatorian, :curatorian_url, "http://localhost:4000")
+
+        og_url = base <> "/u/#{username}/#{slug}"
 
         {:noreply,
          socket
@@ -32,6 +52,12 @@ defmodule CuratorianWeb.Public.BlogShowLive do
          |> assign(:author, author)
          |> assign(:username, username)
          |> assign(:comment_form, comment_form)
+         |> assign(:og_title, og_title)
+         |> assign(:og_description, og_description)
+         |> assign(:og_image, og_image)
+         |> assign(:og_url, og_url)
+         |> assign(:og_type, "article")
+         |> assign(:twitter_card, if(og_image, do: "summary_large_image", else: "summary"))
          |> stream(:comments, comments)}
     end
   end

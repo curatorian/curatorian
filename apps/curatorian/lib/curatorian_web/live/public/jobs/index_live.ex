@@ -37,7 +37,7 @@ defmodule CuratorianWeb.Public.Jobs.IndexLive do
   def mount(_params, _session, socket) do
     {:ok,
      socket
-     |> assign(:page_title, "Lowongan Kerja GLAM Indonesia")
+     |> assign(:page_title, "Lowongan Kerja untuk Curatorian")
      |> assign(:search, "")
      |> assign(:employment_type, nil)
      |> assign(:category, nil)
@@ -148,7 +148,7 @@ defmodule CuratorianWeb.Public.Jobs.IndexLive do
       <div class="max-w-6xl mx-auto py-8 px-4">
         <div class="mb-8">
           <h1 class="text-3xl sm:text-4xl font-semibold text-base-content mb-2">
-            Lowongan Kerja GLAM Indonesia
+            Lowongan Kerja untuk Curatorian
           </h1>
           <p class="text-base text-base-content/60">
             Temukan peluang karier di sektor perpustakaan, arsip, museum, dan galeri

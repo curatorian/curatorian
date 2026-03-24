@@ -24,21 +24,42 @@ defmodule CuratorianWeb.Public.OrganizationShowLive do
          |> put_flash(:error, "Organisasi tidak ditemukan.")
          |> push_navigate(to: ~p"/orgs")}
 
-      %{profile: profile, node: node} ->
+      %{profile: profile, node: node, org_page: org_page} ->
+        merged = org_page || profile
+
         org = %{
           id: profile.id,
           voile_node_id: profile.voile_node_id,
-          name: profile.institution_name || node.name,
+          name: merged.name || profile.institution_name || node.name,
           abbr: node.abbr,
           node_image: Public.asset_url(node.image),
-          institution_type: profile.institution_type,
-          node_type: profile.node_type,
-          city: profile.city,
-          province: profile.province,
-          website: profile.website,
-          phone: profile.phone,
-          address: profile.address,
-          type_label: Map.get(@institution_type_labels, profile.institution_type, nil)
+          institution_type: Map.get(merged, :institution_type) || profile.institution_type,
+          node_type: Map.get(merged, :node_type) || profile.node_type,
+          tagline: Map.get(merged, :tagline),
+          description: Map.get(merged, :description),
+          category: Map.get(merged, :category),
+          institution_size: Map.get(merged, :institution_size),
+          avatar_url: Public.asset_url(merged.avatar_url || profile.avatar_url),
+          cover_url: Public.asset_url(merged.cover_url || profile.cover_url),
+          website: merged.website || profile.website,
+          email: merged.email || profile.email,
+          phone: merged.phone || profile.phone,
+          whatsapp: merged.whatsapp || profile.whatsapp,
+          address: merged.address || profile.address,
+          city: merged.city || profile.city,
+          province: merged.province || profile.province,
+          social_links: merged.social_links || profile.social_links || %{},
+          is_public:
+            merged.is_public |> then(fn x -> if(is_nil(x), do: profile.is_public, else: x) end),
+          is_verified:
+            merged.is_verified
+            |> then(fn x -> if(is_nil(x), do: profile.is_verified, else: x) end),
+          type_label:
+            Map.get(
+              @institution_type_labels,
+              Map.get(merged, :institution_type) || profile.institution_type,
+              nil
+            )
         }
 
         collection_count = Public.count_collections_for_node(profile.voile_node_id)
@@ -220,18 +241,57 @@ defmodule CuratorianWeb.Public.OrganizationShowLive do
                 "border-transparent text-base-content/50 hover:text-base-content hover:border-base-300"
             ]}
           >
-            <.icon name="hero-user-group" class="size-4" /> Tim
+            <.icon name="hero-user-group" class="size-4" /> Anggota
           </button>
         </div>
 
         <%!-- ── Tab: Informasi ─────────────────────────────────────────────── --%>
         <div :if={@active_tab == "info"} class="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <%!-- Main column: location --%>
+          <%!-- Main column: summary --%>
           <div class="md:col-span-2 space-y-4">
-            <section
-              :if={@org.address}
-              class="bg-base-100 rounded-2xl border border-base-300 p-5 hover:shadow-sm transition-shadow duration-200"
-            >
+            <section class="bg-base-100 rounded-2xl border border-base-300 p-5 shadow-sm">
+              <div class="flex items-center gap-2">
+                <h2 class="text-xl font-semibold">{gettext("Tentang Organisasi")}</h2>
+                <span class={[
+                  "px-2 py-1 rounded-full text-xs font-medium",
+                  @org.is_verified && "bg-success text-success-content",
+                  not @org.is_verified && "bg-base-200 text-base-content/70"
+                ]}>
+                  {(@org.is_verified && gettext("Terverifikasi")) || gettext("Belum terverifikasi")}
+                </span>
+              </div>
+              <p class="text-sm text-base-content/70 mt-2">
+                {@org.tagline || gettext("Tidak ada gambaran singkat")}
+              </p>
+              <p class="text-sm text-base-content/80 mt-3">
+                {@org.description || gettext("Deskripsi organisasi belum tersedia.")}
+              </p>
+              <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="rounded-lg bg-base-200 p-3">
+                  <span class="text-xs text-base-content/50">{gettext("Kategori")}</span>
+                  <p class="font-semibold text-base-content">{@org.category || "-"}</p>
+                </div>
+                <div class="rounded-lg bg-base-200 p-3">
+                  <span class="text-xs text-base-content/50">{gettext("Ukuran")}</span>
+                  <p class="font-semibold text-base-content">{@org.institution_size || "-"}</p>
+                </div>
+                <div class="rounded-lg bg-base-200 p-3">
+                  <span class="text-xs text-base-content/50">{gettext("Tipe")}</span>
+                  <p class="font-semibold text-base-content">{@org.type_label || "-"}</p>
+                </div>
+                <div class="rounded-lg bg-base-200 p-3">
+                  <span class="text-xs text-base-content/50">{gettext("Alamat")}</span>
+                  <p class="font-semibold text-base-content">
+                    {[@org.address, @org.city, @org.province]
+                    |> Enum.reject(fn value -> value in [nil, ""] end)
+                    |> Enum.join(", ")
+                    |> then(fn v -> if v == "", do: "-", else: v end)}
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            <section class="bg-base-100 rounded-2xl border border-base-300 p-5 hover:shadow-sm transition-shadow duration-200">
               <p class="text-[10px] font-bold uppercase tracking-widest text-base-content/40 mb-3 flex items-center gap-1.5">
                 <.icon name="hero-map-pin" class="size-3.5 text-primary" /> Lokasi & Alamat
               </p>
@@ -277,12 +337,53 @@ defmodule CuratorianWeb.Public.OrganizationShowLive do
                   <span class="break-all leading-relaxed">{@org.website}</span>
                 </a>
                 <span
+                  :if={@org.email}
+                  class="flex items-center gap-2.5 text-sm text-base-content/70"
+                >
+                  <.icon name="hero-envelope" class="size-4 shrink-0 text-base-content/30" />
+                  {@org.email}
+                </span>
+                <span
                   :if={@org.phone}
                   class="flex items-center gap-2.5 text-sm text-base-content/70"
                 >
                   <.icon name="hero-phone" class="size-4 shrink-0 text-base-content/30" />
                   {@org.phone}
                 </span>
+                <span
+                  :if={@org.whatsapp}
+                  class="flex items-center gap-2.5 text-sm text-base-content/70"
+                >
+                  <.icon
+                    name="hero-chat-bubble-left-right"
+                    class="size-4 shrink-0 text-base-content/30"
+                  />
+                  {@org.whatsapp}
+                </span>
+                <div
+                  :if={map_size(@org.social_links || %{}) > 0}
+                  class="pt-2 border-t border-base-200"
+                >
+                  <p class="text-[10px] font-bold uppercase tracking-widest text-base-content/40 mb-2">
+                    {gettext("Sosial media")}
+                  </p>
+                  <ul class="space-y-1 text-xs">
+                    <li :for={{platform, url} <- @org.social_links}>
+                      <a
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="text-primary hover:text-primary-content"
+                      >
+                        {String.capitalize(to_string(platform))}: {String.replace_prefix(
+                          url,
+                          "https://",
+                          ""
+                        )}
+                      </a>
+                    </li>
+                  </ul>
+                </div>
                 <p
                   :if={!@org.website and !@org.phone}
                   class="text-sm text-base-content/35 italic"

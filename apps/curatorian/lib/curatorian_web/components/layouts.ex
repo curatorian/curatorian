@@ -281,7 +281,7 @@ defmodule CuratorianWeb.Layouts do
 
         <div
           id="mobile-menu"
-          class="lg:hidden hidden h-screen bg-white/90 dark:bg-gray-800/90 rounded-xl shadow-md p-6 space-y-4 font-semibold transition-all duration-300"
+          class="lg:hidden hidden h-screen bg-white/95 dark:bg-gray-800/95 rounded-xl shadow-md p-6 space-y-4 font-semibold transition-all duration-300"
         >
           <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
             <%= if @current_user != nil do %>
@@ -366,7 +366,14 @@ defmodule CuratorianWeb.Layouts do
                 <div class="flex gap-3 w-full"><.theme_toggle /></div>
 
                 <div class="flex flex-col gap-3 w-full">
-                  <.link href="/dashboard" class="btn-primary no-underline text-sm text-center w-full">
+                  <.link
+                    href={
+                      System.get_env("ATRIUM_URL") ||
+                        Application.get_env(:curatorian, :atrium_url, "http://localhost:4001") <>
+                          "/dashboard"
+                    }
+                    class="btn-primary no-underline text-sm text-center w-full"
+                  >
                     Dashboard
                   </.link>
                   <.link

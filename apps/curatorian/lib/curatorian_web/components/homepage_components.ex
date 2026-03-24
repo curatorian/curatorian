@@ -253,6 +253,12 @@ defmodule CuratorianWeb.HomepageComponents do
                 {String.capitalize(feature.status)}
               </span>
             </div>
+
+            <div class="w-full text-xs my-2">
+              <.link navigate={feature.url}>
+                Lihat &rightarrow;
+              </.link>
+            </div>
           </div>
         <% end %>
       </div>
