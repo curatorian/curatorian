@@ -36,7 +36,7 @@ defmodule Curatorian.Release do
 
     Ecto.Migrator.with_repo(Curatorian.Repo, fn _repo ->
       Ecto.Migrator.with_repo(Voile.Repo, fn _voile_repo ->
-        seeds_dir = Application.app_dir(:curatorian, "priv/repo/seeds")
+        seeds_dir = Application.app_dir(:curatorian, "priv/repo/seeds/voile")
 
         [
           "seeds.exs",
