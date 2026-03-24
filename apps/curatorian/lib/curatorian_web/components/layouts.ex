@@ -404,8 +404,21 @@ defmodule CuratorianWeb.Layouts do
 
     ~H"""
     <footer>
-      <div class="bg-gray-800 text-white text-center py-10 w-full">
-        <p>&copy; {@year} Curatorian ID. All rights reserved.</p>
+      <div class="bg-gray-900 text-white text-center py-10 w-full">
+        <p>&copy; {@year} Curatorian ID. All rights reserved. | curatorian.id@gmail.com</p>
+        <div>
+          <.link href="/privacy-policy" class="text-white no-underline mx-2 hover:underline">
+            Privacy Policy
+          </.link>
+          |
+          <.link href="/roadmap" class="text-white no-underline mx-2 hover:underline">
+            Roadmap
+          </.link>
+          |
+          <.link href="/about" class="text-white no-underline mx-2 hover:underline">
+            About Us
+          </.link>
+        </div>
 
         <p>
           <a

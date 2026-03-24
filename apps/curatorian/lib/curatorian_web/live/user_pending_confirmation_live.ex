@@ -6,6 +6,8 @@ defmodule CuratorianWeb.UserPendingConfirmationLive do
 
   use CuratorianWeb, :live_view
 
+  require Logger
+
   alias Curatorian.Accounts
 
   def render(assigns) do
@@ -91,12 +93,23 @@ defmodule CuratorianWeb.UserPendingConfirmationLive do
            |> put_flash(:info, "This account is already confirmed. You can sign in now.")
            |> push_navigate(to: ~p"/login")}
         else
-          Accounts.deliver_user_confirmation_instructions(
-            user,
-            &url(~p"/users/confirm/#{&1}")
-          )
+          case Accounts.deliver_user_confirmation_instructions(
+                 user,
+                 &url(~p"/users/confirm/#{&1}")
+               ) do
+            {:ok, _} ->
+              {:noreply, put_flash(socket, :info, "Confirmation email sent! Check your inbox.")}
 
-          {:noreply, put_flash(socket, :info, "Confirmation email sent! Check your inbox.")}
+            {:error, reason} ->
+              Logger.error("Failed to resend confirmation email: #{inspect(reason)}")
+
+              {:noreply,
+               put_flash(
+                 socket,
+                 :warning,
+                 "Could not send confirmation email right now. Please try again in a few minutes."
+               )}
+          end
         end
     end
   end

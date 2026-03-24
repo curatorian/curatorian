@@ -74,6 +74,29 @@ defmodule CuratorianWeb.HomepageComponents do
   end
 
   def fitur_utama_curatorian(assigns) do
+    atrium_url =
+      System.get_env("ATRIUM_URL") ||
+        Application.get_env(:curatorian, :atrium_url, "http://localhost:4001") <> "/dashboard"
+
+    cta_url =
+      if assigns[:current_scope] && assigns.current_scope.user do
+        atrium_url
+      else
+        "/register"
+      end
+
+    cta_text =
+      if assigns[:current_scope] && assigns.current_scope.user do
+        "Buka Dashboard"
+      else
+        "Mulai Gratis"
+      end
+
+    assigns =
+      assigns
+      |> assign(:cta_url, cta_url)
+      |> assign(:cta_text, cta_text)
+
     first_feature_list = [
       %{
         title: "Profil",
@@ -226,10 +249,12 @@ defmodule CuratorianWeb.HomepageComponents do
           </div>
 
           <a
-            href="/register"
+            href={@cta_url}
             class="shrink-0 inline-flex items-center gap-2 bg-white text-violet-700 font-semibold text-sm px-6 py-3 rounded-xl hover:bg-violet-50 transition-colors shadow-md"
+            target={if(@current_scope && @current_scope.user, do: "_blank", else: nil)}
+            rel={if(@current_scope && @current_scope.user, do: "noreferrer noopener", else: nil)}
           >
-            Mulai Gratis <.icon name="hero-arrow-right" class="w-4 h-4" />
+            {@cta_text} <.icon name="hero-arrow-right" class="w-4 h-4" />
           </a>
         </div>
       </div>

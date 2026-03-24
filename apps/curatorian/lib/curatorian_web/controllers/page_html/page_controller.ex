@@ -15,6 +15,10 @@ defmodule CuratorianWeb.PageController do
     render(conn, :roadmap)
   end
 
+  def privacy_policy(conn, _) do
+    render(conn, :privacy_policy)
+  end
+
   def redirect_manage(conn, _params) do
     redirect(conn, to: "/dashboard")
   end

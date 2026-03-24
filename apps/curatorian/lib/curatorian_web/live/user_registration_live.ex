@@ -11,6 +11,8 @@ defmodule CuratorianWeb.UserRegistrationLive do
 
   use CuratorianWeb, :live_view
 
+  require Logger
+
   alias Curatorian.Accounts
   alias Turnstile
   alias Voile.Schema.Accounts.User
@@ -151,19 +153,33 @@ defmodule CuratorianWeb.UserRegistrationLive do
 
         case Accounts.register_user(attrs) do
           {:ok, user} ->
-            {:ok, _} =
+            confirmation_result =
               Accounts.deliver_user_confirmation_instructions(
                 user,
                 &url(~p"/users/confirm/#{&1}")
               )
 
-            {:noreply,
-             socket
-             |> put_flash(
-               :info,
-               "Account created! Please check your email to confirm your address."
-             )
-             |> push_navigate(to: ~p"/users/pending_confirmation?email=#{user.email}")}
+            case confirmation_result do
+              {:ok, _} ->
+                {:noreply,
+                 socket
+                 |> put_flash(
+                   :info,
+                   "Account created! Please check your email to confirm your address."
+                 )
+                 |> push_navigate(to: ~p"/users/pending_confirmation?email=#{user.email}")}
+
+              {:error, reason} ->
+                Logger.error("Failed to deliver confirmation email: #{inspect(reason)}")
+
+                {:noreply,
+                 socket
+                 |> put_flash(
+                   :warning,
+                   "Account created, but we couldn't send the confirmation email right now. Please try resending from the confirmation page."
+                 )
+                 |> push_navigate(to: ~p"/users/pending_confirmation?email=#{user.email}")}
+            end
 
           {:error, %Ecto.Changeset{} = changeset} ->
             {:noreply,
