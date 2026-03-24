@@ -27,7 +27,7 @@ if config_env() == :prod do
     url: database_url,
     pool_size: String.to_integer(System.get_env("POOL_SIZE") || "5"),
     socket_options: maybe_ipv6,
-    parameters: [timezone: "Asia/Jakarta"]
+    parameters: [timezone: "Asia/Jakarta", search_path: "voile,public"]
   ]
 
   config :voile, Voile.Repo, shared_prod_db_config
