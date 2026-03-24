@@ -20,8 +20,18 @@ defmodule CuratorianWeb.Markdown do
   def to_html(""), do: Phoenix.HTML.raw("")
 
   def to_html(markdown) when is_binary(markdown) do
-    {:ok, html, _warnings} =
-      Earmark.as_html(markdown, smartypants: false, code_class_prefix: "language-")
+    html =
+      if Code.ensure_loaded?(Earmark) do
+        case Earmark.as_html(markdown, smartypants: false, code_class_prefix: "language-") do
+          {:ok, html, _warnings} -> IO.iodata_to_binary(html)
+          {:error, html, _errors} -> IO.iodata_to_binary(html)
+          _ -> markdown
+        end
+      else
+        require Logger
+        Logger.warning("Earmark not available at runtime — falling back to raw markdown")
+        markdown
+      end
 
     sanitized = HtmlSanitizeEx.markdown_html(html)
     Phoenix.HTML.raw(sanitized)
