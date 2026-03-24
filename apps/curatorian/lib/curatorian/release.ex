@@ -1,51 +1,58 @@
 defmodule Curatorian.Release do
   @moduledoc """
-  Used for executing DB release tasks when run in production without Mix
-  installed.
+  Tasks for running DB operations in production without Mix.
+  Curatorian has no migrations of its own.
+  All tables live in the voile schema, owned by Voile.Repo.
   """
+
   @app :curatorian
 
   def migrate do
     load_app()
 
-    # Curatorian has no migrations — all tables are owned by Voile and Atrium
-    # So we explicitly migrate Voile.Repo here
-    voile_repos = Application.fetch_env!(:voile, :ecto_repos)
+    # Curatorian.Repo has no migrations (no priv/repo/migrations)
+    # All schema is owned by Voile — migrate Voile.Repo instead
+    {:ok, _, _} =
+      Ecto.Migrator.with_repo(
+        Voile.Repo,
+        &Ecto.Migrator.run(&1, :up, all: true)
+      )
 
-    for repo <- voile_repos do
-      {:ok, _, _} = Ecto.Migrator.with_repo(repo, &Ecto.Migrator.run(&1, :up, all: true))
-    end
+    IO.puts("Migrations complete.")
   end
 
-  def rollback(repo, version) do
+  def rollback(version) do
     load_app()
-    {:ok, _, _} = Ecto.Migrator.with_repo(repo, &Ecto.Migrator.run(&1, :down, to: version))
-  end
 
-  defp load_app do
-    Application.load(@app)
+    {:ok, _, _} =
+      Ecto.Migrator.with_repo(
+        Voile.Repo,
+        &Ecto.Migrator.run(&1, :down, to: version)
+      )
   end
 
   def seed do
     load_app()
 
     Ecto.Migrator.with_repo(Curatorian.Repo, fn _repo ->
-      # Also start Voile.Repo since seeds use it directly
-      {:ok, _, _} =
-        Ecto.Migrator.with_repo(Voile.Repo, fn _voile_repo ->
-          seeds_path = Application.app_dir(@app, "priv/repo/seeds.exs")
-          rbac_seeds_path = Application.app_dir(@app, "priv/repo/seeds_rbac.exs")
+      Ecto.Migrator.with_repo(Voile.Repo, fn _voile_repo ->
+        # Seeds are bundled inside the voile dep in the release
+        seeds_path =
+          Application.app_dir(:voile, "priv/repo/seeds/seeds.exs")
 
-          if File.exists?(seeds_path) do
-            IO.puts("Running seeds...")
-            Code.eval_file(seeds_path)
-          end
-
-          if File.exists?(rbac_seeds_path) do
-            IO.puts("Running RBAC seeds...")
-            Code.eval_file(rbac_seeds_path)
-          end
-        end)
+        if File.exists?(seeds_path) do
+          IO.puts("Running seeds from: #{seeds_path}")
+          Code.eval_file(seeds_path)
+          IO.puts("Seeds complete.")
+        else
+          IO.puts("No seeds file found at: #{seeds_path}")
+        end
+      end)
     end)
+  end
+
+  defp load_app do
+    Application.load(@app)
+    Application.load(:voile)
   end
 end

@@ -14,7 +14,6 @@ defmodule Curatorian.MixProject do
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps()
-      # REMOVED: compilers, listeners, dialyzer (not needed here)
     ]
   end
 

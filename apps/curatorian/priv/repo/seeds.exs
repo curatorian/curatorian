@@ -28,5 +28,7 @@ Enum.each(seed_files, fn rel ->
 
   if File.exists?(path) do
     Code.require_file(path)
+  else
+    IO.puts("No seeds file found at: #{path}")
   end
 end)
