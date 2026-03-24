@@ -74,19 +74,21 @@ defmodule CuratorianWeb.HomepageComponents do
   end
 
   def fitur_utama_curatorian(assigns) do
+    assigns = assign_new(assigns, :current_scope, fn -> nil end)
+
     atrium_url =
       System.get_env("ATRIUM_URL") ||
         Application.get_env(:curatorian, :atrium_url, "http://localhost:4001") <> "/dashboard"
 
     cta_url =
-      if assigns[:current_scope] && assigns.current_scope.user do
+      if assigns.current_scope && assigns.current_scope.user do
         atrium_url
       else
         "/register"
       end
 
     cta_text =
-      if assigns[:current_scope] && assigns.current_scope.user do
+      if assigns.current_scope && assigns.current_scope.user do
         "Buka Dashboard"
       else
         "Mulai Gratis"

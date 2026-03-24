@@ -30,9 +30,9 @@ defmodule CuratorianWeb.Public.OrganizationShowLive do
         org = %{
           id: profile.id,
           voile_node_id: profile.voile_node_id,
-          name: merged.name || profile.institution_name || node.name,
-          abbr: node.abbr,
-          node_image: Public.asset_url(node.image),
+          name: Map.get(merged, :name) || profile.institution_name || Map.get(node, :name) || "",
+          abbr: Map.get(node, :abbr) || "",
+          node_image: Public.asset_url(Map.get(node, :image)),
           institution_type: Map.get(merged, :institution_type) || profile.institution_type,
           node_type: Map.get(merged, :node_type) || profile.node_type,
           tagline: Map.get(merged, :tagline),

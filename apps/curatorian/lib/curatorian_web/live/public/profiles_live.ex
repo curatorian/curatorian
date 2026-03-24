@@ -200,9 +200,9 @@ defmodule CuratorianWeb.Public.ProfilesLive do
 
         <div class="mt-2">
           <div class="flex items-center gap-1.5">
-            <h3 class="font-semibold text-base leading-tight line-clamp-1 text-base-content">
+            <h6 class="font-semibold text-base leading-tight line-clamp-1 text-base-content">
               {@profile.display_name}
-            </h3>
+            </h6>
             <.icon
               :if={@profile.is_verified}
               name="hero-check-badge"
