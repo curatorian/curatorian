@@ -36,17 +36,26 @@ defmodule Curatorian.Release do
 
     Ecto.Migrator.with_repo(Curatorian.Repo, fn _repo ->
       Ecto.Migrator.with_repo(Voile.Repo, fn _voile_repo ->
-        # Seeds are bundled inside the voile dep in the release
-        seeds_path =
-          Application.app_dir(:voile, "priv/repo/seeds/seeds.exs")
+        seeds_dir = Application.app_dir(:curatorian, "priv/repo/seeds")
 
-        if File.exists?(seeds_path) do
-          IO.puts("Running seeds from: #{seeds_path}")
-          Code.eval_file(seeds_path)
-          IO.puts("Seeds complete.")
-        else
-          IO.puts("No seeds file found at: #{seeds_path}")
-        end
+        [
+          "seeds.exs",
+          "authorization_seeds_runner.exs",
+          "master.exs",
+          "metadata_resource_class.exs",
+          "metadata_properties.exs",
+          "seeds_rbac.exs"
+        ]
+        |> Enum.each(fn file ->
+          path = Path.join(seeds_dir, file)
+
+          if File.exists?(path) do
+            IO.puts("Seeding: #{file}")
+            Code.eval_file(path)
+          else
+            IO.puts("Skipping (not found): #{file}")
+          end
+        end)
       end)
     end)
   end

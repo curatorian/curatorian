@@ -20,7 +20,7 @@ seed_files = [
   "seeds/voile/metadata_properties.exs",
   "seeds/voile/authorization_seeds_runner.exs",
   # application-level RBAC seeds (optional)
-  "seeds_rbac.exs"
+  "seeds/voile/seeds_rbac.exs"
 ]
 
 Enum.each(seed_files, fn rel ->
