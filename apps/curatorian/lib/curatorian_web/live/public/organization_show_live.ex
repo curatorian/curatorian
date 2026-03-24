@@ -44,18 +44,19 @@ defmodule CuratorianWeb.Public.OrganizationShowLive do
           cover_url:
             Public.asset_url(Map.get(merged, :cover_url) || Map.get(profile, :cover_url)),
           website: Map.get(merged, :website) || Map.get(profile, :website),
-          email: merged.email || profile.email,
-          phone: merged.phone || profile.phone,
-          whatsapp: merged.whatsapp || profile.whatsapp,
-          address: merged.address || profile.address,
-          city: merged.city || profile.city,
-          province: merged.province || profile.province,
-          social_links: merged.social_links || profile.social_links || %{},
+          email: Map.get(merged, :email) || Map.get(profile, :email),
+          phone: Map.get(merged, :phone) || Map.get(profile, :phone),
+          whatsapp: Map.get(merged, :whatsapp) || Map.get(profile, :whatsapp),
+          address: Map.get(merged, :address) || Map.get(profile, :address),
+          city: Map.get(merged, :city) || Map.get(profile, :city),
+          province: Map.get(merged, :province) || Map.get(profile, :province),
+          social_links: Map.get(merged, :social_links) || Map.get(profile, :social_links) || %{},
           is_public:
-            merged.is_public |> then(fn x -> if(is_nil(x), do: profile.is_public, else: x) end),
+            Map.get(merged, :is_public)
+            |> then(fn x -> if(is_nil(x), do: Map.get(profile, :is_public), else: x) end),
           is_verified:
-            merged.is_verified
-            |> then(fn x -> if(is_nil(x), do: profile.is_verified, else: x) end),
+            Map.get(merged, :is_verified)
+            |> then(fn x -> if(is_nil(x), do: Map.get(profile, :is_verified), else: x) end),
           type_label:
             Map.get(
               @institution_type_labels,
