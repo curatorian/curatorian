@@ -96,6 +96,7 @@ defmodule CuratorianWeb.Router do
       live "/crowdfunding", Public.Crowdfunding.IndexLive, :index
       live "/crowdfunding/:slug", Public.Crowdfunding.ShowLive, :show
       live "/exchange", Public.CollectionExchange.IndexLive, :index
+      live "/tools/library/classifications", Public.Tools.Library.Classification.IndexLive, :index
     end
   end
 

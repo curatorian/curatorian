@@ -37,6 +37,8 @@ defmodule Curatorian.Public do
 
   @page_size 12
 
+  def page_size, do: @page_size
+
   # ---------------------------------------------------------------------------
   # User Profiles
   # ---------------------------------------------------------------------------
@@ -66,6 +68,71 @@ defmodule Curatorian.Public do
     |> filter_by_institution_type(institution_type)
     |> search_profiles(search)
     |> Repo.aggregate(:count, :id)
+  end
+
+  # ---------------------------------------------------------------------------
+  # Library Classifications (DDC / UDC)
+
+  def list_classifications(search \\ "", opts \\ []) do
+    page = Keyword.get(opts, :page, 1)
+    per_page = Keyword.get(opts, :per_page, @page_size)
+    system = Keyword.get(opts, :system, nil)
+    offset = (page - 1) * per_page
+
+    from(c in "classifications",
+      where: c.status == "published"
+    )
+    |> filter_classification_system(system)
+    |> search_classifications(search)
+    |> order_by([c], asc: c.system, asc: c.code)
+    |> limit(^per_page)
+    |> offset(^offset)
+    |> select([c], map(c, [:id, :system, :code, :subject, :status]))
+    |> Repo.all()
+  end
+
+  def list_classifications_for_tree(search \\ "", system \\ nil) do
+    from(c in "classifications",
+      where: c.status == "published"
+    )
+    |> filter_classification_system(system)
+    |> search_classifications(search)
+    |> order_by([c], asc: c.system, asc: c.code)
+    |> select([c], map(c, [:id, :system, :code, :subject, :status]))
+    |> Repo.all()
+  end
+
+  def count_classifications(search \\ "", opts \\ []) do
+    system = Keyword.get(opts, :system, nil)
+
+    from(c in "classifications",
+      where: c.status == "published"
+    )
+    |> filter_classification_system(system)
+    |> search_classifications(search)
+    |> Repo.aggregate(:count, :id)
+  end
+
+  defp filter_classification_system(query, nil), do: query
+
+  defp filter_classification_system(query, system) when system in ["DDC", "UDC"] do
+    where(query, [c], c.system == ^system)
+  end
+
+  defp filter_classification_system(query, _), do: query
+
+  defp search_classifications(query, ""), do: query
+
+  defp search_classifications(query, search) do
+    term = "%#{search}%"
+
+    where(
+      query,
+      [c],
+      ilike(c.code, ^term) or
+        ilike(c.subject, ^term) or
+        ilike(c.system, ^term)
+    )
   end
 
   def get_public_profile(username) do
@@ -780,8 +847,6 @@ defmodule Curatorian.Public do
 
   # ---------------------------------------------------------------------------
 
-  def page_size, do: @page_size
-
   @doc """
   Prefix a stored asset path with the Atrium base URL when the path is relative
   (i.e. starts with "/"). Fully-qualified URLs are returned unchanged.
@@ -791,11 +856,19 @@ defmodule Curatorian.Public do
   def asset_url(""), do: nil
 
   def asset_url(path) when is_binary(path) do
-    if String.starts_with?(path, "http") do
-      path
-    else
-      atrium_url = Application.get_env(:curatorian, :atrium_url, "http://localhost:4001")
-      atrium_url <> path
+    cond do
+      path == "" ->
+        nil
+
+      String.starts_with?(path, "http") ->
+        path
+
+      Code.ensure_loaded?(Atrium.Storage) && function_exported?(Atrium.Storage, :url_for, 1) ->
+        apply(Atrium.Storage, :url_for, [path])
+
+      true ->
+        atrium_url = Application.get_env(:curatorian, :atrium_url, "http://localhost:4001")
+        atrium_url <> path
     end
   end
 
