@@ -323,6 +323,13 @@ defmodule CuratorianWeb.Public.Tools.Library.Classification.IndexLive do
           </div>
         </div>
 
+        <.link
+          navigate="/library/classification"
+          class="btn btn-primary mb-4"
+        >
+          &leftarrow; Kembali ke halaman klasifikasi
+        </.link>
+
         <div class="mb-4 grid grid-cols-1 md:grid-cols-3 gap-3">
           <div class="md:col-span-2">
             <input

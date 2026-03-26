@@ -93,6 +93,15 @@
             yang bisa dinavigasi oleh siapa saja: anak sekolah yang mencari bahan tugas,
             peneliti yang menggali data, maupun pembaca yang sekadar ingin menemukan bacaan baru.
           </p>
+
+          <div class="w-full pt-5 text-center">
+            <.link
+              navigate="/tools/library/classifications"
+              class="btn-primary text-white"
+            >
+              Lihat Klasifikasi &rightarrow;
+            </.link>
+          </div>
         </div>
       </section>
 
@@ -264,9 +273,9 @@
               {"300", "Ilmu Sosial",                  "Sosiologi, politik, ekonomi, hukum, pendidikan",     false},
               {"400", "Bahasa",                       "Tata bahasa, kamus, linguistik, bahasa daerah",      false},
               {"500", "Ilmu Pengetahuan Alam",        "Matematika, fisika, kimia, biologi, astronomi",      false},
-              {"600", "Teknologi & Ilmu Terapan",     "Kedokteran, pertanian, teknik, kuliner",             false},
+              {"600", "Teknologi & Ilmu Terapan",     "Kedokteran, pertanian, teknik, kuliner",             true},
               {"700", "Seni & Rekreasi",              "Musik, arsitektur, olahraga, fotografi, film",       false},
-              {"800", "Sastra",                       "Fiksi, puisi, drama, sastra daerah Indonesia",       true},
+              {"800", "Sastra",                       "Fiksi, puisi, drama, sastra daerah Indonesia",       false},
               {"900", "Sejarah & Geografi",           "Sejarah dunia, biografi, geografi wilayah",          false}
             ] do %>
               <div class={[
@@ -451,6 +460,15 @@
             kompatibel, sehingga pengetahuan tentang satu sistem akan memudahkan pemahaman
             terhadap sistem lainnya.
           </p>
+
+          <div class="w-full pt-5 text-center">
+            <.link
+              navigate="/tools/library/classifications"
+              class="btn-primary text-white"
+            >
+              Lihat Klasifikasi &rightarrow;
+            </.link>
+          </div>
         </div>
       </section>
 
@@ -495,9 +513,9 @@
                   {icon}
                 </div>
                 <div>
-                  <h3 class="mb-1.5 font-serif text-[0.95rem] font-semibold text-[#1C1A17] dark:text-slate-100">
+                  <h5 class="mb-1.5 font-serif text-[0.95rem] font-semibold text-[#1C1A17] dark:text-slate-100">
                     {title}
-                  </h3>
+                  </h5>
                   <p class="text-[0.88rem] font-light text-[#4A4640] dark:text-slate-300">
                     {body}
                   </p>
@@ -513,6 +531,15 @@
               menunggu ditunjukkan jalan.
             </p>
           </blockquote>
+
+          <div class="w-full pt-5 text-center">
+            <.link
+              navigate="/tools/library/classifications"
+              class="btn-primary text-white"
+            >
+              Lihat Klasifikasi &rightarrow;
+            </.link>
+          </div>
         </div>
       </section>
     </div>
