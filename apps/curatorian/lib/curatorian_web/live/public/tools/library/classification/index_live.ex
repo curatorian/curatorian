@@ -291,17 +291,19 @@ defmodule CuratorianWeb.Public.Tools.Library.Classification.IndexLive do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <div class="max-w-6xl mx-auto p-4 sm:p-6">
-        <div class="mb-6 rounded-2xl border border-base-300/70 bg-gradient-to-r from-indigo-50 via-white to-sky-50 dark:from-slate-800 dark:via-slate-900 dark:to-slate-700 p-6 shadow-lg">
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h3 class="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-slate-100">
+      <%!-- Outer wrapper: minimal horizontal padding on mobile, grows at sm/lg --%>
+      <div class="max-w-6xl mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-6">
+        <%!-- Hero card --%>
+        <div class="mb-4 sm:mb-6 rounded-2xl border border-base-300/70 bg-gradient-to-r from-indigo-50 via-white to-sky-50 dark:from-slate-800 dark:via-slate-900 dark:to-slate-700 p-4 sm:p-6 shadow-lg">
+          <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
+            <div class="min-w-0">
+              <h3 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-slate-100">
                 Klasifikasi Perpustakaan
               </h3>
-              <p class="mt-2 text-sm sm:text-base text-slate-700 dark:text-slate-300 max-w-2xl">
+              <p class="mt-2 text-sm text-slate-700 dark:text-slate-300 max-w-2xl">
                 Temukan kode dan subjek perpustakaan dalam DDC, UDC, dan LCC dengan cepat dan presisi. Ini membantu pustakawan, peneliti, dan pelajar memilih klasifikasi yang tepat untuk koleksi mereka.
               </p>
-              <p>
+              <p class="mt-1 text-sm">
                 Lihat apa itu klasifikasi perpustakaan :
                 <a
                   href="/library/classification"
@@ -311,12 +313,13 @@ defmodule CuratorianWeb.Public.Tools.Library.Classification.IndexLive do
                 </a>
               </p>
             </div>
-            <div class="rounded-xl border border-base-300 bg-white dark:bg-slate-800 px-4 py-2 text-xs dark:text-slate-200 shadow-sm">
+            <%!-- Feature box: shrink-0 prevents it from squishing the left column --%>
+            <div class="rounded-xl border border-base-300 bg-white dark:bg-slate-800 px-3 py-2 text-[11px] sm:text-xs dark:text-slate-200 shadow-sm shrink-0 self-start">
               <p class="font-semibold text-slate-800 dark:text-slate-100">Fitur Utama</p>
-              <ul class="list-disc pl-5 mt-2 space-y-1">
+              <ul class="list-disc pl-4 mt-1.5 space-y-1">
                 <li>Pencarian teks lengkap menurut kode/subjek</li>
                 <li>Filter sistem: DDC, UDC, LCC</li>
-                <li>Mode daftar & pohon hierarki</li>
+                <li>Mode daftar &amp; pohon hierarki</li>
                 <li>Salin kode dengan sekali klik</li>
               </ul>
             </div>
@@ -325,35 +328,34 @@ defmodule CuratorianWeb.Public.Tools.Library.Classification.IndexLive do
 
         <.link
           navigate="/library/classification"
-          class="btn btn-primary mb-4"
+          class="btn btn-primary btn-sm mb-4"
         >
           &leftarrow; Kembali ke halaman klasifikasi
         </.link>
 
-        <div class="mb-4 grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div class="md:col-span-2">
+        <%!-- Search row: stacks vertically on mobile, side-by-side on sm+ --%>
+        <div class="mb-3 flex flex-col sm:flex-row sm:items-center gap-2">
+          <div class="flex-1 min-w-0">
             <input
               type="text"
               name="q"
               value={@search}
               placeholder="Cari kode, subjek, atau sistem..."
-              class="w-full border border-base-300 rounded-xl px-4 py-2 text-sm focus:border-primary focus:ring focus:ring-primary/30 outline-none"
+              class="w-full border border-base-300 rounded-xl px-3 py-2 text-sm focus:border-primary focus:ring focus:ring-primary/30 outline-none"
               phx-debounce="300"
               phx-keyup="search"
             />
           </div>
-
-          <div class="flex items-center gap-2">
-            <p class="text-sm text-base-content/60">
-              Hasil: {@total_count} · Halaman {@page} dari {@total_pages}
-              <%= if @system do %>
-                · Sistem: {@system}
-              <% end %>
-            </p>
-          </div>
+          <p class="text-xs sm:text-sm text-base-content/60 whitespace-nowrap shrink-0">
+            Hasil: {@total_count} · Hal. {@page}/{@total_pages}
+            <%= if @system do %>
+              · {@system}
+            <% end %>
+          </p>
         </div>
 
-        <div class="mb-4 flex flex-wrap items-center gap-2">
+        <%!-- View toggle + system filter --%>
+        <div class="mb-3 flex flex-wrap items-center gap-2">
           <button
             type="button"
             phx-click="toggle_view"
@@ -377,7 +379,8 @@ defmodule CuratorianWeb.Public.Tools.Library.Classification.IndexLive do
             Tree
           </button>
 
-          <div class="ml-auto flex gap-2">
+          <%!-- flex-wrap + justify-end lets the 4 buttons reflow to 2×2 on very narrow screens --%>
+          <div class="ml-auto flex flex-wrap justify-end gap-1.5">
             <button
               type="button"
               phx-click="set_system"
@@ -431,16 +434,18 @@ defmodule CuratorianWeb.Public.Tools.Library.Classification.IndexLive do
               <div
                 :for={{id, classification} <- @streams.classifications}
                 id={id}
-                class="px-4 sm:px-6 py-4"
+                class="px-3 sm:px-5 py-3 sm:py-4"
               >
                 <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
                   <div class="min-w-0">
-                    <p class="font-semibold text-base-content truncate">
+                    <p class="font-semibold text-sm sm:text-base text-base-content truncate">
                       {classification.system} • {classification.code} — {classification.subject}
                     </p>
-                    <p class="text-xs text-base-content/70">Status: {classification.status}</p>
+                    <p class="text-[11px] sm:text-xs text-base-content/70">
+                      Status: {classification.status}
+                    </p>
                   </div>
-                  <div class="flex items-center gap-2">
+                  <div class="flex items-center gap-2 shrink-0">
                     <span class="text-xs text-base-content/60">
                       ID: {classification.id}
                     </span>
@@ -458,14 +463,15 @@ defmodule CuratorianWeb.Public.Tools.Library.Classification.IndexLive do
               </div>
             </div>
           <% else %>
-            <div class="px-6 py-4">
-              <div class="space-y-4">
+            <%!-- Tree view: tighter horizontal padding on mobile --%>
+            <div class="px-2 sm:px-4 py-3 sm:py-4">
+              <div class="space-y-3 sm:space-y-4">
                 <%= for {system, majors} <- @tree do %>
-                  <div class="border border-base-200 rounded-lg p-3 bg-base-100">
-                    <div class="mb-3 flex items-center justify-between gap-2">
-                      <div>
+                  <div class="border border-base-200 rounded-lg p-2 sm:p-3 bg-base-100">
+                    <div class="mb-2 sm:mb-3 flex items-start justify-between gap-2">
+                      <div class="min-w-0">
                         <h2 class="text-sm font-semibold text-base-content">{system}</h2>
-                        <div class="text-xs text-base-content/70 mt-1 space-y-1">
+                        <div class="text-[11px] sm:text-xs text-base-content/70 mt-1 space-y-1">
                           <p>{system_info(system)}</p>
                           <p>
                             <a
@@ -479,8 +485,8 @@ defmodule CuratorianWeb.Public.Tools.Library.Classification.IndexLive do
                           </p>
                         </div>
                       </div>
-                      <div class="flex items-center gap-2">
-                        <span class="text-xs text-base-content/60">
+                      <div class="flex items-center gap-1.5 shrink-0">
+                        <span class="hidden sm:inline text-xs text-base-content/60">
                           {length(majors)} major group(s)
                         </span>
                         <button
@@ -495,11 +501,11 @@ defmodule CuratorianWeb.Public.Tools.Library.Classification.IndexLive do
                     </div>
 
                     <%= if @expanded_systems[system] do %>
-                      <div class="space-y-4">
+                      <div class="space-y-2 sm:space-y-4">
                         <%= for {major, major_subject, divisions} <- majors do %>
-                          <div class="border border-base-200 rounded-lg p-3 mb-3">
-                            <div class="flex items-center justify-between">
-                              <h5 class="text-base font-semibold text-base-content">
+                          <div class="border border-base-200 rounded-lg p-2 sm:p-3 mb-2 sm:mb-3">
+                            <div class="flex items-center justify-between gap-2">
+                              <h5 class="text-sm sm:text-base font-semibold text-base-content truncate min-w-0">
                                 {major} — {major_subject}
                               </h5>
                               <button
@@ -508,18 +514,18 @@ defmodule CuratorianWeb.Public.Tools.Library.Classification.IndexLive do
                                 phx-stop-propagation
                                 phx-value-system={system}
                                 phx-value-major={major}
-                                class="btn btn-ghost btn-xs"
+                                class="btn btn-ghost btn-xs shrink-0"
                               >
                                 {if @expanded_majors["#{system}_#{major}"], do: "▾", else: "▸"}
                               </button>
                             </div>
 
                             <%= if @expanded_majors["#{system}_#{major}"] do %>
-                              <div class="mt-3 space-y-2">
+                              <div class="mt-2 sm:mt-3 space-y-1.5 sm:space-y-2">
                                 <%= for {division, division_subject, entries} <- divisions do %>
-                                  <div class="border border-base-200 rounded-lg p-2">
-                                    <div class="flex items-center justify-between">
-                                      <div class="text-sm font-medium text-base-content">
+                                  <div class="border border-base-200 rounded-lg p-1.5 sm:p-2">
+                                    <div class="flex items-center justify-between gap-2">
+                                      <div class="text-xs sm:text-sm font-medium text-base-content truncate min-w-0">
                                         {division} — {division_subject}
                                       </div>
                                       <button
@@ -529,7 +535,7 @@ defmodule CuratorianWeb.Public.Tools.Library.Classification.IndexLive do
                                         phx-value-system={system}
                                         phx-value-major={major}
                                         phx-value-division={division}
-                                        class="btn btn-ghost btn-xs"
+                                        class="btn btn-ghost btn-xs shrink-0"
                                       >
                                         {if @expanded_divisions["#{system}_#{major}_#{division}"],
                                           do: "▾",
@@ -538,10 +544,10 @@ defmodule CuratorianWeb.Public.Tools.Library.Classification.IndexLive do
                                     </div>
 
                                     <%= if @expanded_divisions["#{system}_#{major}_#{division}"] do %>
-                                      <ul class="pl-4 mt-2 space-y-1">
+                                      <ul class="pl-2 sm:pl-4 mt-2 space-y-1">
                                         <%= for item <- entries do %>
-                                          <li class="flex items-center justify-between text-sm text-base-content/80">
-                                            <span>
+                                          <li class="flex items-center justify-between gap-2 text-xs sm:text-sm text-base-content/80">
+                                            <span class="min-w-0 truncate">
                                               <span class="font-medium">{item.code}</span>
                                               — {item.subject}
                                             </span>
@@ -550,7 +556,7 @@ defmodule CuratorianWeb.Public.Tools.Library.Classification.IndexLive do
                                               id={"copy-" <> to_string(item.id)}
                                               phx-hook="CopyCode"
                                               data-code={item.code}
-                                              class="btn btn-ghost btn-xs"
+                                              class="btn btn-ghost btn-xs shrink-0"
                                             >
                                               Copy
                                             </button>
@@ -572,12 +578,12 @@ defmodule CuratorianWeb.Public.Tools.Library.Classification.IndexLive do
             </div>
           <% end %>
 
-          <div :if={@total_count == 0} class="px-6 py-10 text-center text-base-content/70">
+          <div :if={@total_count == 0} class="px-4 py-10 text-center text-base-content/70 text-sm">
             Hasil tidak ditemukan untuk pencarian ini. Coba kata kunci lain.
           </div>
 
-          <div class="px-6 py-4 border-t border-base-300/60 flex flex-wrap items-center justify-between gap-2">
-            <div class="text-sm text-base-content/70">
+          <div class="px-3 sm:px-5 py-3 sm:py-4 border-t border-base-300/60 flex flex-wrap items-center justify-between gap-2">
+            <div class="text-xs sm:text-sm text-base-content/70">
               Menampilkan {@page_count} item dari {@total_count}
             </div>
 
