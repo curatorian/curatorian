@@ -171,6 +171,7 @@ defmodule CuratorianWeb.Layouts do
           title: "Eksplor",
           items: [
             %{title: "Foyer", url: "/foyer"},
+            %{title: "Tools", url: "/tools"},
             %{title: "Lowongan", url: "/jobs"},
             %{title: "Tukar Koleksi", url: "/exchange"}
           ]

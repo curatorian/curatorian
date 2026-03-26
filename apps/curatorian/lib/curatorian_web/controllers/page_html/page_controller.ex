@@ -19,6 +19,10 @@ defmodule CuratorianWeb.PageController do
     render(conn, :privacy_policy)
   end
 
+  def library_classification(conn, _) do
+    render(conn, :klasifikasi)
+  end
+
   def redirect_manage(conn, _params) do
     redirect(conn, to: "/dashboard")
   end

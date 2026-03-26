@@ -79,7 +79,7 @@ defmodule Curatorian.Public do
     system = Keyword.get(opts, :system, nil)
     offset = (page - 1) * per_page
 
-    from(c in "classifications",
+    from(c in "library_classifications",
       where: c.status == "published"
     )
     |> filter_classification_system(system)
@@ -92,7 +92,7 @@ defmodule Curatorian.Public do
   end
 
   def list_classifications_for_tree(search \\ "", system \\ nil) do
-    from(c in "classifications",
+    from(c in "library_classifications",
       where: c.status == "published"
     )
     |> filter_classification_system(system)
@@ -105,7 +105,7 @@ defmodule Curatorian.Public do
   def count_classifications(search \\ "", opts \\ []) do
     system = Keyword.get(opts, :system, nil)
 
-    from(c in "classifications",
+    from(c in "library_classifications",
       where: c.status == "published"
     )
     |> filter_classification_system(system)
@@ -115,7 +115,7 @@ defmodule Curatorian.Public do
 
   defp filter_classification_system(query, nil), do: query
 
-  defp filter_classification_system(query, system) when system in ["DDC", "UDC"] do
+  defp filter_classification_system(query, system) when system in ["DDC", "UDC", "LCC"] do
     where(query, [c], c.system == ^system)
   end
 

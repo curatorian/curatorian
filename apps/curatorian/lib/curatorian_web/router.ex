@@ -42,6 +42,7 @@ defmodule CuratorianWeb.Router do
     get "/about", PageController, :about
     get "/roadmap", PageController, :roadmap
     get "/privacy-policy", PageController, :privacy_policy
+    get "/library/classification", PageController, :library_classification
   end
 
   # Session controller handles form POST from login/register LiveViews
@@ -96,6 +97,11 @@ defmodule CuratorianWeb.Router do
       live "/crowdfunding", Public.Crowdfunding.IndexLive, :index
       live "/crowdfunding/:slug", Public.Crowdfunding.ShowLive, :show
       live "/exchange", Public.CollectionExchange.IndexLive, :index
+      live "/tools", Public.Tools.IndexLive, :index
+      live "/tools/library", Public.Tools.Library.IndexLive, :index
+      live "/tools/gallery", Public.Tools.Gallery.IndexLive, :index
+      live "/tools/museum", Public.Tools.Museum.IndexLive, :index
+      live "/tools/archive", Public.Tools.Archive.IndexLive, :index
       live "/tools/library/classifications", Public.Tools.Library.Classification.IndexLive, :index
     end
   end

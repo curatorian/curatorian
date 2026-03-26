@@ -173,6 +173,55 @@ Hooks.Turnstile = {
   },
 };
 
+Hooks.CopyCode = {
+  mounted() {
+    this.el.addEventListener("click", async (event) => {
+      event.stopPropagation();
+
+      const code = this.el.dataset.code;
+      if (!code) return;
+
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(code);
+        } else {
+          const textarea = document.createElement("textarea");
+          textarea.value = code;
+          textarea.style.position = "fixed";
+          textarea.style.opacity = "0";
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand("copy");
+          document.body.removeChild(textarea);
+        }
+
+        const toast = document.getElementById("copy-toast");
+        if (toast) {
+          toast.textContent = `Copied: ${code}`;
+          toast.classList.remove("opacity-0", "translate-y-4");
+          toast.classList.add("opacity-100", "translate-y-0");
+          setTimeout(() => {
+            toast.classList.remove("opacity-100", "translate-y-0");
+            toast.classList.add("opacity-0", "translate-y-4");
+          }, 1200);
+        }
+      } catch (error) {
+        console.error("Copy failed", error);
+        const toast = document.getElementById("copy-toast");
+        if (toast) {
+          toast.textContent = `Copy failed: ${error.message || error}`;
+          toast.classList.remove("opacity-0", "translate-y-4");
+          toast.classList.add("opacity-100", "translate-y-0");
+          setTimeout(() => {
+            toast.classList.remove("opacity-100", "translate-y-0");
+            toast.classList.add("opacity-0", "translate-y-4");
+          }, 1200);
+        }
+      }
+    });
+  },
+};
+
 const csrfToken = document
   .querySelector("meta[name='csrf-token']")
   .getAttribute("content");

@@ -1,0 +1,540 @@
+<%!--
+  CATATAN FONT:
+  Tambahkan baris berikut ke assets/css/app.css agar Lora & DM Sans tersedia:
+
+  @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400&display=swap');
+
+  Lalu di tailwind.config.js, tambahkan di bagian theme.extend.fontFamily:
+    serif: ['Lora', 'Georgia', 'serif'],
+    sans:  ['DM Sans', 'system-ui', 'sans-serif'],
+    mono:  ['DM Mono', 'monospace'],
+--%>
+
+<Layouts.app flash={@flash} current_scope={@current_scope} current_uri={@conn.request_path}>
+  <div class="leading-relaxed">
+    <%!-- ═══════════════════════════════════════════════════════════
+         HERO
+    ═══════════════════════════════════════════════════════════ --%>
+    <header class="relative overflow-hidden bg-[#FAF7F2] dark:bg-transparent px-6 pb-16 pt-20 text-center text-[#1C1A17] dark:text-[#FAF7F2] [--overlay-color:0,0,0] dark:[--overlay-color:255,255,255]">
+      <%!-- Grid overlay --%>
+      <div
+        class="pointer-events-none absolute inset-0 rounded-lg"
+        style="background:
+          repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(var(--overlay-color),0.04) 39px, rgba(var(--overlay-color),0.04) 40px),
+          repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(var(--overlay-color),0.04) 39px, rgba(var(--overlay-color),0.04) 40px);"
+      >
+      </div>
+
+      <div class="relative z-10">
+        <span class="mb-5 inline-block font-mono text-[11px] uppercase tracking-[0.18em]]">
+          Panduan Literasi Perpustakaan
+        </span>
+
+        <h1 class="mx-auto mb-5 max-w-2xl font-serif font-semibold leading-tight">
+          Mengapa Buku di Perpustakaan<br /> Selalu Bisa
+          <em class="italic text-[#F0B455]">Ditemukan?</em>
+        </h1>
+
+        <p class="mx-auto max-w-lg text-[1.05rem] font-light">
+          Mengenal klasifikasi, yaitu sistem rahasia di balik jutaan buku yang tersusun rapi
+          di seluruh perpustakaan dunia.
+        </p>
+
+        <div class="mx-auto mt-8 h-0.5 w-12 rounded bg-[#C4761B]"></div>
+      </div>
+    </header>
+
+    <%!-- ═══════════════════════════════════════════════════════════
+         SECTIONS — dibungkus dengan divide agar ada border antar seksi
+    ═══════════════════════════════════════════════════════════ --%>
+    <div class="divide-y divide-[#F0EAE0]">
+      <%!-- ─────────────────────────────────────────────────────────
+           BAGIAN 01 · Apa itu Klasifikasi Perpustakaan?
+      ───────────────────────────────────────────────────────── --%>
+      <section class="py-16">
+        <div class="mx-auto max-w-3xl px-6">
+          <div class="mb-7 flex items-center gap-3">
+            <span class="font-mono text-[10px] uppercase tracking-[0.2em] text-[#857E75]">
+              Bagian 01
+            </span>
+            <div class="h-px flex-1 bg-[#F0EAE0]"></div>
+          </div>
+
+          <h2 class="mb-5 font-serif text-[clamp(1.6rem,4vw,2.2rem)] font-semibold leading-snug">
+            Apa itu Klasifikasi Perpustakaan?
+          </h2>
+
+          <p class="mb-[18px] text-base font-light text-[#4A4640] dark:text-slate-300 dark:text-slate-300">
+            Pernahkah Anda masuk ke perpustakaan dan bertanya-tanya: bagaimana mungkin dari
+            ribuan, bahkan jutaan koleksi, pustakawan bisa langsung tahu di mana suatu buku
+            berada? Jawabannya terletak pada satu konsep mendasar: <strong class="font-medium text-[#1C1A17] dark:text-slate-100 dark:text-slate-100">klasifikasi perpustakaan</strong>.
+          </p>
+
+          <p class="mb-[18px] text-base font-light text-[#4A4640] dark:text-slate-300">
+            Klasifikasi perpustakaan adalah proses <strong class="font-medium text-[#1C1A17] dark:text-slate-100">mengelompokkan bahan pustaka berdasarkan isi atau subjeknya</strong>,
+            lalu memberikan kode unik yang disebut <em>nomor kelas</em> atau <em>call number</em>.
+            Kode ini berfungsi seperti "alamat" bagi setiap buku, yang menunjukkan dengan tepat
+            di mana buku tersebut disimpan di rak.
+          </p>
+
+          <blockquote class="my-9 border-l-[3px] border-[#C4761B] py-1 pl-7">
+            <p class="font-serif text-[1.18rem] italic leading-[1.55] text-[#1C1A17] dark:text-slate-100">
+              "Klasifikasi adalah seni menempatkan pengetahuan pada tempatnya, sehingga
+              siapa pun yang membutuhkannya bisa menemukannya."
+            </p>
+          </blockquote>
+
+          <p class="text-base font-light text-[#4A4640] dark:text-slate-300">
+            Tanpa sistem ini, sebuah perpustakaan hanyalah gudang penuh buku. Dengan
+            klasifikasi, ia menjadi
+            <strong class="font-medium text-[#1C1A17] dark:text-slate-100">
+              peta besar seluruh pengetahuan manusia
+            </strong>
+            yang bisa dinavigasi oleh siapa saja: anak sekolah yang mencari bahan tugas,
+            peneliti yang menggali data, maupun pembaca yang sekadar ingin menemukan bacaan baru.
+          </p>
+        </div>
+      </section>
+
+      <%!-- ─────────────────────────────────────────────────────────
+           BAGIAN 02 · Analogi
+      ───────────────────────────────────────────────────────── --%>
+      <section class="py-16">
+        <div class="mx-auto max-w-3xl px-6">
+          <div class="mb-7 flex items-center gap-3">
+            <span class="font-mono text-[10px] uppercase tracking-[0.2em] text-[#857E75]">
+              Bagian 02
+            </span>
+            <div class="h-px flex-1 bg-[#F0EAE0]"></div>
+          </div>
+
+          <h2 class="mb-5 font-serif text-[clamp(1.6rem,4vw,2.2rem)] font-semibold leading-snug">
+            Bayangkan Seperti Ini
+          </h2>
+
+          <p class="mb-8 text-base font-light text-[#4A4640] dark:text-slate-300">
+            Cara termudah memahami klasifikasi adalah dengan melihat contoh nyata dari kehidupan sehari-hari.
+          </p>
+
+          <div class="my-8 grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <div class="rounded-xl border border-[#B54422]/15 bg-[#FAEAE4] dark:bg-transparent p-7">
+              <span class="mb-3 block text-[28px]">🛒</span>
+              <h3 class="mb-2 font-mono text-[0.85rem] uppercase tracking-[0.1em] text-[#B54422]">
+                Di Supermarket
+              </h3>
+              <p class="text-[0.95rem] font-light text-[#4A4640] dark:text-slate-300">
+                Sabun ada di lorong perawatan diri. Beras di bagian sembako. Susu di rak pendingin.
+                Produk serupa dikumpulkan di satu tempat agar mudah ditemukan.
+              </p>
+            </div>
+
+            <div class="rounded-xl border border-[#1B6B6B]/15 bg-[#E5F3F3] dark:bg-transparent p-7">
+              <span class="mb-3 block text-[28px]">📚</span>
+              <h3 class="mb-2 font-mono text-[0.85rem] uppercase tracking-[0.1em] text-[#1B6B6B]">
+                Di Perpustakaan
+              </h3>
+              <p class="text-[0.95rem] font-light text-[#4A4640] dark:text-slate-300">
+                Buku masak ada di rak 641. Buku sejarah Indonesia di rak 959.8. Kamus bahasa di
+                seksi 400. Topik serupa dikumpulkan berdekatan di rak yang sama.
+              </p>
+            </div>
+          </div>
+
+          <p class="mb-[18px] text-base font-light text-[#4A4640] dark:text-slate-300">
+            Bedanya, supermarket mengelompokkan <em>barang</em>, sedangkan perpustakaan
+            mengelompokkan <em>pengetahuan</em>. Cakupan pengetahuan jauh lebih luas dan kompleks
+            dibandingkan produk apa pun di dunia. Di sinilah klasifikasi menjadi sebuah ilmu tersendiri.
+          </p>
+
+          <p class="text-base font-light text-[#4A4640] dark:text-slate-300">
+            Analogi lainnya: bayangkan sebuah peta kota. Kawasan perumahan, kawasan industri, dan
+            kawasan komersial masing-masing memiliki zona tersendiri. Perpustakaan pun demikian.
+            Ada zona untuk ilmu alam, zona untuk seni, zona untuk sejarah, dan setiap buku "tinggal"
+            di zona yang sesuai dengan isinya.
+          </p>
+        </div>
+      </section>
+
+      <%!-- ─────────────────────────────────────────────────────────
+           BAGIAN 03 · Sejarah
+      ───────────────────────────────────────────────────────── --%>
+      <section class="py-16">
+        <div class="mx-auto max-w-3xl px-6">
+          <div class="mb-7 flex items-center gap-3">
+            <span class="font-mono text-[10px] uppercase tracking-[0.2em] text-[#857E75]">
+              Bagian 03
+            </span>
+            <div class="h-px flex-1 bg-[#F0EAE0]"></div>
+          </div>
+
+          <h2 class="mb-5 font-serif text-[clamp(1.6rem,4vw,2.2rem)] font-semibold leading-snug">
+            Dari Mana Sistem Ini Berasal?
+          </h2>
+
+          <p class="mb-8 text-base font-light text-[#4A4640] dark:text-slate-300">
+            Kebutuhan untuk mengatur koleksi perpustakaan sudah ada sejak peradaban kuno. Namun sistem
+            yang kita kenal hari ini lahir dari satu momen penting di penghujung abad ke-19.
+          </p>
+
+          <%!-- Timeline --%>
+          <div class="relative my-8 pl-8">
+            <%!-- Garis vertikal --%>
+            <div class="absolute bottom-2 left-[6px] top-2 w-px bg-[#F0EAE0]"></div>
+
+            <%= for {year, title, body} <- [
+              {
+                "Sebelum 1876",
+                "Era Kekacauan yang \"Teratur\"",
+                "Pada masa itu, setiap perpustakaan menyusun buku berdasarkan urutan pembelian, ukuran fisik, atau bahkan warna sampul. Belum ada standar bersama, sehingga cara pengelolaan koleksi berbeda dari satu perpustakaan ke perpustakaan lainnya."
+              },
+              {
+                "1876",
+                "Melvil Dewey dan Idenya yang Revolusioner",
+                nil
+              },
+              {
+                "Awal 1900-an",
+                "Penyebaran ke Seluruh Dunia",
+                "DDC mulai diadopsi oleh berbagai perpustakaan di Eropa dan Amerika. Bersamaan dengan itu, muncul pula sistem lain seperti Universal Decimal Classification (UDC) dan Library of Congress Classification (LCC) di Amerika Serikat."
+              },
+              {
+                "Hari Ini",
+                "Standar Global yang Terus Berkembang",
+                "DDC kini telah berada di edisi ke-23 dan digunakan di lebih dari 135 negara, termasuk Indonesia. Sistem ini terus diperbarui untuk mengakomodasi berbagai bidang ilmu baru seperti kecerdasan buatan, bioteknologi, dan ilmu lingkungan."
+              }
+            ] do %>
+              <div class="relative mb-8 last:mb-0">
+                <div class="absolute -left-[29px] top-[6px] h-[13px] w-[13px] rounded-full border-2 border-[#FAF7F2] bg-[#C4761B] shadow-[0_0_0_1px_#C4761B]">
+                </div>
+                <span class="mb-1 block font-mono text-[11px] tracking-[0.1em] text-[#C4761B]">
+                  {year}
+                </span>
+                <h3 class="mb-1.5 font-serif text-[1.05rem] font-semibold text-[#1C1A17] dark:text-slate-100">
+                  {title}
+                </h3>
+                <%= if body do %>
+                  <p class="text-[0.95rem] font-light text-[#4A4640] dark:text-slate-300">
+                    {body}
+                  </p>
+                <% else %>
+                  <%!-- Item 1876 punya markup khusus dengan bold & em --%>
+                  <p class="text-[0.95rem] font-light text-[#4A4640] dark:text-slate-300">
+                    Seorang pustakawan muda Amerika bernama
+                    <strong class="font-medium text-[#1C1A17] dark:text-slate-100">
+                      Melvil Dewey
+                    </strong>
+                    menerbitkan sebuah pamflet tipis berjudul <em>A Classification and Subject Index</em>. Di dalamnya, ia mengusulkan cara
+                    membagi seluruh pengetahuan manusia ke dalam sepuluh kelas besar menggunakan
+                    angka 000 hingga 999. Sistem ini kemudian dikenal sebagai <strong class="font-medium text-[#1C1A17] dark:text-slate-100">Dewey Decimal Classification (DDC)</strong>.
+                  </p>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </section>
+
+      <%!-- ─────────────────────────────────────────────────────────
+           BAGIAN 04 · Sepuluh Kelas DDC
+      ───────────────────────────────────────────────────────── --%>
+      <section class="py-16">
+        <div class="mx-auto max-w-3xl px-6">
+          <div class="mb-7 flex items-center gap-3">
+            <span class="font-mono text-[10px] uppercase tracking-[0.2em] text-[#857E75]">
+              Bagian 04
+            </span>
+            <div class="h-px flex-1 bg-[#F0EAE0]"></div>
+          </div>
+
+          <h2 class="mb-5 font-serif text-[clamp(1.6rem,4vw,2.2rem)] font-semibold leading-snug">
+            Dewey Decimal Classification: Sepuluh Kelas Utama
+          </h2>
+
+          <p class="mb-7 text-base font-light text-[#4A4640] dark:text-slate-300">
+            Bayangkan seluruh pengetahuan manusia dibagi menjadi sepuluh "laci besar". Setiap laci
+            punya label angka ratusan, dan masing-masing dibagi lagi menjadi sepuluh subdivisi,
+            dan seterusnya. Semakin spesifik topiknya, semakin panjang angkanya.
+          </p>
+
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <%= for {num, title, desc, active} <- [
+              {"000", "Ilmu Komputer & Informasi",  "Ensiklopedia, jurnalisme, perpustakaan",              false},
+              {"100", "Filsafat & Psikologi",        "Etika, logika, psikologi perkembangan",               false},
+              {"200", "Agama",                        "Islam, Kristen, Hindu, Budha, perbandingan agama",   false},
+              {"300", "Ilmu Sosial",                  "Sosiologi, politik, ekonomi, hukum, pendidikan",     false},
+              {"400", "Bahasa",                       "Tata bahasa, kamus, linguistik, bahasa daerah",      false},
+              {"500", "Ilmu Pengetahuan Alam",        "Matematika, fisika, kimia, biologi, astronomi",      false},
+              {"600", "Teknologi & Ilmu Terapan",     "Kedokteran, pertanian, teknik, kuliner",             false},
+              {"700", "Seni & Rekreasi",              "Musik, arsitektur, olahraga, fotografi, film",       false},
+              {"800", "Sastra",                       "Fiksi, puisi, drama, sastra daerah Indonesia",       true},
+              {"900", "Sejarah & Geografi",           "Sejarah dunia, biografi, geografi wilayah",          false}
+            ] do %>
+              <div class={[
+                "flex items-start gap-3.5 rounded-xl border p-[18px] transition-colors",
+                if(active,
+                  do: "border-[#C4761B] bg-[#FDF3E3] dark:bg-slate-800",
+                  else:
+                    "border-[#F0EAE0] dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-[#F0B455]"
+                )
+              ]}>
+                <span class={[
+                  "min-w-[42px] pt-px font-mono text-[1.1rem]",
+                  if(active, do: "text-[#B54422]", else: "text-[#C4761B]")
+                ]}>
+                  {num}
+                </span>
+                <div>
+                  <strong class="mb-0.5 block text-[0.9rem] font-medium leading-snug text-[#1C1A17] dark:text-slate-100">
+                    {title}
+                  </strong>
+                  <span class="text-[0.8rem] italic text-[#857E75]">{desc}</span>
+                </div>
+              </div>
+            <% end %>
+          </div>
+
+          <p class="mt-7 text-base font-light text-[#4A4640] dark:text-slate-300">
+            Misalnya, angka
+            <strong class="font-medium text-[#1C1A17] dark:text-slate-100">641</strong>
+            menunjukkan
+            topik <em>Makanan dan Minuman</em>
+            (subbagian dari kelas 600 Teknologi), dan
+            <strong class="font-medium text-[#1C1A17] dark:text-slate-100">641.5</strong>
+            lebih spesifik lagi, yaitu
+            topik <em>Memasak</em>. Semakin banyak angka di belakang titik desimal, semakin
+            spesifik pula subjeknya.
+          </p>
+        </div>
+      </section>
+
+      <%!-- ─────────────────────────────────────────────────────────
+           BAGIAN 05 · Call Number
+      ───────────────────────────────────────────────────────── --%>
+      <section class="py-16">
+        <div class="mx-auto max-w-3xl px-6">
+          <div class="mb-7 flex items-center gap-3">
+            <span class="font-mono text-[10px] uppercase tracking-[0.2em] text-[#857E75]">
+              Bagian 05
+            </span>
+            <div class="h-px flex-1 bg-[#F0EAE0]"></div>
+          </div>
+
+          <h2 class="mb-5 font-serif text-[clamp(1.6rem,4vw,2.2rem)] font-semibold leading-snug">
+            Membaca Nomor Panggil (Call Number)
+          </h2>
+
+          <p class="mb-8 text-base font-light text-[#4A4640] dark:text-slate-300">
+            Nomor panggil adalah kombinasi kode yang ditempelkan di punggung buku. Ia terdiri dari
+            beberapa bagian yang masing-masing membawa informasi penting. Mari kita bedah sebuah
+            contoh nyata:
+          </p>
+
+          <div class="my-8 rounded-2xl bg-[#1C1A17] p-8 font-mono text-[#FAF7F2] sm:p-10">
+            <div class="mb-9 text-[clamp(1.8rem,5vw,2.8rem)] leading-snug tracking-[0.08em]">
+              <span class="text-[#F0B455]">641.5</span> <br />
+              <span class="text-[#66C2A5]">DEP</span> <br />
+              <span class="text-[#FC8D62]">m</span>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div class="border-t-2 border-[#F0B455] pt-2.5">
+                <div class="mb-1 text-[1rem] text-[#F0B455]">641.5</div>
+                <div class="font-sans text-[0.82rem] font-light leading-relaxed text-[#FAF7F2]/60">
+                  Nomor kelas DDC<br />
+                  <em>641 = Makanan &amp; Minuman<br />.5 = Memasak</em>
+                </div>
+              </div>
+
+              <div class="border-t-2 border-[#66C2A5] pt-2.5">
+                <div class="mb-1 text-[1rem] text-[#66C2A5]">DEP</div>
+                <div class="font-sans text-[0.82rem] font-light leading-relaxed text-[#FAF7F2]/60">
+                  Kode pengarang<br />
+                  <em>3 huruf pertama dari nama keluarga pengarang</em>
+                </div>
+              </div>
+
+              <div class="border-t-2 border-[#FC8D62] pt-2.5">
+                <div class="mb-1 text-[1rem] text-[#FC8D62]">m</div>
+                <div class="font-sans text-[0.82rem] font-light leading-relaxed text-[#FAF7F2]/60">
+                  Kode judul<br />
+                  <em>Huruf pertama judul buku (huruf kecil)</em>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p class="text-base font-light text-[#4A4640] dark:text-slate-300">
+            Dengan membaca nomor ini, siapa pun, termasuk pengunjung yang belum pernah bertemu
+            pustakawan sekalipun, dapat langsung berjalan ke rak nomor 641, mencari buku dengan
+            kode DEP, dan menemukan buku yang dicari. Itulah kekuatan dari sistem klasifikasi yang
+            baik: <strong class="font-medium text-[#1C1A17] dark:text-slate-100">siapa saja bisa mandiri menemukan buku yang dibutuhkan</strong>.
+          </p>
+        </div>
+      </section>
+
+      <%!-- ─────────────────────────────────────────────────────────
+           BAGIAN 06 · Sistem Lain di Dunia
+      ───────────────────────────────────────────────────────── --%>
+      <section class="py-16">
+        <div class="mx-auto max-w-3xl px-6">
+          <div class="mb-7 flex items-center gap-3">
+            <span class="font-mono text-[10px] uppercase tracking-[0.2em] text-[#857E75]">
+              Bagian 06
+            </span>
+            <div class="h-px flex-1 bg-[#F0EAE0]"></div>
+          </div>
+
+          <h2 class="mb-5 font-serif text-[clamp(1.6rem,4vw,2.2rem)] font-semibold leading-snug">
+            Tidak Hanya DDC: Sistem Lain di Dunia
+          </h2>
+
+          <p class="mb-7 text-base font-light text-[#4A4640] dark:text-slate-300">
+            DDC bukan satu-satunya sistem klasifikasi yang digunakan perpustakaan. Ada beberapa
+            sistem lain yang masing-masing memiliki kelebihan dan konteks penggunaannya sendiri.
+          </p>
+
+          <div class="grid grid-cols-1 gap-5 sm:grid-cols-3">
+            <div class="rounded-xl border border-[#C4761B]/20 bg-[#FDF3E3] dark:bg-slate-800 p-7">
+              <span class="mb-3.5 inline-block rounded bg-[#C4761B] px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.15em] text-white">
+                DDC
+              </span>
+              <h5 class="mb-2 font-serif text-[1rem] font-semibold text-[#1C1A17] dark:text-slate-100">
+                Dewey Decimal Classification
+              </h5>
+              <p class="mb-3.5 text-[0.9rem] font-light text-[#4A4640] dark:text-slate-300">
+                Sistem paling luas digunakan di dunia, terutama oleh perpustakaan umum dan
+                perpustakaan sekolah. Menggunakan angka desimal yang intuitif dan mudah dipelajari.
+              </p>
+              <span class="rounded bg-black/5 px-2.5 py-0.5 font-mono text-[0.78rem] text-[#857E75]">
+                Digunakan di 135+ negara
+              </span>
+            </div>
+
+            <div class="rounded-xl border border-[#1B6B6B]/20 bg-[#E5F3F3] dark:bg-slate-800 p-7">
+              <span class="mb-3.5 inline-block rounded bg-[#1B6B6B] px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.15em] text-white">
+                UDC
+              </span>
+              <h5 class="mb-2 font-serif text-[1rem] font-semibold text-[#1C1A17] dark:text-slate-100">
+                Universal Decimal Classification
+              </h5>
+              <p class="mb-3.5 text-[0.9rem] font-light text-[#4A4640] dark:text-slate-300">
+                Dikembangkan dari DDC namun jauh lebih rinci dan fleksibel. Populer di Eropa dan
+                perpustakaan khusus yang membutuhkan kedalaman subjek tinggi. Menggunakan tanda
+                baca seperti +, /, dan : untuk menyatakan hubungan antar topik.
+              </p>
+              <span class="rounded bg-black/5 px-2.5 py-0.5 font-mono text-[0.78rem] text-[#857E75]">
+                Populer di Eropa &amp; perpustakaan riset
+              </span>
+            </div>
+
+            <div class="rounded-xl border border-[#2E4057]/15 bg-[#EEF0F8] dark:bg-slate-800 p-7">
+              <span class="mb-3.5 inline-block rounded bg-[#2E4057] px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.15em] text-white">
+                LCC
+              </span>
+              <h5 class="mb-2 font-serif text-[1rem] font-semibold text-[#1C1A17] dark:text-slate-100">
+                Library of Congress Classification
+              </h5>
+              <p class="mb-3.5 text-[0.9rem] font-light text-[#4A4640] dark:text-slate-300">
+                Digunakan oleh Perpustakaan Kongres Amerika Serikat dan banyak perpustakaan
+                akademik besar. Menggunakan kombinasi huruf dan angka, dirancang untuk koleksi
+                yang sangat besar dan beragam.
+              </p>
+              <span class="rounded bg-black/5 px-2.5 py-0.5 font-mono text-[0.78rem] text-[#857E75]">
+                Standar di perpustakaan akademik AS
+              </span>
+            </div>
+          </div>
+
+          <p class="mt-7 text-base font-light text-[#4A4640] dark:text-slate-300">
+            Di Indonesia, sebagian besar perpustakaan umum dan sekolah menggunakan <strong class="font-medium text-[#1C1A17] dark:text-slate-100">DDC</strong>, sementara beberapa
+            perpustakaan universitas dan lembaga penelitian menggunakan <strong class="font-medium text-[#1C1A17] dark:text-slate-100">UDC</strong>. Kedua sistem ini saling
+            kompatibel, sehingga pengetahuan tentang satu sistem akan memudahkan pemahaman
+            terhadap sistem lainnya.
+          </p>
+        </div>
+      </section>
+
+      <%!-- ─────────────────────────────────────────────────────────
+           BAGIAN 07 · Mengapa Penting?
+      ───────────────────────────────────────────────────────── --%>
+      <section class="py-16">
+        <div class="mx-auto max-w-3xl px-6">
+          <div class="mb-7 flex items-center gap-3">
+            <span class="font-mono text-[10px] uppercase tracking-[0.2em] text-[#857E75]">
+              Bagian 07
+            </span>
+            <div class="h-px flex-1 bg-[#F0EAE0]"></div>
+          </div>
+
+          <h2 class="mb-5 font-serif text-[clamp(1.6rem,4vw,2.2rem)] font-semibold leading-snug">
+            Mengapa Ini Penting Bagi Anda?
+          </h2>
+
+          <p class="mb-7 text-base font-light text-[#4A4640] dark:text-slate-300">
+            Klasifikasi mungkin terdengar seperti urusan "dapur" perpustakaan, sesuatu yang
+            hanya perlu diketahui oleh pustakawan. Namun kenyataannya, memahami sistem ini
+            memberikan keuntungan nyata bagi setiap pengguna perpustakaan.
+          </p>
+
+          <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <%= for {icon, bg, title, body} <- [
+              {"🗺️", "bg-[#FDF3E3] dark:bg-slate-800", "Navigasi Mandiri",
+               "Anda tidak perlu selalu mengandalkan pustakawan. Dengan mengenal nomor kelas, Anda bisa langsung menuju rak yang tepat, seperti membaca peta kota."},
+              {"🔍", "bg-[#E5F3F3] dark:bg-slate-800", "Menemukan yang Tak Terduga",
+               "Ketika Anda mencari satu buku di rak, koleksi di sekitarnya juga bertopik serupa. Seringkali Anda menemukan referensi berharga yang tidak Anda cari sebelumnya."},
+              {"🌐", "bg-[#FAEAE4] dark:bg-slate-800", "Berlaku di Mana Saja",
+               "Karena DDC digunakan secara global, pengetahuan ini berlaku di perpustakaan mana saja, baik di Jakarta, London, Tokyo, maupun New York."},
+              {"📖", "bg-[#EEF0F8] dark:bg-slate-800", "Membaca Katalog dengan Lebih Baik",
+               "Saat menggunakan katalog digital perpustakaan, memahami nomor kelas membantu Anda menyaring dan memilih hasil pencarian dengan lebih tepat dan efisien."}
+            ] do %>
+              <div class="flex items-start gap-4 rounded-xl border border-[#F0EAE0] dark:border-slate-700 bg-white dark:bg-slate-900 p-[22px]">
+                <div class={[
+                  "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-base",
+                  bg
+                ]}>
+                  {icon}
+                </div>
+                <div>
+                  <h3 class="mb-1.5 font-serif text-[0.95rem] font-semibold text-[#1C1A17] dark:text-slate-100">
+                    {title}
+                  </h3>
+                  <p class="text-[0.88rem] font-light text-[#4A4640] dark:text-slate-300">
+                    {body}
+                  </p>
+                </div>
+              </div>
+            <% end %>
+          </div>
+
+          <blockquote class="my-9 border-l-[3px] border-[#C4761B] py-1 pl-7 bg-white/50 dark:bg-slate-800/50">
+            <p class="font-serif text-[1.18rem] italic leading-[1.55] text-[#1C1A17] dark:text-slate-100">
+              Bagi seorang pembaca, mengenal sistem klasifikasi adalah seperti mendapatkan kunci
+              cadangan perpustakaan. Anda bisa menjelajahinya sendiri, kapan saja, tanpa harus
+              menunggu ditunjukkan jalan.
+            </p>
+          </blockquote>
+        </div>
+      </section>
+    </div>
+    <%!-- end sections wrapper --%>
+
+    <%!-- ═══════════════════════════════════════════════════════════
+         CLOSING BANNER
+    ═══════════════════════════════════════════════════════════ --%>
+    <div class="bg-[#1B6B6B] px-6 py-16 text-center text-white">
+      <h2 class="mx-auto mb-4 max-w-xl font-serif text-[clamp(1.4rem,3.5vw,2rem)] font-normal italic">
+        "Setiap nomor di punggung buku adalah undangan untuk menjelajah."
+      </h2>
+      <p class="mx-auto max-w-lg text-[0.95rem] font-light text-white/70">
+        Kini setiap kali Anda melihat angka seperti 641.5 atau 959.8 pada punggung buku,
+        Anda tahu persis apa artinya dan ke mana pengetahuan itu akan membawa Anda.
+      </p>
+    </div>
+
+    <%!-- FOOTNOTE --%>
+    <div class="py-5 text-center font-mono text-[0.8rem] tracking-[0.05em] text-[#857E75]">
+      Disusun sebagai materi literasi informasi · Sistem yang dibahas: DDC edisi 23, UDC, LCC
+    </div>
+  </div>
+  <%!-- end outer bg wrapper --%>
+</Layouts.app>
