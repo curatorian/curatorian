@@ -11,7 +11,7 @@ defmodule Curatorian.CrossAppTokenTest do
         node_id: 42,
         node_name: "SD Negeri 1 Bandung",
         node_abbr: "SDN1BDG",
-        roles: [%{name: "admin"}, %{name: "staff"}]
+        roles: [%{name: "admin"}, %{name: "manager"}]
       },
       overrides
     )
@@ -43,7 +43,7 @@ defmodule Curatorian.CrossAppTokenTest do
       assert claims.node_name == auth_info.node_name
       assert claims.node_abbr == auth_info.node_abbr
       assert "admin" in claims.roles
-      assert "staff" in claims.roles
+      assert "manager" in claims.roles
     end
 
     test "roles are encoded as name strings, not structs" do

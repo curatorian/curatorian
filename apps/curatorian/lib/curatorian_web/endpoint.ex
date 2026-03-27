@@ -29,7 +29,9 @@ defmodule CuratorianWeb.Endpoint do
   # :code_reloader configuration of your endpoint.
   if code_reloading? do
     if Code.ensure_loaded?(Phoenix.LiveReloader) do
-      socket "/phoenix/live_reload/socket", Phoenix.LiveReloader.Socket
+      socket "/phoenix/live_reload/socket", Phoenix.LiveReloader.Socket,
+        websocket: [connect_info: [session: @session_options]]
+
       plug Phoenix.LiveReloader
     end
 

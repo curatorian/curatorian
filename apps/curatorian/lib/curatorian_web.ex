@@ -105,19 +105,30 @@ defmodule CuratorianWeb do
         only: [
           can?: 2,
           can?: 3,
-          is_super_admin?: 1
+          is_super_admin?: 1,
+          is_node_admin?: 1
         ]
 
       # Define missing helpers for compatibility
       def has_role?(user, role_slug) do
-        # Simple role check - adjust as needed
-        # or check roles
-        VoileWeb.Auth.Authorization.can?(user, "system.settings")
+        # Explicit role check (fallback for user type logic)
+        user = Voile.Repo.preload(user, :roles)
+
+        Enum.any?(user.roles || [], fn role -> role.name == role_slug end)
       end
 
       def is_manager?(user) do
-        # Check if user is staff/admin type
-        user && user.user_type && user.user_type.slug in ["administrator", "staff"]
+        manager_by_type =
+          user &&
+            user.user_type &&
+            user.user_type.slug in ["administrator", "manager", "staff", "admin", "node_admin"]
+
+        manager_by_role =
+          user &&
+            (has_role?(user, "admin") || has_role?(user, "manager") ||
+               has_role?(user, "staff") || is_node_admin?(user))
+
+        manager_by_type || manager_by_role
       end
 
       # Asset URL helper — prefixes Atrium-served paths with the Atrium base URL

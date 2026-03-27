@@ -250,7 +250,8 @@ defmodule CuratorianWeb.UserAuth do
       Enum.any?(user.roles, &(&1.name == "super_admin")) ->
         atrium_url <> "/dashboard"
 
-      user.user_type && user.user_type.slug in ["administrator", "staff"] ->
+      user.user_type &&
+          user.user_type.slug in ["administrator", "manager", "staff"] ->
         atrium_url <> "/dashboard"
 
       user.user_type && String.starts_with?(user.user_type.slug, "member_") ->

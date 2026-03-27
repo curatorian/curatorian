@@ -516,7 +516,8 @@ defmodule CuratorianWeb.Public.OrganizationShowLive do
 
   defp role_label("super_admin"), do: "Super Admin"
   defp role_label("admin"), do: "Admin"
-  defp role_label("staff"), do: "Staf"
+  defp role_label("manager"), do: "Manager"
+  defp role_label("staff"), do: "Manager"
   defp role_label("viewer"), do: "Viewer"
   defp role_label(other), do: other
 
@@ -525,6 +526,9 @@ defmodule CuratorianWeb.Public.OrganizationShowLive do
 
   defp role_badge_class("admin"),
     do: "bg-secondary/10 text-secondary border border-secondary/20"
+
+  defp role_badge_class("manager"),
+    do: "bg-primary/10 text-primary border border-primary/20"
 
   defp role_badge_class("staff"),
     do: "bg-primary/10 text-primary border border-primary/20"

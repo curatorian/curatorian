@@ -393,7 +393,7 @@ defmodule Curatorian.Public do
   # Staff / Members (atrium.user_roles → atrium.user_profiles)
   # ---------------------------------------------------------------------------
 
-  @role_order %{"super_admin" => -1, "admin" => 0, "staff" => 1, "viewer" => 2}
+  @role_order %{"super_admin" => -1, "admin" => 0, "manager" => 1, "staff" => 1, "viewer" => 2}
 
   def list_staff_for_node(voile_node_id) do
     now = DateTime.utc_now()

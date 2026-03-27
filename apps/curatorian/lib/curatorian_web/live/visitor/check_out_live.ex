@@ -18,7 +18,7 @@ defmodule CuratorianWeb.Visitor.CheckOutLive do
          |> put_flash(:error, "Your account is not associated with any node.")
          |> redirect(to: ~p"/")}
 
-      not (is_manager?(user) or is_super_admin?(user)) ->
+      not (is_manager?(user) or is_super_admin?(user) or is_node_admin?(user)) ->
         {:ok,
          socket
          |> put_flash(:error, "You are not authorized to access this page.")

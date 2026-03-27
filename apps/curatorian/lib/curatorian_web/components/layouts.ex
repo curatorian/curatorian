@@ -36,6 +36,8 @@ defmodule CuratorianWeb.Layouts do
   slot :inner_block, required: true
 
   def app(assigns) do
+    dbg(assigns[:current_scope])
+
     ~H"""
     <%= if assigns[:current_scope] do %>
       <.navigation_header current_user={@current_scope.user} />
