@@ -22,8 +22,6 @@ defmodule Curatorian.Public do
     Unit,
     BlogPost,
     BlogPostComment,
-    UserRole,
-    Role,
     JobPosting,
     JobApplication,
     Event,
@@ -390,7 +388,7 @@ defmodule Curatorian.Public do
   end
 
   # ---------------------------------------------------------------------------
-  # Staff / Members (atrium.user_roles → atrium.user_profiles)
+  # Staff / Members (Voile RBAC via user_role_assignments + atrium.user_profiles)
   # ---------------------------------------------------------------------------
 
   @role_order %{"super_admin" => -1, "admin" => 0, "manager" => 1, "staff" => 1, "viewer" => 2}
@@ -398,19 +396,24 @@ defmodule Curatorian.Public do
   def list_staff_for_node(voile_node_id) do
     now = DateTime.utc_now()
 
-    role_members_query =
-      from ur in UserRole,
-        join: up in UserProfile,
-        on: up.voile_user_id == ur.voile_user_id,
-        join: r in Role,
-        on: r.id == ur.role_id,
+    scope_id =
+      case Repo.get_by(NodeProfile, voile_node_id: voile_node_id) do
+        nil -> nil
+        node_profile -> node_profile.id
+      end
+
+    role_members =
+      from(up in UserProfile,
+        join: ura in Voile.Schema.Accounts.UserRoleAssignment,
+        on: up.voile_user_id == ura.user_id,
+        join: r in Voile.Schema.Accounts.Role,
+        on: r.id == ura.role_id,
         where:
-          (ur.voile_node_id == ^voile_node_id or
-             (is_nil(ur.voile_node_id) and r.scope == "platform" and ^voile_node_id == 1)) and
-            ur.status == :active and
-            (is_nil(ur.expires_at) or ur.expires_at > ^now) and
+          up.voile_node_id == ^voile_node_id and
             up.is_public == true and
-            is_nil(up.deleted_at),
+            is_nil(up.deleted_at) and
+            ( (ura.scope_type == "collection" and ura.scope_id == ^scope_id) or ura.scope_type == "global" ) and
+            (is_nil(ura.expires_at) or ura.expires_at > ^now),
         select: %{
           id: up.id,
           user_id: up.voile_user_id,
@@ -423,12 +426,16 @@ defmodule Curatorian.Public do
           is_verified: up.is_verified,
           role_name: r.name
         }
+      )
+      |> Repo.all()
+      |> Enum.map(&Map.update!(&1, :role_name, fn name -> name && String.downcase(name) end))
 
-    role_members = Repo.all(role_members_query)
+    role_members = role_members || []
+
     user_ids = MapSet.new(Enum.map(role_members, & &1.user_id))
 
-    fallback_query =
-      from up in UserProfile,
+    fallback_members =
+      from(up in UserProfile,
         where:
           up.voile_node_id == ^voile_node_id and
             up.is_public == true and
@@ -446,8 +453,8 @@ defmodule Curatorian.Public do
           is_verified: up.is_verified,
           role_name: "viewer"
         }
-
-    fallback_members = Repo.all(fallback_query)
+      )
+      |> Repo.all()
 
     (role_members ++ fallback_members)
     |> Enum.uniq_by(& &1.user_id)

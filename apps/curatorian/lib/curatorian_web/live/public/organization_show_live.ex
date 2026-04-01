@@ -514,27 +514,37 @@ defmodule CuratorianWeb.Public.OrganizationShowLive do
     """
   end
 
-  defp role_label("super_admin"), do: "Super Admin"
-  defp role_label("admin"), do: "Admin"
-  defp role_label("manager"), do: "Manager"
-  defp role_label("staff"), do: "Manager"
-  defp role_label("viewer"), do: "Viewer"
-  defp role_label(other), do: other
+  defp role_label(role) when is_binary(role) do
+    case String.downcase(role) do
+      "super_admin" -> "Super Admin"
+      "super admin" -> "Super Admin"
+      "admin" -> "Admin"
+      "administrator" -> "Admin"
+      "curatorian administrator" -> "Admin"
+      "manager" -> "Manager"
+      "staff" -> "Manager"
+      "viewer" -> "Viewer"
+      other -> other
+    end
+  end
 
-  defp role_badge_class("super_admin"),
-    do: "bg-secondary/15 text-secondary border border-secondary/30"
+  defp role_label(_), do: "Viewer"
 
-  defp role_badge_class("admin"),
-    do: "bg-secondary/10 text-secondary border border-secondary/20"
+  defp role_badge_class(role) when is_binary(role) do
+    case String.downcase(role) do
+      "super_admin" -> "bg-secondary/15 text-secondary border border-secondary/30"
+      "super admin" -> "bg-secondary/15 text-secondary border border-secondary/30"
+      "admin" -> "bg-secondary/10 text-secondary border border-secondary/20"
+      "administrator" -> "bg-secondary/10 text-secondary border border-secondary/20"
+      "curatorian administrator" -> "bg-secondary/10 text-secondary border border-secondary/20"
+      "manager" -> "bg-primary/10 text-primary border border-primary/20"
+      "staff" -> "bg-primary/10 text-primary border border-primary/20"
+      "viewer" -> "bg-base-300 text-base-content/50 border border-base-300"
+      _ -> "bg-base-300 text-base-content/50 border border-base-300"
+    end
+  end
 
-  defp role_badge_class("manager"),
-    do: "bg-primary/10 text-primary border border-primary/20"
-
-  defp role_badge_class("staff"),
-    do: "bg-primary/10 text-primary border border-primary/20"
-
-  defp role_badge_class(_),
-    do: "bg-base-300 text-base-content/50 border border-base-300"
+  defp role_badge_class(_), do: "bg-base-300 text-base-content/50 border border-base-300"
 
   defp staff_card(assigns) do
     ~H"""
