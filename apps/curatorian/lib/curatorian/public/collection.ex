@@ -17,6 +17,10 @@ defmodule Curatorian.Public.Collection do
 
     belongs_to :unit, Curatorian.Public.Unit, type: :integer
 
+    has_many :collection_fields, Voile.Schema.Catalog.CollectionField, foreign_key: :collection_id
+
+    has_many :items, Voile.Schema.Catalog.Item, foreign_key: :collection_id
+
     timestamps(type: :utc_datetime)
   end
 end

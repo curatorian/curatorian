@@ -222,6 +222,42 @@ Hooks.CopyCode = {
   },
 };
 
+Hooks.PersistLocation = {
+  mounted() {
+    const storageKey =
+      this.el.dataset.storageKey || "curatorian:selected_location_id";
+    const savedId = window.localStorage.getItem(storageKey);
+
+    if (savedId) {
+      this.pushEvent("restore_location", { id: savedId }, (reply) => {
+        if (reply && reply.error) {
+          window.localStorage.removeItem(storageKey);
+        }
+      });
+    }
+
+    this.handleSelect = (event) => {
+      const button = event.target.closest(
+        "[phx-click='select_location'][phx-value-id]",
+      );
+      if (!button) {
+        return;
+      }
+
+      const id = button.getAttribute("phx-value-id");
+      if (id) {
+        window.localStorage.setItem(storageKey, id);
+      }
+    };
+
+    this.el.addEventListener("click", this.handleSelect);
+  },
+
+  destroyed() {
+    this.el.removeEventListener("click", this.handleSelect);
+  },
+};
+
 const csrfToken = document
   .querySelector("meta[name='csrf-token']")
   .getAttribute("content");

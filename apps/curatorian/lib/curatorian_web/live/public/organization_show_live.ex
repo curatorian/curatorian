@@ -24,6 +24,12 @@ defmodule CuratorianWeb.Public.OrganizationShowLive do
          |> put_flash(:error, "Organisasi tidak ditemukan.")
          |> push_navigate(to: ~p"/orgs")}
 
+      %{profile: profile, node: node, org_page: nil} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "This org is not public.")
+         |> push_navigate(to: ~p"/orgs")}
+
       %{profile: profile, node: node, org_page: org_page} ->
         merged = org_page || profile
 
@@ -64,6 +70,9 @@ defmodule CuratorianWeb.Public.OrganizationShowLive do
               nil
             )
         }
+
+        dbg(org)
+        dbg(merged)
 
         collection_count = Public.count_collections_for_node(profile.voile_node_id)
 

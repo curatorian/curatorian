@@ -343,7 +343,7 @@ defmodule Curatorian.Public do
   def get_public_collection(id) do
     from(c in Collection,
       where: c.id == ^id and c.status == "published" and c.access_level == "public",
-      preload: [:unit]
+      preload: [:unit, :collection_fields, :items]
     )
     |> Repo.one()
   end
@@ -412,7 +412,8 @@ defmodule Curatorian.Public do
           up.voile_node_id == ^voile_node_id and
             up.is_public == true and
             is_nil(up.deleted_at) and
-            ( (ura.scope_type == "collection" and ura.scope_id == ^scope_id) or ura.scope_type == "global" ) and
+            ((ura.scope_type == "collection" and ura.scope_id == ^scope_id) or
+               ura.scope_type == "global") and
             (is_nil(ura.expires_at) or ura.expires_at > ^now),
         select: %{
           id: up.id,
@@ -517,6 +518,16 @@ defmodule Curatorian.Public do
       |> Repo.one()
 
     result
+  end
+
+  def get_node_profile_id_by_voile_node(voile_node_id) do
+    from(np in NodeProfile,
+      where:
+        np.voile_node_id == ^voile_node_id and np.status == :approved and
+          is_nil(np.deleted_at),
+      select: np.id
+    )
+    |> Repo.one()
   end
 
   defp search_node_profiles(query, ""), do: query

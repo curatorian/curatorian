@@ -49,6 +49,19 @@ defmodule CuratorianWeb.Visitor.CheckInLive do
      |> assign(:step, :show_forms)}
   end
 
+  def handle_event("restore_location", %{"id" => location_id}, socket) do
+    location = Enum.find(socket.assigns.locations, &(to_string(&1.id) == to_string(location_id)))
+
+    if location do
+      {:noreply,
+       socket
+       |> assign(:selected_location, location)
+       |> assign(:step, :show_forms)}
+    else
+      {:reply, %{error: true}, socket}
+    end
+  end
+
   def handle_event("back_to_rooms", _params, socket) do
     {:noreply,
      socket
@@ -65,9 +78,13 @@ defmodule CuratorianWeb.Visitor.CheckInLive do
     node = socket.assigns.node
     location = socket.assigns.selected_location
 
+    identifier = String.trim(params["identifier"] || "")
+    name = String.trim(params["name"] || "")
+    name = if(name == "" and identifier != "", do: identifier, else: name)
+
     attrs = %{
-      "visitor_identifier" => String.trim(params["identifier"] || ""),
-      "visitor_name" => String.trim(params["name"] || ""),
+      "visitor_identifier" => identifier,
+      "visitor_name" => name,
       "visitor_origin" => String.trim(params["origin"] || ""),
       "check_in_time" => DateTime.utc_now(),
       "location_id" => location.id,
@@ -109,23 +126,55 @@ defmodule CuratorianWeb.Visitor.CheckInLive do
       "location_id" => location.id,
       "node_id" => node.id,
       "visitor_log_id" => socket.assigns.checkin_log_id,
-      "survey_type" => "checkin"
+      "survey_type" => "general"
     }
 
-    System.create_visitor_survey(attrs)
+    case System.create_visitor_survey(attrs) do
+      {:ok, _survey} ->
+        Process.send_after(self(), :reset_survey, 2_000)
+        {:noreply, assign(socket, :step, :done)}
 
-    {:noreply, assign(socket, :step, :done)}
+      {:error, changeset} ->
+        {:noreply,
+         socket
+         |> assign(:survey_form, to_form(changeset, as: :survey))
+         |> put_flash(:error, "Survey save failed. Please fix the errors below.")}
+    end
+  end
+
+  def handle_event("validate_survey", %{"survey" => params}, socket) do
+    {:noreply, assign(socket, :survey_form, to_form(params, as: :survey))}
   end
 
   def handle_event("skip_survey", _params, socket) do
-    {:noreply, assign(socket, :step, :done)}
+    next_step = if(socket.assigns.selected_location, do: :show_forms, else: :select_room)
+
+    {:noreply,
+     socket
+     |> assign(:step, next_step)
+     |> assign(:form, to_form(%{}, as: :visitor))
+     |> assign(:survey_form, to_form(%{}, as: :survey))
+     |> assign(:checkin_log_id, nil)}
   end
 
   def handle_event("reset", _params, socket) do
+    next_step = if(socket.assigns.selected_location, do: :show_forms, else: :select_room)
+
     {:noreply,
      socket
-     |> assign(:step, :select_room)
-     |> assign(:selected_location, nil)
+     |> assign(:step, next_step)
+     |> assign(:form, to_form(%{}, as: :visitor))
+     |> assign(:survey_form, to_form(%{}, as: :survey))
+     |> assign(:checkin_log_id, nil)}
+  end
+
+  @impl true
+  def handle_info(:reset_survey, socket) do
+    next_step = if(socket.assigns.selected_location, do: :show_forms, else: :select_room)
+
+    {:noreply,
+     socket
+     |> assign(:step, next_step)
      |> assign(:form, to_form(%{}, as: :visitor))
      |> assign(:survey_form, to_form(%{}, as: :survey))
      |> assign(:checkin_log_id, nil)}
@@ -135,7 +184,7 @@ defmodule CuratorianWeb.Visitor.CheckInLive do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <div class="min-h-screen bg-base-200 py-12 px-4">
+      <div id="check-in-page" class="min-h-screen bg-base-200 py-12 px-4" phx-hook="PersistLocation" data-storage-key="curatorian:check_in_selected_location_id">
         <div class="max-w-2xl mx-auto">
           <div class="text-center mb-8">
             <h1 class="text-3xl font-bold text-base-content">Visitor Check-In</h1>
@@ -161,7 +210,7 @@ defmodule CuratorianWeb.Visitor.CheckInLive do
                         class="btn btn-outline btn-lg justify-start gap-3 h-auto py-4"
                       >
                         <.icon name="hero-map-pin" class="w-6 h-6 text-primary" />
-                        <span class="text-left">{location.name}</span>
+                        <span class="text-left">{location.location_name}</span>
                       </button>
                     <% end %>
                   </div>
@@ -180,7 +229,7 @@ defmodule CuratorianWeb.Visitor.CheckInLive do
                   </button>
                   <div>
                     <h2 class="card-title text-xl">Visitor Information</h2>
-                    <p class="text-sm text-base-content/60">{@selected_location.name}</p>
+                    <p class="text-sm text-base-content/60">{@selected_location.location_name}</p>
                   </div>
                 </div>
                 <.form for={@form} id="checkin-form" phx-change="validate" phx-submit="check_in">
@@ -188,16 +237,15 @@ defmodule CuratorianWeb.Visitor.CheckInLive do
                     <.input
                       field={@form[:identifier]}
                       type="text"
-                      label="Visitor ID / NIM / NIP"
-                      placeholder="Enter visitor identifier"
+                      label="Visitor ID"
+                      placeholder="Enter visitor identifier or Your Name here"
                       required
                     />
                     <.input
                       field={@form[:name]}
                       type="text"
                       label="Full Name"
-                      placeholder="Visitor full name"
-                      required
+                      placeholder="Visitor full name (optional)"
                     />
                     <.input
                       field={@form[:origin]}
@@ -241,7 +289,7 @@ defmodule CuratorianWeb.Visitor.CheckInLive do
                 <p class="text-base-content/60 mb-6">
                   Take a moment to rate your check-in experience.
                 </p>
-                <.form for={@survey_form} id="checkin-survey-form" phx-submit="submit_survey">
+                <.form for={@survey_form} id="checkin-survey-form" phx-change="validate_survey" phx-submit="submit_survey">
                   <div class="space-y-4">
                     <div>
                       <label class="label justify-center">
@@ -249,11 +297,18 @@ defmodule CuratorianWeb.Visitor.CheckInLive do
                       </label>
                       <div class="flex justify-center gap-3 mt-2">
                         <%= for rating <- 1..5 do %>
-                          <label class="cursor-pointer flex flex-col items-center gap-1">
+                          <% selected = to_string(@survey_form[:rating].value || "") == to_string(rating) %>
+                          <label
+                            class={[
+                              "cursor-pointer flex flex-col items-center gap-1 rounded-2xl border px-4 py-3 transition-all duration-150",
+                              selected && "border-primary bg-primary/10 shadow-sm"
+                            ]}
+                          >
                             <input
                               type="radio"
                               name="survey[rating]"
                               value={rating}
+                              checked={selected}
                               class="radio radio-primary"
                             />
                             <span class="text-sm font-medium">{rating}</span>
