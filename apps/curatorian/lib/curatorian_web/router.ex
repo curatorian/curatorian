@@ -86,6 +86,7 @@ defmodule CuratorianWeb.Router do
       live "/kurator", Public.ProfilesLive, :index
       live "/u/:username", Public.ProfileShowLive, :show
       live "/u/:username/blog/:slug", Public.BlogShowLive, :show
+      live "/blog", Public.CuratorsBlogLive, :index
       live "/orgs", Public.OrganizationsLive, :index
       live "/orgs/:slug", Public.OrganizationShowLive, :show
       live "/collections", Public.CollectionsLive, :index
@@ -120,6 +121,7 @@ defmodule CuratorianWeb.Router do
       live "/foyer", Foyer.FoyerLive, :index
       live "/visitor/check-in", Visitor.CheckInLive, :index
       live "/visitor/check-out", Visitor.CheckOutLive, :index
+      live "/personal/borrow-reviews", PersonalLibrary.BorrowRequestsLive, :index
     end
   end
 

@@ -24,7 +24,7 @@ defmodule CuratorianWeb.Public.OrganizationShowLive do
          |> put_flash(:error, "Organisasi tidak ditemukan.")
          |> push_navigate(to: ~p"/orgs")}
 
-      %{profile: profile, node: node, org_page: nil} ->
+      %{profile: _profile, node: _node, org_page: nil} ->
         {:noreply,
          socket
          |> put_flash(:error, "This org is not public.")
@@ -150,23 +150,33 @@ defmodule CuratorianWeb.Public.OrganizationShowLive do
 
         <%!-- ── Hero cover ───────────────────────────────────────────────────── --%>
         <div class="relative rounded-3xl overflow-hidden h-56 md:h-72 shadow-inner">
-          <%= if @org.node_image do %>
+          <%= if @org.cover_url do %>
             <img
-              src={@org.node_image}
+              src={@org.cover_url}
               alt={@org.name}
               class="absolute inset-0 w-full h-full object-cover"
             />
           <% else %>
-            <div class="absolute inset-0 bg-gradient-to-br from-primary via-secondary to-accent">
-            </div>
+            <%= if @org.node_image do %>
+              <img
+                src={@org.node_image}
+                alt={@org.name}
+                class="absolute inset-0 w-full h-full object-cover"
+              />
+            <% else %>
+              <div class="absolute inset-0 bg-gradient-to-br from-primary via-secondary to-accent">
+              </div>
+            <% end %>
           <% end %>
           <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent">
           </div>
-          <div class="absolute inset-0 flex items-center justify-center">
-            <span class="text-base-content/20 text-5xl font-black tracking-widest">
-              {String.upcase(@org.name || "ORGANISASI")}
-            </span>
-          </div>
+          <%= if @org.cover_url in [nil, ""] do %>
+            <div class="absolute inset-0 flex items-center justify-center">
+              <span class="text-base-content/20 text-5xl font-black tracking-widest">
+                {String.upcase(@org.name || "ORGANISASI")}
+              </span>
+            </div>
+          <% end %>
         </div>
 
         <%!-- ── Identity block — overlaps cover ─────────────────────────────── --%>
@@ -174,12 +184,16 @@ defmodule CuratorianWeb.Public.OrganizationShowLive do
           <div class="bg-base-100/95 backdrop-blur-xl rounded-3xl border border-base-300 p-5 shadow-lg grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-4 items-center">
             <%!-- Logo / avatar --%>
             <div class="w-24 h-24 md:w-28 md:h-28 rounded-2xl overflow-hidden border border-base-300 bg-base-200 flex items-center justify-center shadow-inner">
-              <%= if @org.node_image do %>
-                <img src={@org.node_image} alt={@org.name} class="w-full h-full object-cover" />
+              <%= if @org.avatar_url do %>
+                <img src={@org.avatar_url} alt={@org.name} class="w-full h-full object-cover" />
               <% else %>
-                <span class="text-4xl font-bold text-primary/70">
-                  {String.first(@org.name || "O")}
-                </span>
+                <%= if @org.node_image do %>
+                  <img src={@org.node_image} alt={@org.name} class="w-full h-full object-cover" />
+                <% else %>
+                  <span class="text-4xl font-bold text-primary/70">
+                    {String.first(@org.name || "O")}
+                  </span>
+                <% end %>
               <% end %>
             </div>
 

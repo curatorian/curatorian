@@ -430,6 +430,10 @@ defmodule Curatorian.Public do
       )
       |> Repo.all()
       |> Enum.map(&Map.update!(&1, :role_name, fn name -> name && String.downcase(name) end))
+      |> Enum.group_by(& &1.user_id)
+      |> Enum.map(fn {_user_id, memberships} ->
+        Enum.min_by(memberships, fn member -> Map.get(@role_order, member.role_name, 99) end)
+      end)
 
     role_members = role_members || []
 
@@ -475,8 +479,13 @@ defmodule Curatorian.Public do
       from(np in NodeProfile,
         join: n in Unit,
         on: np.voile_node_id == n.id,
+        left_join: o in OrgPage,
+        on:
+          np.voile_node_id == o.voile_node_id and
+            o.is_public == true and
+            is_nil(o.deleted_at),
         where: np.status == :approved and is_nil(np.deleted_at),
-        select: %{profile: np, node: n}
+        select: %{profile: np, node: n, org_page: o}
       )
 
     base_query
@@ -526,6 +535,15 @@ defmodule Curatorian.Public do
         np.voile_node_id == ^voile_node_id and np.status == :approved and
           is_nil(np.deleted_at),
       select: np.id
+    )
+    |> Repo.one()
+  end
+
+  def get_node_profile_by_voile_node(voile_node_id) do
+    from(np in NodeProfile,
+      where:
+        np.voile_node_id == ^voile_node_id and np.status == :approved and
+          is_nil(np.deleted_at)
     )
     |> Repo.one()
   end
@@ -626,6 +644,102 @@ defmodule Curatorian.Public do
       _ ->
         result
     end
+  end
+
+  # ---------------------------------------------------------------------------
+  # Blog Posts — Unified listing (all curators)
+  # ---------------------------------------------------------------------------
+
+  @doc """
+  Returns all published blog posts from all curators, joined with author info.
+  Supports search (title), tag filter, and sort (newest/popular).
+  """
+  def list_blog_posts(opts \\ []) do
+    page = Keyword.get(opts, :page, 1)
+    search = Keyword.get(opts, :search, "")
+    tag = Keyword.get(opts, :tag, nil)
+    sort = Keyword.get(opts, :sort, "newest")
+
+    from(p in BlogPost,
+      join: u in UserProfile,
+      on: u.voile_user_id == p.voile_user_id and u.is_public == true and is_nil(u.deleted_at),
+      where: p.status == "published" and is_nil(p.deleted_at),
+      select: %{
+        id: p.id,
+        title: p.title,
+        slug: p.slug,
+        cover_url: p.cover_url,
+        tags: p.tags,
+        published_at: p.published_at,
+        view_count: p.view_count,
+        comment_count: p.comment_count,
+        body: p.body,
+        username: u.username,
+        display_name: u.display_name,
+        avatar_url: u.avatar_url
+      }
+    )
+    |> unified_blog_search(search)
+    |> unified_blog_tag(tag)
+    |> unified_blog_sort(sort)
+    |> limit(@page_size)
+    |> offset(^((page - 1) * @page_size))
+    |> Repo.all()
+  end
+
+  @doc "Returns popular tags across all published blog posts as {tag, count} tuples."
+  def list_popular_blog_tags(limit \\ 20) do
+    case Repo.query(
+           """
+           SELECT tag, count(*)::integer AS cnt
+           FROM atrium.user_blog_posts,
+                unnest(tags) AS tag
+           WHERE status = 'published' AND deleted_at IS NULL
+           GROUP BY tag
+           ORDER BY cnt DESC
+           LIMIT $1
+           """,
+           [limit]
+         ) do
+      {:ok, %{rows: rows}} -> Enum.map(rows, fn [tag, cnt] -> {tag, cnt} end)
+      _ -> []
+    end
+  end
+
+  defp unified_blog_search(query, ""), do: query
+
+  defp unified_blog_search(query, search) do
+    pattern = "%#{search}%"
+    where(query, [p], ilike(p.title, ^pattern))
+  end
+
+  defp unified_blog_tag(query, nil), do: query
+
+  defp unified_blog_tag(query, tag) do
+    where(query, [p], fragment("? = ANY(?)", ^tag, p.tags))
+  end
+
+  defp unified_blog_sort(query, "popular") do
+    order_by(query, [p], desc: p.view_count, desc: p.published_at)
+  end
+
+  defp unified_blog_sort(query, _) do
+    order_by(query, [p], desc: p.published_at)
+  end
+
+  @doc "Counts all published blog posts matching the given filters (for pagination)."
+  def count_blog_posts(opts \\ []) do
+    search = Keyword.get(opts, :search, "")
+    tag = Keyword.get(opts, :tag, nil)
+
+    from(p in BlogPost,
+      join: u in UserProfile,
+      on: u.voile_user_id == p.voile_user_id and u.is_public == true and is_nil(u.deleted_at),
+      where: p.status == "published" and is_nil(p.deleted_at)
+    )
+    |> unified_blog_search(search)
+    |> unified_blog_tag(tag)
+    |> Repo.aggregate(:count, :id)
   end
 
   # ---------------------------------------------------------------------------

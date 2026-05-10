@@ -80,11 +80,19 @@ defmodule CuratorianWeb.Public.OrganizationsLive do
   end
 
   # Merge %{profile: node_profile, node: voile_node} into a flat map for the template
-  defp flatten_org(%{profile: profile, node: node}) do
+  defp flatten_org(%{profile: profile, node: node, org_page: org_page}) do
+    merged_avatar =
+      org_page && Map.get(org_page, :avatar_url) || Map.get(profile, :avatar_url)
+
+    merged_cover =
+      org_page && Map.get(org_page, :cover_url) || Map.get(profile, :cover_url)
+
     %{
       id: profile.id,
       name: profile.institution_name || node.name,
       abbr: node.abbr,
+      avatar_url: Public.asset_url(merged_avatar),
+      cover_url: Public.asset_url(merged_cover),
       node_image: Public.asset_url(node.image),
       institution_type: profile.institution_type,
       node_type: profile.node_type,
@@ -222,20 +230,28 @@ defmodule CuratorianWeb.Public.OrganizationsLive do
 
     ~H"""
     <div class="group bg-base-100 rounded-2xl border border-base-300/70 hover:border-primary/30 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 overflow-hidden">
-      <%!-- Cover placeholder --%>
+      <%!-- Cover --%>
       <div class="h-24 overflow-hidden">
-        <div class="w-full h-full bg-gradient-to-br from-secondary/25 to-primary/35"></div>
+        <%= if @org.cover_url do %>
+          <img src={@org.cover_url} alt={@org.name} class="w-full h-full object-cover" />
+        <% else %>
+          <div class="w-full h-full bg-gradient-to-br from-secondary/25 to-primary/35"></div>
+        <% end %>
       </div>
 
       <div class="px-4 pb-4 pt-0 -mt-8">
         <%!-- Avatar / logo --%>
         <div class="w-16 h-16 rounded-xl ring-4 ring-base-100 overflow-hidden bg-primary/15 flex items-center justify-center">
-          <%= if @org.node_image do %>
-            <img src={@org.node_image} alt={@org.name} class="w-full h-full object-cover" />
+          <%= if @org.avatar_url do %>
+            <img src={@org.avatar_url} alt={@org.name} class="w-full h-full object-cover" />
           <% else %>
-            <span class="text-2xl font-bold text-primary/80">
-              {String.first(@org.name || "O")}
-            </span>
+            <%= if @org.node_image do %>
+              <img src={@org.node_image} alt={@org.name} class="w-full h-full object-cover" />
+            <% else %>
+              <span class="text-2xl font-bold text-primary/80">
+                {String.first(@org.name || "O")}
+              </span>
+            <% end %>
           <% end %>
         </div>
 

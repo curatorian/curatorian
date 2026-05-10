@@ -267,7 +267,7 @@ defmodule CuratorianWeb.Public.BlogShowLive do
                       {format_date(comment.inserted_at)}
                     </span>
                   </div>
-                  <p class="text-sm text-base-content/80 leading-relaxed whitespace-pre-wrap">
+                  <p class="text-sm text-base-content/80 leading-relaxed">
                     {comment.body}
                   </p>
                 </div>

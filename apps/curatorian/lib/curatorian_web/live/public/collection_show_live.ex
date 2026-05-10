@@ -4,6 +4,7 @@ defmodule CuratorianWeb.Public.CollectionShowLive do
   use CuratorianWeb, :live_view
 
   alias Curatorian.Public
+  alias Curatorian.PersonalLibrary
 
   @type_labels %{
     "book" => "Buku",
@@ -32,6 +33,23 @@ defmodule CuratorianWeb.Public.CollectionShowLive do
             Public.get_node_profile_id_by_voile_node(collection.unit.id)
           end
 
+        personal_library_node =
+          if collection.unit do
+            Public.get_node_profile_by_voile_node(collection.unit.id)
+          end
+
+        current_user = socket.assigns.current_scope && socket.assigns.current_scope.user
+        current_user_node = Map.get(current_user || %{}, :node_id)
+
+        is_personal_library =
+          personal_library_node && personal_library_node.node_type == :personal
+
+        can_request_borrow =
+          is_personal_library && current_user && current_user_node != collection.unit.id
+
+        is_personal_library_owner =
+          is_personal_library && current_user_node == collection.unit.id
+
         collection_fields =
           collection.collection_fields
           |> Enum.sort_by(&(&1.sort_order || 0))
@@ -43,7 +61,55 @@ defmodule CuratorianWeb.Public.CollectionShowLive do
          |> assign(:collection_fields, collection_fields)
          |> assign(:item_summary, build_item_summary(collection))
          |> assign(:type_label, Map.get(@type_labels, collection.collection_type, nil))
-         |> assign(:org_profile_id, org_profile_id)}
+         |> assign(:org_profile_id, org_profile_id)
+         |> assign(:can_request_borrow, can_request_borrow)
+         |> assign(:is_personal_library_owner, is_personal_library_owner)}
+    end
+  end
+
+  def handle_event("request_borrow", %{"item-id" => item_id}, socket) do
+    current_user = socket.assigns.current_scope && socket.assigns.current_scope.user
+
+    cond do
+      current_user == nil ->
+        {:noreply, put_flash(socket, :error, "Please log in to request a borrow.")}
+
+      not socket.assigns.can_request_borrow ->
+        {:noreply,
+         put_flash(
+           socket,
+           :error,
+           "Borrow requests are only available for personal library collections."
+         )}
+
+      true ->
+        lender_user_id =
+          PersonalLibrary.get_owner_user_id_for_node(socket.assigns.collection.unit.id)
+
+        case Enum.find(socket.assigns.collection.items, fn item ->
+               to_string(item.id) == item_id
+             end) do
+          nil ->
+            {:noreply, put_flash(socket, :error, "Item not found.")}
+
+          item ->
+            attrs = %{
+              "lender_user_id" => lender_user_id,
+              "borrower_user_id" => current_user.id,
+              "voile_item_id" => item.id,
+              "item_title" => item.item_code || item.inventory_code || "",
+              "status" => "pending",
+              "request_message" => "Borrow request from Curatorian user"
+            }
+
+            case PersonalLibrary.create_borrow_request(attrs) do
+              {:ok, _request} ->
+                {:noreply, put_flash(socket, :info, "Borrow request successfully created.")}
+
+              {:error, _changeset} ->
+                {:noreply, put_flash(socket, :error, "Failed to create borrow request.")}
+            end
+        end
     end
   end
 
@@ -145,6 +211,22 @@ defmodule CuratorianWeb.Public.CollectionShowLive do
                   Dipublikasikan
                 </span>
               </div>
+              <div class="mb-4">
+                <%= if @is_personal_library_owner do %>
+                  <.link
+                    navigate={~p"/personal/borrow-reviews"}
+                    class="btn btn-sm btn-outline"
+                  >
+                    {gettext("Review borrow requests")}
+                  </.link>
+                <% else %>
+                  <%= if @can_request_borrow do %>
+                    <p class="text-sm text-base-content/70">
+                      {gettext("Choose an item below and click Request to send a borrow request.")}
+                    </p>
+                  <% end %>
+                <% end %>
+              </div>
 
               <h1 class="text-3xl sm:text-4xl font-semibold tracking-tight text-base-content">
                 {@collection.title}
@@ -191,7 +273,7 @@ defmodule CuratorianWeb.Public.CollectionShowLive do
               </div>
 
               <div class="rounded-[2rem] border border-base-300/70 bg-base-100 shadow-sm p-6">
-                <div class="flex flex-col gap-4">
+                <div class="space-y-5">
                   <div>
                     <h2 class="text-base font-semibold">Data Item</h2>
                     <p class="mt-2 text-sm text-base-content/60">
@@ -199,67 +281,88 @@ defmodule CuratorianWeb.Public.CollectionShowLive do
                     </p>
                   </div>
 
-                  <div class="rounded-3xl bg-base-200 p-4">
-                    <p class="text-xs uppercase tracking-wide text-base-content/50">Total item</p>
-                    <p class="mt-2 text-3xl font-semibold text-base-content">
-                      {@item_summary.total_items}
-                    </p>
-                  </div>
+                  <div class="grid gap-4 sm:grid-cols-2">
+                    <div class="rounded-3xl border border-base-300/70 bg-base-200 p-4">
+                      <p class="text-xs uppercase tracking-wide text-base-content/50">
+                        Total item
+                      </p>
+                      <p class="mt-2 text-3xl font-semibold text-base-content">
+                        {@item_summary.total_items}
+                      </p>
+                    </div>
 
-                  <div>
-                    <p class="text-xs uppercase tracking-wide text-base-content/50 mb-3">
-                      Ketersediaan
-                    </p>
-                    <%= if @item_summary.total_items > 0 do %>
-                      <div class="grid gap-3">
+                    <div class="rounded-3xl border border-base-300/70 bg-base-200 p-4">
+                      <p class="text-xs uppercase tracking-wide text-base-content/50">
+                        Ketersediaan
+                      </p>
+                      <div class="mt-3 grid gap-2">
                         <%= for {status, count} <- @item_summary.availability_summary do %>
-                          <div class="flex items-center justify-between gap-3 rounded-3xl border border-base-300/60 bg-base-200 px-4 py-3">
-                            <span class="text-sm text-base-content">{status}</span>
-                            <span class="text-sm font-semibold text-base-content">{count}</span>
+                          <div class="flex items-center justify-between gap-3 rounded-3xl bg-base-100 px-3 py-2 text-sm">
+                            <span class="text-base-content">{status}</span>
+                            <span class="font-semibold text-base-content">{count}</span>
                           </div>
                         <% end %>
                       </div>
-                    <% else %>
-                      <p class="text-sm text-base-content/60">
-                        Belum ada item dalam koleksi ini.
-                      </p>
-                    <% end %>
+                    </div>
                   </div>
 
-                  <%= if @collection.items != [] do %>
-                    <div class="overflow-x-auto rounded-[1.5rem] border border-base-300/70 bg-base-100 shadow-sm">
-                      <table class="min-w-full text-sm text-left text-base-content">
-                        <thead class="bg-base-200 text-xs uppercase text-base-content/50">
-                          <tr>
-                            <th class="px-4 py-3">Item Code</th>
-                            <th class="px-4 py-3">Inventory</th>
-                            <th class="px-4 py-3">Availability</th>
-                            <th class="px-4 py-3">Status</th>
-                            <th class="px-4 py-3">Lokasi</th>
-                          </tr>
-                        </thead>
-                        <tbody class="divide-y divide-base-200">
-                          <%= for item <- @collection.items do %>
-                            <tr class="hover:bg-base-200/80 transition-colors duration-150">
-                              <td class="px-4 py-3 font-medium text-base-content">
-                                {item.item_code || "-"}
-                              </td>
-                              <td class="px-4 py-3 text-base-content/70">
-                                {item.inventory_code || "-"}
-                              </td>
-                              <td class="px-4 py-3 text-base-content/70">
-                                {item.availability || "Unknown"}
-                              </td>
-                              <td class="px-4 py-3 text-base-content/70">
-                                {item.status || "-"}
-                              </td>
-                              <td class="px-4 py-3 text-base-content/70">
-                                {item.location || "-"}
-                              </td>
-                            </tr>
-                          <% end %>
-                        </tbody>
-                      </table>
+                  <%= if @collection.items == [] do %>
+                    <div class="rounded-3xl border border-base-300/70 bg-base-200 p-4 text-sm text-base-content/70">
+                      Belum ada item dalam koleksi ini.
+                    </div>
+                  <% else %>
+                    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                      <%= for item <- @collection.items do %>
+                        <div class="rounded-[1.5rem] border border-base-300/70 bg-base-100 p-4 shadow-sm flex flex-col">
+                          <div class="flex items-start justify-between gap-4">
+                            <div class="min-w-0">
+                              <p class="text-xs uppercase tracking-wide text-base-content/50">
+                                Barcode
+                              </p>
+                              <p class="mt-1 font-medium text-base-content break-words whitespace-normal">
+                                {item.barcode || item.inventory_code || item.item_code || "-"}
+                              </p>
+                            </div>
+                            <span class="rounded-full bg-base-200 px-3 py-1 text-xs font-semibold text-base-content shrink-0">
+                              {item.availability || "Unknown"}
+                            </span>
+                          </div>
+
+                          <div class="mt-4 grid gap-3 text-sm text-base-content/70">
+                            <div class="grid gap-1">
+                              <span class="font-semibold text-base-content">Status</span>
+                              <span>{item.status || "-"}</span>
+                            </div>
+                            <div class="grid gap-1">
+                              <span class="font-semibold text-base-content">Lokasi</span>
+                              <span>{item.location || "-"}</span>
+                            </div>
+                          </div>
+
+                          <div class="mt-4 text-xs text-base-content/50">
+                            {gettext("Item ID")}: {item.id}
+                          </div>
+
+                          <div class="mt-5">
+                            <%= if @can_request_borrow do %>
+                              <button
+                                phx-click="request_borrow"
+                                phx-value-item-id={item.id}
+                                class="btn btn-sm btn-primary w-full"
+                              >
+                                {gettext("Request")}
+                              </button>
+                            <% else %>
+                              <div class="rounded-3xl border border-base-300/70 bg-base-200 p-3 text-center text-xs text-base-content/50">
+                                {if(@current_scope && @current_scope.user,
+                                  do: gettext("Request unavailable"),
+                                  else: gettext("Log in to request")
+                                )}
+                              </div>
+                            <% end %>
+                          </div>
+                        </div>
+                      <% end %>
                     </div>
                   <% end %>
                 </div>

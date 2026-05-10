@@ -4,7 +4,7 @@ defmodule Curatorian.Public.BlogPostComment do
   use Ecto.Schema
   import Ecto.Changeset
 
-  @primary_key {:id, :binary_id, autogenerate: false}
+  @primary_key {:id, :binary_id, autogenerate: true}
   @schema_prefix "atrium"
 
   schema "blog_post_comments" do
@@ -21,7 +21,7 @@ defmodule Curatorian.Public.BlogPostComment do
   end
 
   @required [:blog_post_id, :voile_user_id, :author_username, :author_display_name, :body]
-  @optional [:author_avatar_url, :is_hidden, :deleted_at]
+  @optional [:id, :author_avatar_url, :is_hidden, :deleted_at]
 
   def changeset(comment, attrs) do
     comment

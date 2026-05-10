@@ -158,6 +158,7 @@ defmodule CuratorianWeb.Layouts do
       |> assign(:menus, [
         %{title: "Beranda", url: "/"},
         %{title: "Tentang", url: "/about"},
+        %{title: "Curatorial", url: "/blog"},
         %{
           title: "Komunitas",
           items: [
