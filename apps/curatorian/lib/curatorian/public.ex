@@ -25,7 +25,6 @@ defmodule Curatorian.Public do
     JobPosting,
     JobApplication,
     Event,
-    EventAttendance,
     EventRegistration,
     OrgPageFollower,
     CrowdfundingCampaign,
@@ -930,10 +929,38 @@ defmodule Curatorian.Public do
   end
 
   def check_event_registration(user_id, event_id) do
-    Repo.get_by(EventAttendance,
-      voile_user_id: user_id,
-      event_id: event_id
+    Repo.exists?(
+      from(r in EventRegistration,
+        where: r.voile_user_id == ^user_id and r.event_id == ^event_id
+      )
     )
+  end
+
+  def get_registration_for_user(user_id, event_id) do
+    Repo.get_by(EventRegistration, voile_user_id: user_id, event_id: event_id)
+  end
+
+  def register_for_event(user_id, event_id, opts \\ []) do
+    requires_approval = Keyword.get(opts, :requires_approval, true)
+    amount_paid_idr = Keyword.get(opts, :amount_paid_idr, 0)
+    status = if requires_approval, do: :pending, else: :approved
+
+    attrs = %{
+      event_id: event_id,
+      voile_user_id: to_string(user_id),
+      registration_code: generate_registration_code(),
+      registered_at: DateTime.utc_now(),
+      status: status,
+      amount_paid_idr: amount_paid_idr
+    }
+
+    %EventRegistration{}
+    |> EventRegistration.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  defp generate_registration_code do
+    "REG-" <> (:crypto.strong_rand_bytes(4) |> Base.encode16())
   end
 
   defp filter_event_type(query, nil), do: query

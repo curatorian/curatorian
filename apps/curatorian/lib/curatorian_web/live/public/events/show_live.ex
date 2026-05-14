@@ -15,15 +15,64 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
 
       event ->
         user_id = socket.assigns.current_scope && socket.assigns.current_scope.user.id
-        registered = user_id && Public.check_event_registration(user_id, event.id)
+
+        registration =
+          if user_id, do: Public.get_registration_for_user(user_id, event.id), else: nil
 
         {:ok,
          socket
          |> assign(:page_title, "#{event.title} — Event GLAM Indonesia")
          |> assign(:event, event)
          |> assign(:user_id, user_id)
-         |> assign(:is_registered, !!registered)
+         |> assign(:registration, registration)
+         |> assign(:payment_step, false)
          |> assign(:registration_open, registration_open?(event))}
+    end
+  end
+
+  def handle_event("register", _params, socket) do
+    %{event: event, user_id: user_id} = socket.assigns
+
+    cond do
+      is_nil(user_id) ->
+        {:noreply, push_navigate(socket, to: "/login?return_to=/events/#{event.slug}")}
+
+      event.is_paid ->
+        {:noreply, assign(socket, :payment_step, true)}
+
+      true ->
+        do_register(socket, 0)
+    end
+  end
+
+  def handle_event("confirm_payment", _params, socket) do
+    %{event: event} = socket.assigns
+    amount = event.price_idr || 0
+    do_register(socket, amount)
+  end
+
+  def handle_event("cancel_payment", _params, socket) do
+    {:noreply, assign(socket, :payment_step, false)}
+  end
+
+  defp do_register(socket, amount_paid_idr) do
+    %{event: event, user_id: user_id} = socket.assigns
+
+    opts = [
+      requires_approval: event.requires_approval,
+      amount_paid_idr: amount_paid_idr
+    ]
+
+    case Public.register_for_event(user_id, event.id, opts) do
+      {:ok, registration} ->
+        {:noreply,
+         socket
+         |> assign(:registration, registration)
+         |> assign(:payment_step, false)
+         |> put_flash(:info, "Pendaftaran berhasil dikirim!")}
+
+      {:error, _changeset} ->
+        {:noreply, put_flash(socket, :error, "Gagal mendaftar, coba lagi.")}
     end
   end
 
@@ -90,43 +139,130 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
                 )}
               </p>
               <p><strong>Kuota:</strong> {slot_text(@event)}</p>
+              <%= if @event.is_paid do %>
+                <p>
+                  <strong>Biaya:</strong>
+                  <span class="font-semibold text-primary">
+                    Rp {format_idr(@event.price_idr || 0)}
+                  </span>
+                </p>
+              <% else %>
+                <p><strong>Biaya:</strong> <span class="text-success font-semibold">Gratis</span></p>
+              <% end %>
             </div>
 
-            <div class="bg-base-100 border border-base-300 rounded-2xl p-4">
-              <%= if @event.status in [:canceled, :registration_closed] do %>
-                <span class="inline-flex items-center justify-center w-full px-4 py-2 rounded-xl bg-base-200 text-base-content font-semibold">
-                  Pendaftaran Ditutup
-                </span>
-              <% else %>
-                <%= if @registration_open != true do %>
+            <%!-- Payment step overlay --%>
+            <%= if @payment_step do %>
+              <div
+                id="payment-panel"
+                class="bg-base-100 border-2 border-primary rounded-2xl p-5 space-y-4"
+              >
+                <p class="font-semibold text-base-content">Konfirmasi Pembayaran</p>
+                <p class="text-sm text-base-content/70">
+                  Selesaikan pembayaran untuk mendaftar ke event ini.
+                </p>
+                <div class="bg-base-200 rounded-xl px-4 py-3 text-sm space-y-1">
+                  <p class="font-medium text-base-content">{@event.title}</p>
+                  <p class="text-base-content/60">
+                    Rp {format_idr(@event.price_idr || 0)}
+                  </p>
+                </div>
+                <p class="text-xs text-base-content/40 italic">
+                  Demo — integrasi payment gateway akan ditambahkan kemudian.
+                </p>
+                <div class="flex gap-2">
+                  <button
+                    phx-click="confirm_payment"
+                    class="flex-1 px-4 py-2 rounded-xl bg-primary text-primary-content font-semibold text-sm hover:brightness-90 transition"
+                  >
+                    Bayar Sekarang
+                  </button>
+                  <button
+                    phx-click="cancel_payment"
+                    class="flex-1 px-4 py-2 rounded-xl bg-base-200 text-base-content font-semibold text-sm hover:bg-base-300 transition"
+                  >
+                    Batal
+                  </button>
+                </div>
+              </div>
+            <% else %>
+              <div id="registration-cta" class="bg-base-100 border border-base-300 rounded-2xl p-4">
+                <%= if @event.status in [:canceled, :registration_closed] do %>
                   <span class="inline-flex items-center justify-center w-full px-4 py-2 rounded-xl bg-base-200 text-base-content font-semibold">
-                    Pendaftaran Belum Dibuka
+                    Pendaftaran Ditutup
                   </span>
                 <% else %>
-                  <%= if @is_registered do %>
-                    <span class="inline-flex items-center justify-center w-full px-4 py-2 rounded-xl bg-secondary text-secondary-content font-semibold">
-                      Sudah Terdaftar
-                    </span>
-                  <% else %>
-                    <%= if is_nil(@user_id) do %>
+                  <%= cond do %>
+                    <% @registration != nil and @registration.status == :approved -> %>
+                      <div class="text-center space-y-1">
+                        <span class="inline-flex items-center justify-center gap-1 w-full px-4 py-2 rounded-xl bg-success/15 text-success font-semibold">
+                          <.icon name="hero-check-circle" class="size-4" /> Disetujui
+                        </span>
+                        <p class="text-xs text-base-content/50">
+                          Kode: {@registration.registration_code}
+                        </p>
+                      </div>
+                    <% @registration != nil and @registration.status == :pending -> %>
+                      <div class="text-center space-y-1">
+                        <span class="inline-flex items-center justify-center gap-1 w-full px-4 py-2 rounded-xl bg-warning/15 text-warning font-semibold">
+                          <.icon name="hero-clock" class="size-4" /> Menunggu Konfirmasi
+                        </span>
+                        <p class="text-xs text-base-content/50">
+                          Pendaftaran Anda sedang ditinjau oleh penyelenggara.
+                        </p>
+                      </div>
+                    <% @registration != nil and @registration.status == :waitlisted -> %>
+                      <div class="text-center space-y-1">
+                        <span class="inline-flex items-center justify-center gap-1 w-full px-4 py-2 rounded-xl bg-info/15 text-info font-semibold">
+                          <.icon name="hero-queue-list" class="size-4" /> Dalam Daftar Tunggu
+                        </span>
+                        <p class="text-xs text-base-content/50">
+                          Anda akan dikonfirmasi jika ada slot tersedia.
+                        </p>
+                      </div>
+                    <% @registration != nil and @registration.status == :rejected -> %>
+                      <div class="text-center space-y-1">
+                        <span class="inline-flex items-center justify-center gap-1 w-full px-4 py-2 rounded-xl bg-error/15 text-error font-semibold">
+                          <.icon name="hero-x-circle" class="size-4" /> Pendaftaran Ditolak
+                        </span>
+                        <p class="text-xs text-base-content/50">
+                          Hubungi penyelenggara untuk informasi lebih lanjut.
+                        </p>
+                      </div>
+                    <% @registration != nil and @registration.status == :canceled -> %>
+                      <span class="inline-flex items-center justify-center gap-1 w-full px-4 py-2 rounded-xl bg-base-200 text-base-content/60 font-semibold">
+                        <.icon name="hero-x-mark" class="size-4" /> Dibatalkan
+                      </span>
+                    <% @registration != nil -> %>
+                      <span class="inline-flex items-center justify-center w-full px-4 py-2 rounded-xl bg-secondary/15 text-secondary font-semibold">
+                        Sudah Terdaftar
+                      </span>
+                    <% @registration_open != true -> %>
+                      <span class="inline-flex items-center justify-center w-full px-4 py-2 rounded-xl bg-base-200 text-base-content font-semibold">
+                        Pendaftaran Belum Dibuka
+                      </span>
+                    <% is_nil(@user_id) -> %>
                       <.link
-                        navigate="/login?return_to=/events/#{@event.slug}"
-                        class="inline-flex items-center justify-center w-full px-4 py-2 rounded-xl bg-primary text-primary-content font-semibold"
+                        navigate={"/login?return_to=/events/#{@event.slug}"}
+                        class="inline-flex items-center justify-center w-full px-4 py-2 rounded-xl bg-primary text-primary-content font-semibold hover:brightness-90 transition"
                       >
                         Masuk untuk daftar
                       </.link>
-                    <% else %>
+                    <% true -> %>
                       <button
-                        disabled
-                        class="inline-flex items-center justify-center w-full px-4 py-2 rounded-xl bg-primary text-primary-content font-semibold"
+                        phx-click="register"
+                        class="inline-flex items-center justify-center w-full px-4 py-2 rounded-xl bg-primary text-primary-content font-semibold hover:brightness-90 transition"
                       >
-                        Daftar Sekarang
+                        <%= if @event.is_paid do %>
+                          Daftar &amp; Bayar
+                        <% else %>
+                          Daftar Sekarang
+                        <% end %>
                       </button>
-                    <% end %>
                   <% end %>
                 <% end %>
-              <% end %>
-            </div>
+              </div>
+            <% end %>
           </aside>
         </div>
       </div>
@@ -219,4 +355,16 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
   defp to_label(:ongoing), do: "Berlangsung"
   defp to_label(:completed), do: "Selesai"
   defp to_label(_), do: ""
+
+  defp format_idr(amount) when is_integer(amount) do
+    amount
+    |> Integer.to_string()
+    |> String.reverse()
+    |> String.graphemes()
+    |> Enum.chunk_every(3)
+    |> Enum.join(".")
+    |> String.reverse()
+  end
+
+  defp format_idr(_), do: "0"
 end

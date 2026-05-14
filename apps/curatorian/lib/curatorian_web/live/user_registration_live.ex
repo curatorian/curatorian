@@ -20,73 +20,120 @@ defmodule CuratorianWeb.UserRegistrationLive do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <div class="min-h-screen flex items-center justify-center py-16 px-4">
-        <div class="w-full max-w-md">
-          <div class="card bg-base-100 shadow-xl border border-base-300">
-            <div class="card-body gap-6">
-              <%!-- Header --%>
-              <div class="text-center">
-                <h1 class="text-3xl font-bold text-primary mb-1">Create account</h1>
-                <p class="text-base-content/60 text-sm">
-                  Join Curatorian today
-                </p>
-              </div>
-
-              <%!--
-                phx-trigger-action fires a real HTTP POST once trigger_submit is true.
-                The session controller then creates the session for the new user.
-              --%>
-              <.form
-                for={@form}
-                id="registration_form"
-                phx-submit="save"
-                phx-change="validate"
-                class="flex flex-col gap-4"
-              >
-                <.input
-                  field={@form[:email]}
-                  type="email"
-                  label="Email"
-                  placeholder="you@example.com"
-                  required
-                  autocomplete="username"
-                />
-
-                <.input
-                  field={@form[:password]}
-                  type="password"
-                  label="Password"
-                  placeholder="at least 8 characters"
-                  required
-                  autocomplete="new-password"
-                />
-
-                <div style="display:none" aria-hidden="true">
-                  <input type="text" name="user[website]" tabindex="-1" autocomplete="off" />
+      <div class="flex justify-center px-4 py-6">
+        <div class="w-full max-w-4xl">
+          <div class="card bg-base-100 shadow-xl border border-base-300 overflow-hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-5">
+              <%!-- Brand panel --%>
+              <div class="hidden lg:flex lg:col-span-2 bg-primary flex-col justify-between p-8 relative overflow-hidden">
+                <%!-- Decorative background shapes --%>
+                <div class="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-primary-content/5 pointer-events-none">
+                </div>
+                <div class="absolute -bottom-14 -left-6 w-56 h-56 rounded-full bg-primary-content/5 pointer-events-none">
                 </div>
 
-                <.captcha
-                  id="registration_turnstile"
-                  theme={@turnstile_theme}
-                  events={[:success, :error, :expired]}
-                  captcha_valid={@captcha_valid}
-                />
+                <div class="relative z-10">
+                  <div class="flex items-center gap-2 mb-10">
+                    <div class="w-9 h-9 rounded-full bg-primary-content/15 flex items-center justify-center">
+                      <.icon name="hero-book-open" class="size-4 text-primary-content" />
+                    </div>
+                    <span class="font-semibold text-primary-content tracking-wide">Curatorian</span>
+                  </div>
 
-                <.button
-                  type="submit"
-                  class={"btn btn-primary w-full " <> if(!@captcha_valid, do: "opacity-50 cursor-not-allowed", else: "")}
-                  phx-disable-with="Creating account…"
-                  disabled={!@captcha_valid}
+                  <h2 class="text-2xl font-serif font-semibold text-primary-content leading-snug mb-3">
+                    Bergabunglah dengan komunitas Kurator.
+                  </h2>
+                  <p class="text-sm text-primary-content/70 leading-relaxed">
+                    Buat akun Anda dan mulai kelola koleksi GLAM dengan alat yang dirancang sesuai cara Anda bekerja.
+                  </p>
+                </div>
+
+                <div class="relative z-10 space-y-3 mt-8">
+                  <div class="flex items-center gap-2 text-sm text-primary-content/80">
+                    <.icon name="hero-check-circle" class="size-4 text-primary-content/60 shrink-0" />
+                    <span>Gratis untuk memulai</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-sm text-primary-content/80">
+                    <.icon name="hero-check-circle" class="size-4 text-primary-content/60 shrink-0" />
+                    <span>Tanpa batas katalog</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-sm text-primary-content/80">
+                    <.icon name="hero-check-circle" class="size-4 text-primary-content/60 shrink-0" />
+                    <span>Dibuat untuk GLAM Indonesia</span>
+                  </div>
+                </div>
+              </div>
+
+              <%!-- Form panel --%>
+              <div class="col-span-1 lg:col-span-3 p-8 lg:p-10 flex flex-col justify-center">
+                <div class="mb-7">
+                  <h1 class="text-2xl font-semibold text-base-content mb-1">Buat akun Anda</h1>
+                  <p class="text-sm text-base-content/60">
+                    Bergabung dengan Curatorian hari ini
+                  </p>
+                </div>
+
+                <%!--
+                  phx-trigger-action fires a real HTTP POST once trigger_submit is true.
+                  The session controller then creates the session for the new user.
+                --%>
+                <.form
+                  for={@form}
+                  id="registration_form"
+                  phx-submit="save"
+                  phx-change="validate"
+                  class="flex flex-col gap-5"
                 >
-                  Create account
-                </.button>
-              </.form>
+                  <.input
+                    field={@form[:email]}
+                    type="email"
+                    label="Email"
+                    placeholder="chrisna@curatorian.id"
+                    required
+                    autocomplete="username"
+                  />
 
-              <div class="divider text-base-content/40 text-xs">Already have an account?</div>
+                  <.input
+                    field={@form[:password]}
+                    type="password"
+                    label="Kata sandi"
+                    placeholder="minimal 12 karakter"
+                    required
+                    autocomplete="new-password"
+                  />
 
-              <.link navigate={~p"/login"} class="btn btn-outline btn-primary w-full">
-                Sign in
-              </.link>
+                  <div style="display:none" aria-hidden="true">
+                    <input type="text" name="user[website]" tabindex="-1" autocomplete="off" />
+                  </div>
+
+                  <.captcha
+                    id="registration_turnstile"
+                    theme={@turnstile_theme}
+                    events={[:success, :error, :expired]}
+                    captcha_valid={@captcha_valid}
+                  />
+
+                  <.button
+                    type="submit"
+                    class={"btn btn-primary w-full gap-2 motion-safe:transition-all motion-safe:duration-200" <> if(!@captcha_valid, do: " btn-disabled opacity-50", else: "")}
+                    phx-disable-with="Membuat akun…"
+                    disabled={!@captcha_valid}
+                  >
+                    Buat akun
+                    <.icon name="hero-arrow-right" class="size-4" />
+                  </.button>
+                </.form>
+
+                <p class="text-center text-sm text-base-content/60 mt-6">
+                  Sudah punya akun?
+                  <.link
+                    navigate={~p"/login"}
+                    class="text-primary font-medium hover:underline underline-offset-2 ml-1"
+                  >
+                    Masuk
+                  </.link>
+                </p>
+              </div>
             </div>
           </div>
         </div>

@@ -10,58 +10,79 @@ defmodule CuratorianWeb.UserConfirmationLive do
   def render(%{live_action: :edit} = assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <div class="min-h-screen flex items-center justify-center py-16 px-4">
-        <div class="w-full max-w-md">
-          <div class="card bg-base-100 shadow-xl border border-base-300">
-            <div class="card-body gap-6">
-              <%!-- Header --%>
-              <div class="text-center">
-                <div class="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4">
-                  <.icon name="hero-envelope-open" class="w-8 h-8 text-primary" />
-                </div>
-                <h1 class="text-2xl font-bold mb-1">Confirm your account</h1>
-                <p class="text-base-content/60 text-sm">
-                  Verify your email address to activate your account
-                </p>
-              </div>
+      <div class="flex justify-center px-4 py-6">
+        <div class="w-full max-w-lg">
+          <div class="card bg-base-100 shadow-xl border border-base-300 overflow-hidden">
+            <%!-- Top accent strip — success green when user found, error otherwise --%>
+            <div class={["h-1.5 w-full", if(@user, do: "bg-success", else: "bg-error")]}></div>
 
+            <div class="card-body gap-6 p-8 lg:p-10">
               <%= if @user do %>
-                <div class="bg-base-200 rounded-xl p-4 text-center">
-                  <p class="text-xs text-base-content/50 mb-1">Confirming account for</p>
-                  <p class="font-semibold">{@user.email}</p>
+                <%!-- Success state — valid token --%>
+                <div class="flex flex-col items-center text-center gap-3">
+                  <div class="w-16 h-16 rounded-full bg-success/15 flex items-center justify-center">
+                    <.icon name="hero-envelope-open" class="size-7 text-success" />
+                  </div>
+                  <div>
+                    <h1 class="text-2xl font-semibold text-base-content mb-1">
+                      Konfirmasi akun Anda
+                    </h1>
+                    <p class="text-sm text-base-content/60 max-w-xs mx-auto leading-relaxed">
+                      Satu klik untuk memverifikasi alamat email dan mengaktifkan akun Anda.
+                    </p>
+                  </div>
+                </div>
+
+                <div class="bg-base-200 rounded-box px-5 py-4 flex items-center gap-3">
+                  <.icon name="hero-at-symbol" class="size-4 text-base-content/40 shrink-0" />
+                  <div class="min-w-0">
+                    <p class="text-xs text-base-content/50 mb-0.5">Mengkonfirmasi akun untuk</p>
+                    <p class="font-medium text-sm text-base-content truncate">{@user.email}</p>
+                  </div>
                 </div>
 
                 <.form for={@form} id="confirmation_form" phx-submit="confirm_account">
                   <input type="hidden" name={@form[:token].name} value={@form[:token].value} />
                   <.button
                     type="submit"
-                    phx-disable-with="Confirming…"
-                    class="btn btn-primary w-full"
+                    phx-disable-with="Mengkonfirmasi…"
+                    class="btn btn-primary w-full gap-2 motion-safe:transition-all motion-safe:duration-200"
                   >
-                    <.icon name="hero-check-badge" class="w-5 h-5 mr-2 inline-block" />
-                    Confirm my account
+                    <.icon name="hero-check-badge" class="size-5" />
+                    Konfirmasi akun saya
                   </.button>
                 </.form>
               <% else %>
-                <div class="alert alert-error">
-                  <.icon name="hero-exclamation-triangle" class="w-5 h-5" />
-                  <span>
-                    This confirmation link is invalid or has expired. Please request a new one.
-                  </span>
+                <%!-- Error state — invalid or expired token --%>
+                <div class="flex flex-col items-center text-center gap-3">
+                  <div class="w-16 h-16 rounded-full bg-error/15 flex items-center justify-center">
+                    <.icon name="hero-exclamation-triangle" class="size-7 text-error" />
+                  </div>
+                  <div>
+                    <h1 class="text-2xl font-semibold text-base-content mb-1">Tautan kedaluwarsa</h1>
+                    <p class="text-sm text-base-content/60 max-w-xs mx-auto leading-relaxed">
+                      Tautan konfirmasi ini tidak valid atau sudah kedaluwarsa. Minta tautan baru di bawah.
+                    </p>
+                  </div>
                 </div>
 
                 <.link
                   navigate={~p"/users/pending_confirmation"}
-                  class="btn btn-outline btn-primary w-full"
+                  class="btn btn-primary w-full gap-2 motion-safe:transition-all motion-safe:duration-200"
                 >
-                  Request new confirmation email
+                  <.icon name="hero-paper-airplane" class="size-4" />
+                  Minta email konfirmasi baru
                 </.link>
               <% end %>
 
-              <div class="divider text-base-content/40 text-xs">Already confirmed?</div>
+              <div class="divider text-base-content/30 text-xs">Sudah dikonfirmasi?</div>
 
-              <.link navigate={~p"/login"} class="btn btn-outline btn-primary w-full">
-                Sign in
+              <.link
+                navigate={~p"/login"}
+                class="btn btn-ghost btn-sm w-full text-base-content/60 hover:text-base-content motion-safe:transition-all motion-safe:duration-200"
+              >
+                <.icon name="hero-arrow-left" class="size-4" />
+                Kembali ke halaman masuk
               </.link>
             </div>
           </div>
