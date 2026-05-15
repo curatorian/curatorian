@@ -159,6 +159,7 @@ defmodule CuratorianWeb.Layouts do
         %{title: "Beranda", url: "/"},
         %{title: "Tentang", url: "/about"},
         %{title: "Curatorial", url: "/blog"},
+        %{title: "Panduan", url: "/guides"},
         %{
           title: "Komunitas",
           items: [

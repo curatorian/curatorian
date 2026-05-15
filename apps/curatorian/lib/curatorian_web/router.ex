@@ -104,6 +104,8 @@ defmodule CuratorianWeb.Router do
       live "/tools/museum", Public.Tools.Museum.IndexLive, :index
       live "/tools/archive", Public.Tools.Archive.IndexLive, :index
       live "/tools/library/classifications", Public.Tools.Library.Classification.IndexLive, :index
+      live "/guides", Public.GuidesLive, :index
+      live "/guides/:slug", Public.GuideShowLive, :show
     end
   end
 

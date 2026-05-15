@@ -29,7 +29,8 @@ defmodule Curatorian.Public do
     OrgPageFollower,
     CrowdfundingCampaign,
     ExchangeOffer,
-    ExchangeWishlist
+    ExchangeWishlist,
+    Guide
   }
 
   @page_size 12
@@ -1208,5 +1209,142 @@ defmodule Curatorian.Public do
           ilike(w.item_type, ^term) or
           ilike(w.subject_area, ^term)
     )
+  end
+
+  # ---------------------------------------------------------------------------
+  # Guides
+  # ---------------------------------------------------------------------------
+
+  @doc "Returns published guides with optional filtering/pagination."
+  def list_guides(opts \\ []) do
+    page = Keyword.get(opts, :page, 1)
+    search = Keyword.get(opts, :search, "")
+    category = Keyword.get(opts, :category, nil)
+    tag = Keyword.get(opts, :tag, nil)
+    sort = Keyword.get(opts, :sort, "newest")
+
+    from(g in Guide,
+      where: g.status == "published" and is_nil(g.deleted_at)
+    )
+    |> guide_search(search)
+    |> guide_filter_category(category)
+    |> guide_filter_tag(tag)
+    |> guide_sort(sort)
+    |> limit(@page_size)
+    |> offset(^((page - 1) * @page_size))
+    |> Repo.all()
+  end
+
+  @doc "Counts published guides matching the given filters."
+  def count_guides(opts \\ []) do
+    search = Keyword.get(opts, :search, "")
+    category = Keyword.get(opts, :category, nil)
+    tag = Keyword.get(opts, :tag, nil)
+
+    from(g in Guide,
+      where: g.status == "published" and is_nil(g.deleted_at),
+      select: count(g.id)
+    )
+    |> guide_search(search)
+    |> guide_filter_category(category)
+    |> guide_filter_tag(tag)
+    |> Repo.one()
+  end
+
+  @doc "Returns featured published guides."
+  def list_featured_guides(limit \\ 6) do
+    from(g in Guide,
+      where: g.status == "published" and g.is_featured == true and is_nil(g.deleted_at),
+      order_by: [asc: g.order_position, desc: g.published_at],
+      limit: ^limit
+    )
+    |> Repo.all()
+  end
+
+  @doc "Gets a published guide by slug. Raises if not found."
+  def get_guide_by_slug!(slug) do
+    from(g in Guide,
+      where: g.slug == ^slug and g.status == "published" and is_nil(g.deleted_at),
+      preload: [:series]
+    )
+    |> Repo.one!()
+  end
+
+  @doc "Returns published guides in a series ordered by series_position."
+  def list_published_series_guides(series_id) do
+    from(g in Guide,
+      where: g.series_id == ^series_id and g.status == "published" and is_nil(g.deleted_at),
+      order_by: [asc: g.series_position],
+      select: %{id: g.id, title: g.title, slug: g.slug, series_position: g.series_position}
+    )
+    |> Repo.all()
+  end
+
+  @doc "Returns the distinct category values that have at least one published guide."
+  def list_guide_categories do
+    from(g in Guide,
+      where: g.status == "published" and is_nil(g.deleted_at) and not is_nil(g.category),
+      select: g.category,
+      distinct: true,
+      order_by: [asc: g.category]
+    )
+    |> Repo.all()
+  end
+
+  @doc "Returns popular guide tags as {tag, count} tuples."
+  def list_popular_guide_tags(limit \\ 20) do
+    case Repo.query(
+           """
+           SELECT tag, count(*)::integer AS cnt
+           FROM atrium.guides,
+                unnest(tags) AS tag
+           WHERE status = 'published' AND deleted_at IS NULL
+           GROUP BY tag
+           ORDER BY cnt DESC
+           LIMIT $1
+           """,
+           [limit]
+         ) do
+      {:ok, %{rows: rows}} -> Enum.map(rows, fn [tag, cnt] -> {tag, cnt} end)
+      _ -> []
+    end
+  end
+
+  @doc "Atomically increments the view count for a guide."
+  def increment_guide_view(guide_id) do
+    from(g in Guide, where: g.id == ^guide_id)
+    |> Repo.update_all(inc: [view_count: 1])
+  end
+
+  defp guide_search(query, ""), do: query
+
+  defp guide_search(query, search) do
+    term = "%#{search}%"
+
+    from(g in query,
+      where: ilike(g.title, ^term) or ilike(g.description, ^term)
+    )
+  end
+
+  defp guide_filter_category(query, nil), do: query
+  defp guide_filter_category(query, ""), do: query
+
+  defp guide_filter_category(query, category) do
+    from(g in query, where: g.category == ^category)
+  end
+
+  defp guide_filter_tag(query, nil), do: query
+  defp guide_filter_tag(query, ""), do: query
+
+  defp guide_filter_tag(query, tag) do
+    from(g in query, where: ^tag in g.tags)
+  end
+
+  defp guide_sort(query, "popular") do
+    from(g in query, order_by: [desc: g.view_count, desc: g.published_at])
+  end
+
+  defp guide_sort(query, _newest) do
+    from(g in query, order_by: [asc: g.order_position, desc: g.published_at])
   end
 end
