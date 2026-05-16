@@ -32,7 +32,7 @@ defmodule CuratorianWeb.Public.GuideShowLive do
   defp extract_toc(""), do: []
 
   defp extract_toc(html) do
-    ~r/<h([23])[^>]*(?:id="([^"]*)")?[^>]*>(.*?)<\/h\1>/i
+    ~r/<h([2-4])[^>]*(?:id="([^"]*)")? [^>]*>(.*?)<\/h\1>/i
     |> Regex.scan(html)
     |> Enum.map(fn
       [_full, level, id, inner] ->
@@ -254,7 +254,7 @@ defmodule CuratorianWeb.Public.GuideShowLive do
           <%!-- Sticky TOC sidebar --%>
           <%= if @toc != [] do %>
             <aside class="hidden lg:block lg:w-56 shrink-0">
-              <div class="sticky top-8">
+              <div class="sticky top-32">
                 <h3 class="text-xs font-semibold uppercase tracking-wider text-base-content/50 mb-3">
                   Daftar Isi
                 </h3>
@@ -263,9 +263,10 @@ defmodule CuratorianWeb.Public.GuideShowLive do
                     :for={item <- @toc}
                     href={"##{item.id}"}
                     class={[
-                      "text-sm text-base-content/60 hover:text-primary transition-colors py-0.5 rounded",
-                      item.level == 3 && "pl-4",
-                      item.level == 2 && "pl-0"
+                      "text-sm hover:text-primary transition-colors py-0.5 rounded",
+                      item.level == 2 && "pl-0 text-base-content/70 font-medium",
+                      item.level == 3 && "pl-3 text-base-content/60",
+                      item.level == 4 && "pl-6 text-base-content/50 text-xs"
                     ]}
                   >
                     {item.text}
