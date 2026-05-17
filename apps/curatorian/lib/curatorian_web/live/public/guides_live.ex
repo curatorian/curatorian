@@ -40,7 +40,9 @@ defmodule CuratorianWeb.Public.GuidesLive do
     active_tab = Map.get(params, "tab", "all")
     selected_series_id = Map.get(params, "series")
 
-    guides = Public.list_guides(search: search, category: category, tag: tag, sort: sort, page: page)
+    guides =
+      Public.list_guides(search: search, category: category, tag: tag, sort: sort, page: page)
+
     total = Public.count_guides(search: search, category: category, tag: tag)
     total_pages = max(1, ceil(total / Public.page_size()))
     series = socket.assigns.series || Public.list_guide_series()
@@ -77,51 +79,123 @@ defmodule CuratorianWeb.Public.GuidesLive do
 
   @impl true
   def handle_event("search", %{"q" => q}, socket) do
-    params = build_params(q, socket.assigns.active_category, socket.assigns.active_tag, socket.assigns.sort, 1)
+    params =
+      build_params(
+        q,
+        socket.assigns.active_category,
+        socket.assigns.active_tag,
+        socket.assigns.sort,
+        1
+      )
+
     {:noreply, push_patch(socket, to: ~p"/guides?#{params}")}
   end
 
   @impl true
   def handle_event("filter_category", %{"category" => cat}, socket) do
     category = if cat == "", do: nil, else: cat
-    params = build_params(socket.assigns.search, category, socket.assigns.active_tag, socket.assigns.sort, 1)
+
+    params =
+      build_params(
+        socket.assigns.search,
+        category,
+        socket.assigns.active_tag,
+        socket.assigns.sort,
+        1
+      )
+
     {:noreply, push_patch(socket, to: ~p"/guides?#{params}")}
   end
 
   @impl true
   def handle_event("filter_tag", %{"tag" => tag}, socket) do
     new_tag = if socket.assigns.active_tag == tag, do: nil, else: tag
-    params = build_params(socket.assigns.search, socket.assigns.active_category, new_tag, socket.assigns.sort, 1)
+
+    params =
+      build_params(
+        socket.assigns.search,
+        socket.assigns.active_category,
+        new_tag,
+        socket.assigns.sort,
+        1
+      )
+
     {:noreply, push_patch(socket, to: ~p"/guides?#{params}")}
   end
 
   @impl true
   def handle_event("sort", %{"sort" => sort}, socket) do
-    params = build_params(socket.assigns.search, socket.assigns.active_category, socket.assigns.active_tag, sort, 1)
+    params =
+      build_params(
+        socket.assigns.search,
+        socket.assigns.active_category,
+        socket.assigns.active_tag,
+        sort,
+        1
+      )
+
     {:noreply, push_patch(socket, to: ~p"/guides?#{params}")}
   end
 
   @impl true
   def handle_event("prev_page", _, socket) do
     page = max(1, socket.assigns.page - 1)
-    params = build_params(socket.assigns.search, socket.assigns.active_category, socket.assigns.active_tag, socket.assigns.sort, page)
+
+    params =
+      build_params(
+        socket.assigns.search,
+        socket.assigns.active_category,
+        socket.assigns.active_tag,
+        socket.assigns.sort,
+        page
+      )
+
     {:noreply, push_patch(socket, to: ~p"/guides?#{params}")}
   end
 
   @impl true
   def handle_event("next_page", _, socket) do
     page = min(socket.assigns.total_pages, socket.assigns.page + 1)
-    params = build_params(socket.assigns.search, socket.assigns.active_category, socket.assigns.active_tag, socket.assigns.sort, page)
+
+    params =
+      build_params(
+        socket.assigns.search,
+        socket.assigns.active_category,
+        socket.assigns.active_tag,
+        socket.assigns.sort,
+        page
+      )
+
     {:noreply, push_patch(socket, to: ~p"/guides?#{params}")}
   end
 
   def handle_event("set_tab", %{"tab" => tab}, socket) do
-    params = build_params(socket.assigns.search, socket.assigns.active_category, socket.assigns.active_tag, socket.assigns.sort, socket.assigns.page, tab, nil)
+    params =
+      build_params(
+        socket.assigns.search,
+        socket.assigns.active_category,
+        socket.assigns.active_tag,
+        socket.assigns.sort,
+        socket.assigns.page,
+        tab,
+        nil
+      )
+
     {:noreply, push_patch(socket, to: ~p"/guides?#{params}")}
   end
 
   def handle_event("select_series", %{"series-id" => series_id}, socket) do
-    params = build_params(socket.assigns.search, socket.assigns.active_category, socket.assigns.active_tag, socket.assigns.sort, socket.assigns.page, "series", series_id)
+    params =
+      build_params(
+        socket.assigns.search,
+        socket.assigns.active_category,
+        socket.assigns.active_tag,
+        socket.assigns.sort,
+        socket.assigns.page,
+        "series",
+        series_id
+      )
+
     {:noreply, push_patch(socket, to: ~p"/guides?#{params}")}
   end
 
@@ -132,12 +206,18 @@ defmodule CuratorianWeb.Public.GuidesLive do
   defp build_params(q, category, tag, sort, page, tab \\ "all", selected_series_id \\ nil) do
     %{}
     |> then(fn p -> if q && q != "", do: Map.put(p, "q", q), else: p end)
-    |> then(fn p -> if category && category != "", do: Map.put(p, "category", category), else: p end)
+    |> then(fn p ->
+      if category && category != "", do: Map.put(p, "category", category), else: p
+    end)
     |> then(fn p -> if tag && tag != "", do: Map.put(p, "tag", tag), else: p end)
     |> then(fn p -> if sort != "newest", do: Map.put(p, "sort", sort), else: p end)
     |> then(fn p -> if page > 1, do: Map.put(p, "page", page), else: p end)
     |> then(fn p -> if tab != "all", do: Map.put(p, "tab", tab), else: p end)
-    |> then(fn p -> if tab == "series" && selected_series_id, do: Map.put(p, "series", selected_series_id), else: p end)
+    |> then(fn p ->
+      if tab == "series" && selected_series_id,
+        do: Map.put(p, "series", selected_series_id),
+        else: p
+    end)
   end
 
   defp category_label("getting_started"), do: "Getting Started"
@@ -150,7 +230,10 @@ defmodule CuratorianWeb.Public.GuidesLive do
   defp difficulty_badge(:beginner), do: {"bg-success/15 text-success", "Beginner"}
   defp difficulty_badge("beginner"), do: {"bg-success/15 text-success", "Beginner"}
   defp difficulty_badge(:intermediate), do: {"bg-warning/15 text-warning-content", "Intermediate"}
-  defp difficulty_badge("intermediate"), do: {"bg-warning/15 text-warning-content", "Intermediate"}
+
+  defp difficulty_badge("intermediate"),
+    do: {"bg-warning/15 text-warning-content", "Intermediate"}
+
   defp difficulty_badge(:advanced), do: {"bg-error/15 text-error", "Advanced"}
   defp difficulty_badge("advanced"), do: {"bg-error/15 text-error", "Advanced"}
   defp difficulty_badge(_), do: {"bg-base-200 text-base-content/50", ""}
@@ -194,7 +277,8 @@ defmodule CuratorianWeb.Public.GuidesLive do
                 class={[
                   "px-4 py-2 text-sm font-semibold rounded-full transition",
                   @active_tab == "all" && "bg-base-100 text-base-content shadow-sm dark:bg-base-200",
-                  @active_tab != "all" && "text-base-content/70 hover:text-base-content dark:text-base-content/60"
+                  @active_tab != "all" &&
+                    "text-base-content/70 hover:text-base-content dark:text-base-content/60"
                 ]}
               >
                 Semua Panduan
@@ -204,8 +288,10 @@ defmodule CuratorianWeb.Public.GuidesLive do
                 phx-value-tab="series"
                 class={[
                   "px-4 py-2 text-sm font-semibold rounded-full transition",
-                  @active_tab == "series" && "bg-base-100 text-base-content shadow-sm dark:bg-base-200",
-                  @active_tab != "series" && "text-base-content/70 hover:text-base-content dark:text-base-content/60"
+                  @active_tab == "series" &&
+                    "bg-base-100 text-base-content shadow-sm dark:bg-base-200",
+                  @active_tab != "series" &&
+                    "text-base-content/70 hover:text-base-content dark:text-base-content/60"
                 ]}
               >
                 Serial
@@ -216,8 +302,7 @@ defmodule CuratorianWeb.Public.GuidesLive do
           <p class="text-sm text-base-content/60 max-w-xl">
             {if @active_tab == "series",
               do: "Jelajahi serial panduan dan buka setiap bagian berurutan.",
-              else: "Temukan panduan tunggal atau gunakan filter untuk menemukan topik yang tepat."
-            }
+              else: "Temukan panduan tunggal atau gunakan filter untuk menemukan topik yang tepat."}
           </p>
         </div>
 
@@ -366,7 +451,9 @@ defmodule CuratorianWeb.Public.GuidesLive do
                           <.icon name="hero-book-open" class="w-3.5 h-3.5 shrink-0" />
                           <span class="truncate">{guide.series.title}</span>
                           <%= if guide.series_position do %>
-                            <span class="shrink-0 text-base-content/40">· Part {guide.series_position}</span>
+                            <span class="shrink-0 text-base-content/40">
+                              · Part {guide.series_position}
+                            </span>
                           <% end %>
                         </div>
                       <% end %>
@@ -452,7 +539,8 @@ defmodule CuratorianWeb.Public.GuidesLive do
                     class={[
                       "w-full text-left rounded-xl border px-4 py-3 transition",
                       @selected_series_id == series.id && "border-primary bg-primary/10 text-primary",
-                      @selected_series_id != series.id && "border-base-200 bg-base-100 text-base-content hover:border-primary/30 hover:bg-base-200"
+                      @selected_series_id != series.id &&
+                        "border-base-200 bg-base-100 text-base-content hover:border-primary/30 hover:bg-base-200"
                     ]}
                   >
                     <div class="flex items-center justify-between gap-3">
@@ -467,35 +555,36 @@ defmodule CuratorianWeb.Public.GuidesLive do
 
             <section class="space-y-6">
               <div class="rounded-[2rem] border border-base-200 bg-gradient-to-br from-primary/10 via-base-100 to-secondary/10 p-6 shadow-sm">
-                <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                  <div>
-                    <p class="text-xs uppercase tracking-[0.3em] text-base-content/50">Serial Unggulan</p>
-                    <h2 class="text-2xl font-semibold">
-                      <%= if @selected_series_title do %>
-                        {@selected_series_title}
-                      <% else %>
-                        Serial panduan populer
+                <div class="flex flex-col gap-4 md:items-center md:justify-between">
+                  <div class="w-full flex items-center justify-between gap-2">
+                    <p class="text-xs uppercase tracking-[0.3em] text-base-content/50">
+                      Serial Panduan
+                    </p>
+                    <div class="flex items-center gap-2">
+                      <%= if @selected_series_guides != [] do %>
+                        <span class="badge badge-lg bg-primary/10 text-primary">
+                          {length(@selected_series_guides)} bagian
+                        </span>
                       <% end %>
-                    </h2>
+                      <button
+                        phx-click="toggle_series_list"
+                        class="btn btn-sm btn-outline"
+                      >
+                        <%= if @selected_series_open? do %>
+                          Sembunyikan daftar
+                        <% else %>
+                          Tampilkan daftar
+                        <% end %>
+                      </button>
+                    </div>
                   </div>
-
-                  <div class="flex items-center gap-2">
-                    <%= if @selected_series_guides != [] do %>
-                      <span class="badge badge-lg bg-primary/10 text-primary">
-                        {length(@selected_series_guides)} bagian
-                      </span>
+                  <h2 class="text-2xl font-semibold">
+                    <%= if @selected_series_title do %>
+                      {@selected_series_title}
+                    <% else %>
+                      Serial panduan populer
                     <% end %>
-                    <button
-                      phx-click="toggle_series_list"
-                      class="btn btn-sm btn-outline"
-                    >
-                      <%= if @selected_series_open? do %>
-                        Sembunyikan daftar
-                      <% else %>
-                        Tampilkan daftar
-                      <% end %>
-                    </button>
-                  </div>
+                  </h2>
                 </div>
                 <p class="text-sm text-base-content/60">
                   <%= if @selected_series_title do %>
@@ -508,7 +597,8 @@ defmodule CuratorianWeb.Public.GuidesLive do
                 <%= if @selected_series_title && @selected_series_guides != [] do %>
                   <div class="mt-4 rounded-3xl border border-primary/20 bg-primary/5 p-4 text-sm text-base-content/80">
                     <p class="font-medium text-base-content">
-                      Mulai dari bagian pertama: <span class="font-semibold">{List.first(@selected_series_guides).title}</span>
+                      Mulai dari bagian pertama:
+                      <span class="font-semibold">{List.first(@selected_series_guides).title}</span>
                     </p>
                   </div>
                 <% end %>
@@ -517,7 +607,9 @@ defmodule CuratorianWeb.Public.GuidesLive do
               <div class="grid gap-4">
                 <%= if @selected_series_guides == [] do %>
                   <div class="rounded-[2rem] border border-dashed border-base-200 bg-base-100 p-12 text-center text-base-content/60">
-                    Tidak ada serial dipilih. <span class="font-semibold text-base-content">Pilih serial</span> dari daftar di kiri.
+                    Tidak ada serial dipilih.
+                    <span class="font-semibold text-base-content">Pilih serial</span>
+                    dari daftar di kiri.
                   </div>
                 <% else %>
                   <%= if @selected_series_open? do %>
@@ -533,9 +625,9 @@ defmodule CuratorianWeb.Public.GuidesLive do
                             </span>
                             <span class="font-semibold">Bagian #{guide.series_position}</span>
                           </div>
-                          <h3 class="mt-3 text-lg font-semibold text-base-content group-hover:text-primary transition-colors">
+                          <h5 class="mt-3 text-lg font-semibold text-base-content group-hover:text-primary transition-colors">
                             {guide.title}
-                          </h3>
+                          </h5>
                           <p class="mt-2 text-sm text-base-content/60">
                             {guide.description || "Akses untuk serial ke #{guide.series_position}"}
                           </p>
