@@ -276,6 +276,15 @@ defmodule CuratorianWeb.Public.GuidesLive do
                     </figure>
                   <% end %>
                   <div class="card-body p-4 gap-2">
+                    <%= if guide.series do %>
+                      <div class="flex items-center gap-1 text-xs font-medium text-primary/80">
+                        <.icon name="hero-book-open" class="w-3.5 h-3.5 shrink-0" />
+                        <span class="truncate">{guide.series.title}</span>
+                        <%= if guide.series_position do %>
+                          <span class="shrink-0 text-base-content/40">· Part {guide.series_position}</span>
+                        <% end %>
+                      </div>
+                    <% end %>
                     <div class="flex flex-wrap gap-1.5">
                       <%= if guide.category do %>
                         <span class="badge badge-xs badge-outline capitalize">

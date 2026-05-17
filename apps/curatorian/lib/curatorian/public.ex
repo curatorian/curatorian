@@ -1224,7 +1224,8 @@ defmodule Curatorian.Public do
     sort = Keyword.get(opts, :sort, "newest")
 
     from(g in Guide,
-      where: g.status == "published" and is_nil(g.deleted_at)
+      where: g.status == "published" and is_nil(g.deleted_at),
+      preload: [:series]
     )
     |> guide_search(search)
     |> guide_filter_category(category)
