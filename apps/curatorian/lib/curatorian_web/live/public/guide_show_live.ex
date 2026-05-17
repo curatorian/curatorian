@@ -19,13 +19,32 @@ defmodule CuratorianWeb.Public.GuideShowLive do
         do: Public.list_published_series_guides(guide.series_id),
         else: []
 
+    og_title = guide.title
+    og_description = guide.description || preview_description(guide.content_html)
+    og_image = guide.cover_url
+    og_url = "/guides/#{slug}"
+
     {:ok,
      socket
      |> assign(:page_title, guide.title)
      |> assign(:guide, guide)
      |> assign(:content_html, content_html)
      |> assign(:toc, toc)
-     |> assign(:series_guides, series_guides)}
+     |> assign(:series_guides, series_guides)
+     |> assign(:og_title, og_title)
+     |> assign(:og_description, og_description)
+     |> assign(:og_image, og_image)
+     |> assign(:og_url, og_url)
+     |> assign(:og_type, "article")
+     |> assign(:twitter_card, if(og_image, do: "summary_large_image", else: "summary"))}
+  end
+
+  defp preview_description(html) do
+    html
+    |> String.replace(~r/<[^>]+>/, " ")
+    |> String.replace(~r/\s+/, " ")
+    |> String.trim()
+    |> String.slice(0, 200)
   end
 
   # Process HTML content: inject IDs into headings without them and generate TOC.

@@ -63,7 +63,13 @@ defmodule CuratorianWeb.Public.CollectionShowLive do
          |> assign(:type_label, Map.get(@type_labels, collection.collection_type, nil))
          |> assign(:org_profile_id, org_profile_id)
          |> assign(:can_request_borrow, can_request_borrow)
-         |> assign(:is_personal_library_owner, is_personal_library_owner)}
+         |> assign(:is_personal_library_owner, is_personal_library_owner)
+         |> assign(:og_title, collection.title)
+         |> assign(:og_description, collection.description)
+         |> assign(:og_image, collection.thumbnail && asset_url(collection.thumbnail))
+         |> assign(:og_url, "/collections/#{collection.id}")
+         |> assign(:og_type, "website")
+         |> assign(:twitter_card, if(collection.thumbnail, do: "summary_large_image", else: "summary"))}
     end
   end
 

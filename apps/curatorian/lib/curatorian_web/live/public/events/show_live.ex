@@ -26,7 +26,13 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
          |> assign(:user_id, user_id)
          |> assign(:registration, registration)
          |> assign(:payment_step, false)
-         |> assign(:registration_open, registration_open?(event))}
+         |> assign(:registration_open, registration_open?(event))
+         |> assign(:og_title, event.title)
+         |> assign(:og_description, event.description)
+         |> assign(:og_image, Map.get(event, :cover_image_url))
+         |> assign(:og_url, "/events/#{event.slug}")
+         |> assign(:og_type, "website")
+         |> assign(:twitter_card, if(Map.get(event, :cover_image_url), do: "summary_large_image", else: "summary"))}
     end
   end
 

@@ -49,7 +49,13 @@ defmodule CuratorianWeb.Public.ProfileShowLive do
          |> assign(:page_title, profile.display_name)
          |> assign(:profile, profile)
          |> assign(:blog_posts, blog_posts)
-         |> assign(:is_following, is_following)}
+         |> assign(:is_following, is_following)
+         |> assign(:og_title, profile.display_name)
+         |> assign(:og_description, profile.headline || profile.bio)
+         |> assign(:og_image, profile.avatar_url && asset_url(profile.avatar_url))
+         |> assign(:og_url, "/u/#{username}")
+         |> assign(:og_type, "profile")
+         |> assign(:twitter_card, if(profile.avatar_url, do: "summary_large_image", else: "summary"))}
     end
   end
 

@@ -66,7 +66,10 @@ defmodule CuratorianWeb.Router do
     pipe_through :browser
 
     live_session :unauthenticated_only,
-      on_mount: [{CuratorianWeb.UserAuth, :mount_current_scope}] do
+      on_mount: [
+        {CuratorianWeb.UserAuth, :mount_current_scope},
+        {CuratorianWeb.Utils.SaveRequestUri, :on_mount}
+      ] do
       live "/login", UserLoginLive, :new
       live "/register", UserRegistrationLive, :new
       live "/users/pending_confirmation", UserPendingConfirmationLive, :new
@@ -82,7 +85,10 @@ defmodule CuratorianWeb.Router do
     pipe_through :browser
 
     live_session :public,
-      on_mount: [{CuratorianWeb.UserAuth, :mount_current_scope}] do
+      on_mount: [
+        {CuratorianWeb.UserAuth, :mount_current_scope},
+        {CuratorianWeb.Utils.SaveRequestUri, :on_mount}
+      ] do
       live "/kurator", Public.ProfilesLive, :index
       live "/u/:username", Public.ProfileShowLive, :show
       live "/u/:username/blog/:slug", Public.BlogShowLive, :show
@@ -117,7 +123,10 @@ defmodule CuratorianWeb.Router do
     pipe_through :browser
 
     live_session :authenticated,
-      on_mount: [{CuratorianWeb.UserAuth, :require_authenticated}] do
+      on_mount: [
+        {CuratorianWeb.UserAuth, :require_authenticated},
+        {CuratorianWeb.Utils.SaveRequestUri, :on_mount}
+      ] do
       live "/jobs/my-applications", Public.Jobs.MyApplicationsLive, :index
       live "/jobs/:slug/apply", Public.Jobs.ApplyLive, :apply
       live "/foyer", Foyer.FoyerLive, :index

@@ -12,6 +12,37 @@ defmodule CuratorianWeb.Layouts do
 
   embed_templates "layouts/*"
 
+  def meta_base_url do
+    System.get_env("CURATORIAN_URL") ||
+      Application.get_env(:curatorian, :curatorian_url, "http://localhost:4000")
+  end
+
+  def absolute_url(nil), do: meta_base_url()
+
+  def absolute_url(path) when is_binary(path) do
+    if String.starts_with?(path, ["http://", "https://"]),
+      do: path,
+      else: meta_base_url() <> path
+  end
+
+  def meta_image_url(nil) do
+    Application.get_env(:curatorian, :default_og_image, "/images/lib.webp")
+    |> absolute_url()
+  end
+
+  def meta_image_url(image) when is_binary(image) do
+    absolute_url(image)
+  end
+
+  def meta_description(assigns) do
+    assigns[:og_description] ||
+      Application.get_env(:curatorian, :default_description, "Where the Curators Meet")
+  end
+
+  def meta_title(assigns) do
+    assigns[:og_title] || assigns[:page_title] || Application.get_env(:curatorian, :site_name, "Curatorian")
+  end
+
   @doc """
   Renders your app layout.
 

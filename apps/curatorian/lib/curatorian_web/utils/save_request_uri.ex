@@ -1,5 +1,7 @@
 defmodule CuratorianWeb.Utils.SaveRequestUri do
-  def on_mount(:save_request_uri, _params, _session, socket) do
+  def on_mount(:save_request_uri, params, session, socket), do: on_mount(:on_mount, params, session, socket)
+
+  def on_mount(:on_mount, _params, _session, socket) do
     socket =
       socket
       |> Phoenix.LiveView.attach_hook(

@@ -15,18 +15,24 @@
     />
     <meta
       property="og:title"
-      content={assigns[:og_title] || assigns[:page_title] || "Curatorian"}
+      content={meta_title(assigns)}
     />
-    <meta property="og:description" content={assigns[:og_description] || ""} />
+    <meta name="description" content={meta_description(assigns)} />
+    <meta property="og:description" content={meta_description(assigns)} />
     <meta property="og:type" content={assigns[:og_type] || "website"} />
     <meta
       property="og:image"
-      content={assigns[:og_image] || Application.get_env(:curatorian, :default_og_image, "")}
+      content={meta_image_url(assigns[:og_image])}
+    />
+    <meta
+      property="og:image:secure_url"
+      content={meta_image_url(assigns[:og_image])}
     />
     <meta
       property="og:url"
-      content={(System.get_env("CURATORIAN_URL") || Application.get_env(:curatorian, :curatorian_url, "http://localhost:4000")) <> (assigns[:current_uri] || "/")}
+      content={absolute_url(assigns[:og_url] || assigns[:current_uri] || "/")}
     />
+    <link rel="canonical" href={absolute_url(assigns[:og_url] || assigns[:current_uri] || "/")} />
 
     <meta
       name="twitter:card"
@@ -37,12 +43,12 @@
     />
     <meta
       name="twitter:title"
-      content={assigns[:og_title] || assigns[:page_title] || "Curatorian"}
+      content={meta_title(assigns)}
     />
-    <meta name="twitter:description" content={assigns[:og_description] || ""} />
+    <meta name="twitter:description" content={meta_description(assigns)} />
     <meta
       name="twitter:image"
-      content={assigns[:og_image] || Application.get_env(:curatorian, :default_og_image, "")}
+      content={meta_image_url(assigns[:og_image])}
     />
     <link phx-track-static rel="stylesheet" href={~p"/assets/css/app.css"} />
     <link rel="shortcut icon" type="image/x-icon" href={~p"/images/icon.png"} />

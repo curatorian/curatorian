@@ -30,6 +30,7 @@ defmodule Curatorian.Public do
     CrowdfundingCampaign,
     ExchangeOffer,
     ExchangeWishlist,
+    GuideSeries,
     Guide
   }
 
@@ -1276,18 +1277,37 @@ defmodule Curatorian.Public do
     from(g in Guide,
       where: g.series_id == ^series_id and g.status == "published" and is_nil(g.deleted_at),
       order_by: [asc: g.series_position],
-      select: %{id: g.id, title: g.title, slug: g.slug, series_position: g.series_position}
+      select: %{
+        id: g.id,
+        title: g.title,
+        slug: g.slug,
+        description: g.description,
+        series_position: g.series_position
+      }
     )
     |> Repo.all()
   end
 
-  @doc "Returns the distinct category values that have at least one published guide."
+  @doc "Returns published guide categories with guide counts."
   def list_guide_categories do
     from(g in Guide,
       where: g.status == "published" and is_nil(g.deleted_at) and not is_nil(g.category),
-      select: g.category,
-      distinct: true,
-      order_by: [asc: g.category]
+      group_by: g.category,
+      order_by: [desc: count(g.id), asc: g.category],
+      select: %{category: g.category, count: count(g.id)}
+    )
+    |> Repo.all()
+  end
+
+  @doc "Returns published guide series with counts."
+  def list_guide_series do
+    from(s in GuideSeries,
+      join: g in Guide,
+      on: g.series_id == s.id,
+      where: g.status == "published" and is_nil(g.deleted_at),
+      group_by: [s.id, s.title],
+      order_by: [asc: s.title],
+      select: %{id: s.id, title: s.title, guide_count: count(g.id)}
     )
     |> Repo.all()
   end

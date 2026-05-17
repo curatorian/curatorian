@@ -26,7 +26,13 @@ defmodule CuratorianWeb.Public.Jobs.ShowLive do
            |> assign(:page_title, "#{posting.title} — #{posting.institution_name}")
            |> assign(:posting, posting)
            |> assign(:has_applied, !!has_applied)
-           |> assign(:user_id, user_id)}
+           |> assign(:user_id, user_id)
+           |> assign(:og_title, posting.title)
+           |> assign(:og_description, posting.description)
+           |> assign(:og_image, Map.get(posting, :cover_image_url))
+           |> assign(:og_url, "/jobs/#{posting.slug}")
+           |> assign(:og_type, "website")
+           |> assign(:twitter_card, if(Map.get(posting, :cover_image_url), do: "summary_large_image", else: "summary"))}
         end
     end
   end
