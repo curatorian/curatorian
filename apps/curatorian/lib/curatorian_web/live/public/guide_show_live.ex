@@ -12,7 +12,7 @@ defmodule CuratorianWeb.Public.GuideShowLive do
     # Increment view count asynchronously
     Task.start(fn -> Public.increment_guide_view(guide.id) end)
 
-    toc = extract_toc(guide.content_html || "")
+    {content_html, toc} = prepare_content(guide.content_html)
 
     series_guides =
       if guide.series_id,
@@ -23,27 +23,54 @@ defmodule CuratorianWeb.Public.GuideShowLive do
      socket
      |> assign(:page_title, guide.title)
      |> assign(:guide, guide)
+     |> assign(:content_html, content_html)
      |> assign(:toc, toc)
      |> assign(:series_guides, series_guides)}
   end
 
-  # Parse h2/h3 headings from the HTML to generate table of contents.
-  defp extract_toc(nil), do: []
-  defp extract_toc(""), do: []
+  # Process HTML content: inject IDs into headings without them and generate TOC.
+  defp prepare_content(nil), do: {"", []}
+  defp prepare_content(""), do: {"", []}
 
-  defp extract_toc(html) do
-    ~r/<h([2-4])[^>]*(?:id="([^"]*)")? [^>]*>(.*?)<\/h\1>/i
-    |> Regex.scan(html)
-    |> Enum.map(fn
-      [_full, level, id, inner] ->
-        text = inner |> String.replace(~r/<[^>]+>/, "") |> String.trim()
-        %{level: String.to_integer(level), id: id, text: text}
+  defp prepare_content(html) do
+    heading_regex = ~r/<h([2-4])([^>]*)>(.*?)<\/h\1>/is
 
-      _ ->
-        nil
-    end)
-    |> Enum.reject(&is_nil/1)
-    |> Enum.reject(&(&1.text == ""))
+    toc =
+      heading_regex
+      |> Regex.scan(html)
+      |> Enum.map(fn
+        [_full, level, attrs, inner] ->
+          text = inner |> String.replace(~r/<[^>]+>/, "") |> String.trim()
+          id_match = Regex.run(~r/\bid="([^"]*)"/,  attrs, capture: :all_but_first)
+          id = if id_match, do: hd(id_match), else: heading_id(text)
+          %{level: String.to_integer(level), id: id, text: text}
+
+        _ ->
+          nil
+      end)
+      |> Enum.reject(&is_nil/1)
+      |> Enum.reject(&(&1.text == ""))
+
+    html_with_ids =
+      Regex.replace(heading_regex, html, fn _full, level, attrs, inner ->
+        if String.match?(attrs, ~r/\bid="/) do
+          "<h#{level}#{attrs}>#{inner}</h#{level}>"
+        else
+          text = inner |> String.replace(~r/<[^>]+>/, "") |> String.trim()
+          id = heading_id(text)
+          "<h#{level} id=\"#{id}\"#{attrs}>#{inner}</h#{level}>"
+        end
+      end)
+
+    {html_with_ids, toc}
+  end
+
+  defp heading_id(text) do
+    text
+    |> String.downcase()
+    |> String.replace(~r/[^\p{L}\p{N}\s-]/u, "")
+    |> String.replace(~r/\s+/, "-")
+    |> String.trim("-")
   end
 
   defp difficulty_label("beginner"), do: "Beginner"
@@ -72,6 +99,7 @@ defmodule CuratorianWeb.Public.GuideShowLive do
       >
         <div id="reading-progress-bar" class="h-full bg-primary transition-all duration-100 w-0"></div>
       </div>
+
       <script :type={Phoenix.LiveView.ColocatedHook} name=".ReadingProgress">
         export default {
           mounted() {
@@ -88,7 +116,7 @@ defmodule CuratorianWeb.Public.GuideShowLive do
         };
       </script>
 
-      <div class="max-w-6xl mx-auto px-4 py-8">
+      <div id="top" class="max-w-6xl mx-auto px-4 py-8">
         <div class="flex flex-col lg:flex-row gap-8">
           <%!-- Main content --%>
           <article class="flex-1 min-w-0">
@@ -178,7 +206,7 @@ defmodule CuratorianWeb.Public.GuideShowLive do
                     <% is_current = part.id == @guide.id %>
                     <%= if is_current do %>
                       <span class="flex items-center gap-2 text-sm font-semibold text-primary">
-                        <span class="w-5 h-5 shrink-0 rounded-full bg-primary text-primary-content flex items-center justify-content-center text-xs text-center leading-5">
+                        <span class="w-5 h-5 shrink-0 rounded-full bg-primary text-primary-content flex items-center justify-center text-xs text-center leading-5">
                           {part.series_position}
                         </span>
                         {part.title}
@@ -201,8 +229,16 @@ defmodule CuratorianWeb.Public.GuideShowLive do
 
             <%!-- Guide content --%>
             <div class="guide-content prose prose-lg max-w-none">
-              {raw(@guide.content_html || "")}
+              {raw(@content_html)}
             </div>
+
+            <%!-- Last updated --%>
+            <%= if @guide.updated_at && @guide.updated_at != @guide.inserted_at do %>
+              <p class="mt-6 text-xs text-base-content/40 flex items-center gap-1.5">
+                <.icon name="hero-pencil-square" class="w-3.5 h-3.5" />
+                Terakhir diperbarui {Calendar.strftime(@guide.updated_at, "%d %b %Y")}
+              </p>
+            <% end %>
 
             <%!-- Series prev/next navigation --%>
             <%= if @series_guides != [] do %>
@@ -243,11 +279,15 @@ defmodule CuratorianWeb.Public.GuideShowLive do
             <% end %>
 
             <%!-- Back to guides --%>
-            <div class="mt-12 pt-8 border-t border-base-200">
+            <div class="mt-12 pt-8 border-t border-base-200 flex items-center justify-between">
               <.link navigate={~p"/guides"} class="btn btn-ghost btn-sm gap-2">
                 <.icon name="hero-arrow-left" class="w-4 h-4" />
                 Kembali ke Panduan
               </.link>
+              <a href="#top" class="btn btn-ghost btn-sm gap-2">
+                <.icon name="hero-arrow-up" class="w-4 h-4" />
+                Kembali ke Atas
+              </a>
             </div>
           </article>
 

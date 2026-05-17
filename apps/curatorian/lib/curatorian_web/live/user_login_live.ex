@@ -127,10 +127,18 @@ defmodule CuratorianWeb.UserLoginLive do
 
                 <div class="divider text-base-content/30 text-xs my-5">atau lanjutkan dengan</div>
 
-                <%!-- OAuth login --%>
+                <%!-- OAuth login — disabled until Turnstile captcha passes --%>
                 <a
-                  href="/auth/google"
-                  class="btn btn-outline w-full gap-2 border-base-300 hover:bg-base-200 motion-safe:transition-all motion-safe:duration-200"
+                  href={if @captcha_valid, do: "/auth/google", else: "#"}
+                  aria-disabled={!@captcha_valid}
+                  tabindex={if @captcha_valid, do: "0", else: "-1"}
+                  class={[
+                    "btn btn-outline w-full gap-2 border-base-300 motion-safe:transition-all motion-safe:duration-200",
+                    if(@captcha_valid,
+                      do: "hover:bg-base-200",
+                      else: "opacity-50 pointer-events-none cursor-not-allowed"
+                    )
+                  ]}
                 >
                   <svg class="size-4" viewBox="0 0 24 24" aria-hidden="true">
                     <path
