@@ -14,7 +14,12 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
          |> push_navigate(to: "/events")}
 
       event ->
-        user_id = socket.assigns.current_scope && socket.assigns.current_scope.user.id
+        current_scope = socket.assigns.current_scope
+
+        user_id =
+          if current_scope && current_scope.user do
+            current_scope.user.id
+          end
 
         registration =
           if user_id, do: Public.get_registration_for_user(user_id, event.id), else: nil
@@ -250,14 +255,14 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
                     <% is_nil(@user_id) -> %>
                       <.link
                         navigate={"/login?return_to=/events/#{@event.slug}"}
-                        class="inline-flex items-center justify-center w-full px-4 py-2 rounded-xl bg-primary text-primary-content font-semibold hover:brightness-90 transition"
+                        class="inline-flex items-center justify-center w-full px-4 py-2 rounded-xl bg-white font-semibold hover:brightness-90 transition"
                       >
                         Masuk untuk daftar
                       </.link>
                     <% true -> %>
                       <button
                         phx-click="register"
-                        class="inline-flex items-center justify-center w-full px-4 py-2 rounded-xl bg-primary text-primary-content font-semibold hover:brightness-90 transition"
+                        class="inline-flex items-center justify-center w-full px-4 py-2 rounded-xl bg-white font-semibold hover:brightness-90 transition"
                       >
                         <%= if @event.is_paid do %>
                           Daftar &amp; Bayar
@@ -355,6 +360,7 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
   defp to_label(:exhibition), do: "Pameran"
   defp to_label(:conference), do: "Konferensi"
   defp to_label(:training), do: "Pelatihan"
+  defp to_label(:reading_program), do: "Program Baca"
   defp to_label(:canceled), do: "Dibatalkan"
   defp to_label(:published), do: "Dipublikasikan"
   defp to_label(:registration_closed), do: "Pendaftaran Ditutup"

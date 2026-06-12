@@ -315,7 +315,7 @@ defmodule CuratorianWeb.Layouts do
 
         <div
           id="mobile-menu"
-          class="lg:hidden hidden h-screen bg-white/95 dark:bg-gray-800/95 rounded-xl shadow-md p-6 space-y-4 font-semibold transition-all duration-300"
+          class="lg:hidden hidden fixed inset-0 z-50 flex flex-col h-full bg-white/95 dark:bg-gray-800/95 shadow-md p-6 font-semibold transition-all duration-300 overflow-hidden"
         >
           <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
             <%= if @current_user != nil do %>
@@ -367,7 +367,7 @@ defmodule CuratorianWeb.Layouts do
             </button>
           </div>
 
-          <div class="flex flex-col space-y-4">
+          <div class="flex-1 min-h-0 overflow-y-auto space-y-4 pb-6">
             <%= for menu <- @menus do %>
               <div class="border-b border-base-200 pb-3">
                 <%= if menu[:items] do %>
@@ -394,7 +394,7 @@ defmodule CuratorianWeb.Layouts do
             <% end %>
           </div>
 
-          <div class="pt-6 mt-auto border-t border-gray-200 dark:border-gray-700">
+          <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
             <%= if @current_user != nil do %>
               <div class="flex flex-col items-center justify-center gap-4 pt-4">
                 <div class="flex gap-3 w-full"><.theme_toggle /></div>

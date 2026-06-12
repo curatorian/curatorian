@@ -13,6 +13,7 @@ defmodule CuratorianWeb.Public.Events.IndexLive do
     {"Pameran", "exhibition"},
     {"Konferensi", "conference"},
     {"Pelatihan", "training"},
+    {"Program Baca", "reading_program"},
     {"Lainnya", "other"}
   ]
 
@@ -297,6 +298,7 @@ defmodule CuratorianWeb.Public.Events.IndexLive do
   defp to_label(:exhibition), do: "Pameran"
   defp to_label(:conference), do: "Konferensi"
   defp to_label(:training), do: "Pelatihan"
+  defp to_label(:reading_program), do: "Program Baca"
   defp to_label(:other), do: "Lainnya"
   defp to_label(:online), do: "Online"
   defp to_label(:offline), do: "Offline"
