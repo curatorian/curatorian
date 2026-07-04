@@ -87,14 +87,6 @@ config :curatorian, Curatorian.Mailer, adapter: Swoosh.Adapters.Local
 
 config :voile, :disable_email_queue, false
 
-# ===== MYSQL (SLiMS Migration Source) =====
-config :voile, :mysql_source,
-  hostname: "localhost",
-  port: 3306,
-  username: "root",
-  password: "",
-  database: "slims_gold"
-
 # ===== XENDIT (Development) =====
 config :voile,
   xendit_api_key:

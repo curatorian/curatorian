@@ -26,6 +26,9 @@ defmodule Curatorian.Public do
     JobApplication,
     Event,
     EventRegistration,
+    EventPayment,
+    EventCertificate,
+    EventAttendance,
     OrgPageFollower,
     CrowdfundingCampaign,
     ExchangeOffer,
@@ -942,6 +945,35 @@ defmodule Curatorian.Public do
     Repo.get_by(EventRegistration, voile_user_id: user_id, event_id: event_id)
   end
 
+  def get_event(event_id) do
+    from(e in Event,
+      where: e.id == ^event_id and is_nil(e.deleted_at)
+    )
+    |> Repo.one()
+  end
+
+  def get_certificate(certificate_id) do
+    from(c in EventCertificate,
+      where: c.id == ^certificate_id and c.is_valid == true
+    )
+    |> Repo.one()
+  end
+
+  def get_certificate_by_token(token) do
+    from(c in EventCertificate,
+      where: c.verification_token == ^token and c.is_valid == true
+    )
+    |> Repo.one()
+  end
+
+  def increment_certificate_download(certificate_id) do
+    from(c in EventCertificate, where: c.id == ^certificate_id)
+    |> Repo.update_all(
+      inc: [download_count: 1],
+      set: [last_downloaded_at: DateTime.utc_now()]
+    )
+  end
+
   def register_for_event(user_id, event_id, opts \\ []) do
     requires_approval = Keyword.get(opts, :requires_approval, true)
     amount_paid_idr = Keyword.get(opts, :amount_paid_idr, 0)
@@ -1096,6 +1128,85 @@ defmodule Curatorian.Public do
       order_by: [desc: e.starts_at]
     )
     |> Repo.all()
+  end
+
+  @doc "Returns upcoming events (based on starts_at) that the user is registered for."
+  def list_upcoming_registrations_for_user(voile_user_id) do
+    now = DateTime.utc_now()
+
+    from(r in EventRegistration,
+      join: e in Event,
+      on: r.event_id == e.id,
+      where:
+        r.voile_user_id == ^voile_user_id and
+          is_nil(e.deleted_at) and
+          e.starts_at > ^now and
+          r.status in [:pending, :approved, :waitlisted],
+      order_by: [asc: e.starts_at],
+      select: {r, e}
+    )
+    |> Repo.all()
+  end
+
+  @doc "Returns past events (based on ends_at) that the user attended."
+  def list_past_registrations_for_user(voile_user_id) do
+    now = DateTime.utc_now()
+
+    from(r in EventRegistration,
+      join: e in Event,
+      on: r.event_id == e.id,
+      where:
+        r.voile_user_id == ^voile_user_id and
+          is_nil(e.deleted_at) and
+          e.ends_at <= ^now,
+      order_by: [desc: e.ends_at],
+      select: {r, e}
+    )
+    |> Repo.all()
+  end
+
+  @doc "Returns certificates for a user with their associated events."
+  def list_certificates_for_user_with_events(voile_user_id) do
+    from(c in EventCertificate,
+      join: e in Event,
+      on: c.event_id == e.id,
+      where: c.voile_user_id == ^voile_user_id and c.is_valid == true,
+      order_by: [desc: c.issued_at],
+      select: {c, e}
+    )
+    |> Repo.all()
+  end
+
+  @doc "Returns all payments for a given user."
+  def list_payments_for_user(voile_user_id) do
+    from(p in EventPayment,
+      where: p.voile_user_id == ^voile_user_id,
+      order_by: [desc: p.inserted_at]
+    )
+    |> Repo.all()
+  end
+
+  @doc "Returns payments for a user with their associated events and registrations."
+  def list_payments_for_user_with_details(voile_user_id) do
+    from(p in EventPayment,
+      join: e in Event,
+      on: p.event_id == e.id,
+      join: r in EventRegistration,
+      on: p.registration_id == r.id,
+      where: p.voile_user_id == ^voile_user_id,
+      order_by: [desc: p.inserted_at],
+      select: {p, e, r}
+    )
+    |> Repo.all()
+  end
+
+  @doc "Get attendances for a user's registrations."
+  def list_attendances_for_user_registrations(registration_ids) when is_list(registration_ids) do
+    from(a in EventAttendance,
+      where: a.registration_id in ^registration_ids
+    )
+    |> Repo.all()
+    |> Map.new(&{&1.registration_id, &1})
   end
 
   # ---------------------------------------------------------------------------

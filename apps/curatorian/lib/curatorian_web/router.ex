@@ -101,6 +101,9 @@ defmodule CuratorianWeb.Router do
       live "/jobs/:slug", Public.Jobs.ShowLive, :show
       live "/events", Public.Events.IndexLive, :index
       live "/events/:slug", Public.Events.ShowLive, :show
+      live "/events/:slug/register", Public.Events.RegisterLive, :new
+      live "/certificates/:id", Public.Events.CertificateLive, :show
+      live "/certificates/verify/:token", Public.Events.CertificateLive, :verify
       live "/crowdfunding", Public.Crowdfunding.IndexLive, :index
       live "/crowdfunding/:slug", Public.Crowdfunding.ShowLive, :show
       live "/exchange", Public.CollectionExchange.IndexLive, :index
