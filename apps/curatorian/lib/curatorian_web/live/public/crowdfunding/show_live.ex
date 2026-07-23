@@ -23,7 +23,10 @@ defmodule CuratorianWeb.Public.Crowdfunding.ShowLive do
          |> assign(:og_image, campaign.cover_image_url)
          |> assign(:og_url, "/crowdfunding/#{campaign.slug}")
          |> assign(:og_type, "website")
-         |> assign(:twitter_card, if(campaign.cover_image_url, do: "summary_large_image", else: "summary"))}
+         |> assign(
+           :twitter_card,
+           if(campaign.cover_image_url, do: "summary_large_image", else: "summary")
+         )}
     end
   end
 

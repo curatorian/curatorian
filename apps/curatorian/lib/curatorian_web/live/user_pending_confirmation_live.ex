@@ -72,8 +72,7 @@ defmodule CuratorianWeb.UserPendingConfirmationLive do
                     phx-disable-with="Mengirim…"
                     class="btn btn-outline btn-primary w-full gap-2 motion-safe:transition-all motion-safe:duration-200"
                   >
-                    <.icon name="hero-paper-airplane" class="size-4" />
-                    Kirim ulang email konfirmasi
+                    <.icon name="hero-paper-airplane" class="size-4" /> Kirim ulang email konfirmasi
                   </.button>
                 </.form>
               <% else %>
@@ -81,7 +80,10 @@ defmodule CuratorianWeb.UserPendingConfirmationLive do
                   <.icon name="hero-exclamation-triangle" class="size-5 shrink-0" />
                   <span class="text-sm">
                     Alamat email tidak ditemukan.
-                    <.link navigate={~p"/register"} class="font-medium underline underline-offset-2 ml-1">
+                    <.link
+                      navigate={~p"/register"}
+                      class="font-medium underline underline-offset-2 ml-1"
+                    >
                       Daftar
                     </.link>
                     untuk membuat akun.
@@ -95,8 +97,7 @@ defmodule CuratorianWeb.UserPendingConfirmationLive do
                 navigate={~p"/login"}
                 class="btn btn-ghost btn-sm w-full text-base-content/60 hover:text-base-content motion-safe:transition-all motion-safe:duration-200"
               >
-                <.icon name="hero-arrow-left" class="size-4" />
-                Kembali ke halaman masuk
+                <.icon name="hero-arrow-left" class="size-4" /> Kembali ke halaman masuk
               </.link>
             </div>
           </div>

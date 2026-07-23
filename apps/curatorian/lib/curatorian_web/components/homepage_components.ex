@@ -382,4 +382,114 @@ defmodule CuratorianWeb.HomepageComponents do
     </div>
     """
   end
+
+  # ── Metadata standards (GLAM badges) ──────────────────────────────────────
+  # Each standard is tagged with the GLAM sector(s) it serves:
+  #   g = Gallery, l = Library, a = Archive, m = Museum
+  @glam_legend [
+    {"g", "Gallery"},
+    {"l", "Library"},
+    {"a", "Archive"},
+    {"m", "Museum"}
+  ]
+
+  @glam_badge_classes %{
+    "g" =>
+      "bg-pink-100 text-pink-700 border-pink-200 dark:bg-pink-900/30 dark:text-pink-300 dark:border-pink-800",
+    "l" =>
+      "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800",
+    "a" =>
+      "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800",
+    "m" =>
+      "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800"
+  }
+
+  @glam_labels %{"g" => "Gallery", "l" => "Library", "a" => "Archive", "m" => "Museum"}
+
+  @metadata_standards [
+    {"dcterms", "Dublin Core Terms", ~w(g l a m)},
+    {"dctype", "Dublin Core Type", ~w(g l a m)},
+    {"bibo", "Bibliographic Ontology", ~w(l)},
+    {"foaf", "Friend of a Friend", ~w(g l a m)},
+    {"vra", "VRA Core", ~w(g)},
+    {"cdwalite", "CDWA Lite", ~w(g m)},
+    {"exif", "EXIF", ~w(g)},
+    {"iptc", "IPTC Photo Metadata", ~w(g)},
+    {"xmp", "XMP", ~w(g)},
+    {"schema", "Schema.org", ~w(g l a m)},
+    {"marc21", "MARC 21", ~w(l)},
+    {"mods", "MODS", ~w(l)},
+    {"bf", "BIBFRAME", ~w(l)},
+    {"mets", "METS", ~w(l a)},
+    {"onix", "ONIX", ~w(l)},
+    {"isadg", "ISAD(G)", ~w(a)},
+    {"ead", "EAD", ~w(a)},
+    {"eaccpf", "EAC-CPF", ~w(a)},
+    {"ric", "Records in Contexts (RiC)", ~w(a)},
+    {"premis", "PREMIS", ~w(a l)},
+    {"isaar", "ISAAR(CPF)", ~w(a)},
+    {"crm", "CIDOC CRM", ~w(m)},
+    {"spectrum", "SPECTRUM", ~w(m)},
+    {"lido", "LIDO", ~w(m g)},
+    {"objectid", "ICOM Object ID", ~w(m)},
+    {"edm", "Europeana Data Model", ~w(g l a m)},
+    {"skos", "SKOS", ~w(g l a m)},
+    {"iiif", "IIIF Presentation API", ~w(g l a m)}
+  ]
+
+  @doc """
+  Renders the supported metadata-standards grid with GLAM-sector badges,
+  used on the /about page ("Standar Metadata" section).
+  """
+  attr :class, :string, default: nil
+
+  def metadata_standards(assigns) do
+    assigns =
+      assigns
+      |> assign(:standards, @metadata_standards)
+      |> assign(:legend, @glam_legend)
+      |> assign(:badge_classes, @glam_badge_classes)
+      |> assign(:labels, @glam_labels)
+
+    ~H"""
+    <div class={@class}>
+      <%!-- Legend --%>
+      <div class="flex flex-wrap justify-center gap-2 mb-6">
+        <span
+          :for={{code, label} <- @legend}
+          class={
+            "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-xs font-medium " <>
+              Map.get(@badge_classes, code)
+          }
+        >
+          <span class="font-bold uppercase">{code}</span>{label}
+        </span>
+      </div>
+
+      <div class="max-w-4xl mx-auto grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm text-gray-600 dark:text-gray-300">
+        <div
+          :for={{prefix, name, glam} <- @standards}
+          class="border border-gray-200 dark:border-gray-700 rounded-lg p-3 bg-white dark:bg-gray-900"
+        >
+          <div class="flex items-start justify-between gap-2">
+            <code class="font-mono text-violet-600 dark:text-violet-400">{prefix}</code>
+            <div class="flex gap-1 shrink-0">
+              <span
+                :for={g <- glam}
+                title={Map.get(@labels, g)}
+                class={
+                  "inline-flex items-center justify-center size-5 rounded text-[10px] font-bold uppercase border " <>
+                    Map.get(@badge_classes, g)
+                }
+              >
+                {g}
+              </span>
+            </div>
+          </div>
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400 leading-snug">{name}</p>
+        </div>
+      </div>
+    </div>
+    """
+  end
 end

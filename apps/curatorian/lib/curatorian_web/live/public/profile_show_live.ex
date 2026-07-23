@@ -55,7 +55,10 @@ defmodule CuratorianWeb.Public.ProfileShowLive do
          |> assign(:og_image, profile.avatar_url && asset_url(profile.avatar_url))
          |> assign(:og_url, "/u/#{username}")
          |> assign(:og_type, "profile")
-         |> assign(:twitter_card, if(profile.avatar_url, do: "summary_large_image", else: "summary"))}
+         |> assign(
+           :twitter_card,
+           if(profile.avatar_url, do: "summary_large_image", else: "summary")
+         )}
     end
   end
 

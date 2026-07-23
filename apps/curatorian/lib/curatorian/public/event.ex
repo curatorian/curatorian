@@ -16,7 +16,16 @@ defmodule Curatorian.Public.Event do
     field :cover_image_url, :string
 
     field :event_type, Ecto.Enum,
-      values: [:webinar, :seminar, :workshop, :exhibition, :conference, :training, :reading_program, :other]
+      values: [
+        :webinar,
+        :seminar,
+        :workshop,
+        :exhibition,
+        :conference,
+        :training,
+        :reading_program,
+        :other
+      ]
 
     field :mode, Ecto.Enum, values: [:online, :offline, :hybrid]
 

@@ -92,7 +92,10 @@ defmodule CuratorianWeb.Public.OrganizationShowLive do
          |> assign(:og_image, org.cover_url || org.avatar_url)
          |> assign(:og_url, "/orgs/#{id}")
          |> assign(:og_type, "website")
-         |> assign(:twitter_card, if(org.cover_url || org.avatar_url, do: "summary_large_image", else: "summary"))
+         |> assign(
+           :twitter_card,
+           if(org.cover_url || org.avatar_url, do: "summary_large_image", else: "summary")
+         )
          |> stream(:collections, [])}
     end
   end

@@ -4,6 +4,7 @@ defmodule CuratorianWeb.Public.ProfilesLive do
   use CuratorianWeb, :live_view
 
   alias Curatorian.Public
+  alias CuratorianWeb.Pagination
 
   @institution_type_options [
     {"Semua", nil},
@@ -26,13 +27,15 @@ defmodule CuratorianWeb.Public.ProfilesLive do
     page = String.to_integer(Map.get(params, "page", "1"))
 
     profiles = Public.list_profiles(search, page: page, institution_type: institution_type)
+    total = Public.count_profiles(search, institution_type: institution_type)
+    total_pages = if total == 0, do: 1, else: ceil(total / Public.page_size())
 
     {:noreply,
      socket
      |> assign(:search, search)
      |> assign(:institution_type, institution_type)
      |> assign(:page, page)
-     |> assign(:has_more, length(profiles) == Public.page_size())
+     |> assign(:total_pages, total_pages)
      |> stream(:profiles, profiles, reset: true)}
   end
 
@@ -52,27 +55,15 @@ defmodule CuratorianWeb.Public.ProfilesLive do
     {:noreply, push_patch(socket, to: ~p"/kurator?#{params}")}
   end
 
-  def handle_event("load_more", _, socket) do
-    next_page = socket.assigns.page + 1
-
-    profiles =
-      Public.list_profiles(socket.assigns.search,
-        page: next_page,
-        institution_type: socket.assigns.institution_type
-      )
-
-    {:noreply,
-     socket
-     |> assign(:page, next_page)
-     |> assign(:has_more, length(profiles) == Public.page_size())
-     |> stream(:profiles, profiles)}
-  end
-
   defp build_params(search, institution_type, page) do
     %{}
     |> then(fn p -> if search != "", do: Map.put(p, "q", search), else: p end)
     |> then(fn p -> if institution_type, do: Map.put(p, "type", institution_type), else: p end)
     |> then(fn p -> if page > 1, do: Map.put(p, "page", page), else: p end)
+  end
+
+  defp page_path(search, institution_type, page) do
+    ~p"/kurator?#{build_params(search, institution_type, page)}"
   end
 
   def render(assigns) do
@@ -156,15 +147,14 @@ defmodule CuratorianWeb.Public.ProfilesLive do
           <p class="text-sm">Coba ubah kata kunci pencarian</p>
         </div>
 
-        <%!-- Load more --%>
-        <div :if={@has_more} class="flex justify-center mt-10">
-          <button
-            phx-click="load_more"
-            class="inline-flex items-center gap-2 px-8 py-2.5 rounded-full border border-primary/50 text-primary text-sm font-medium hover:bg-primary hover:text-primary-content transition-all duration-200"
-          >
-            <.icon name="hero-arrow-down" class="size-4" /> Muat lebih banyak
-          </button>
-        </div>
+        <%!-- Pagination --%>
+        <Pagination.pagination
+          :if={@total_pages > 1}
+          current={@page}
+          total_pages={@total_pages}
+          path={fn p -> page_path(@search, @institution_type, p) end}
+          class="mt-10"
+        />
       </div>
     </Layouts.app>
     """

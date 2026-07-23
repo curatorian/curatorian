@@ -48,8 +48,7 @@ defmodule CuratorianWeb.UserConfirmationLive do
                     phx-disable-with="Mengkonfirmasi…"
                     class="btn btn-primary w-full gap-2 motion-safe:transition-all motion-safe:duration-200"
                   >
-                    <.icon name="hero-check-badge" class="size-5" />
-                    Konfirmasi akun saya
+                    <.icon name="hero-check-badge" class="size-5" /> Konfirmasi akun saya
                   </.button>
                 </.form>
               <% else %>
@@ -70,8 +69,7 @@ defmodule CuratorianWeb.UserConfirmationLive do
                   navigate={~p"/users/pending_confirmation"}
                   class="btn btn-primary w-full gap-2 motion-safe:transition-all motion-safe:duration-200"
                 >
-                  <.icon name="hero-paper-airplane" class="size-4" />
-                  Minta email konfirmasi baru
+                  <.icon name="hero-paper-airplane" class="size-4" /> Minta email konfirmasi baru
                 </.link>
               <% end %>
 
@@ -81,8 +79,7 @@ defmodule CuratorianWeb.UserConfirmationLive do
                 navigate={~p"/login"}
                 class="btn btn-ghost btn-sm w-full text-base-content/60 hover:text-base-content motion-safe:transition-all motion-safe:duration-200"
               >
-                <.icon name="hero-arrow-left" class="size-4" />
-                Kembali ke halaman masuk
+                <.icon name="hero-arrow-left" class="size-4" /> Kembali ke halaman masuk
               </.link>
             </div>
           </div>

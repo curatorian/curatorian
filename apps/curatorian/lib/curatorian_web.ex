@@ -93,6 +93,8 @@ defmodule CuratorianWeb do
       import Phoenix.HTML
       # Core UI components and translation
       import CuratorianWeb.CoreComponents
+      # Reusable search components (flagship discovery)
+      import CuratorianWeb.SearchComponents
       # import CuratorianWeb.LayoutComponents
       use Gettext, backend: CuratorianWeb.Gettext
 

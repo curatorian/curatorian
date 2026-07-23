@@ -180,8 +180,10 @@ h6 {
   @apply text-base md:text-lg lg:text-xl font-bold;
 }
 
-a {
-  @apply text-primary cursor-pointer;
+@layer base {
+  a {
+    @apply text-primary cursor-pointer;
+  }
 }
 
 .code-snippet {

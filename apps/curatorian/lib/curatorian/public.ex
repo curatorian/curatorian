@@ -37,6 +37,9 @@ defmodule Curatorian.Public do
     Guide
   }
 
+  alias Voile.Schema.Catalog.CollectionField
+  alias Voile.Schema.Metadata.ResourceClass
+
   @page_size 12
 
   def page_size, do: @page_size
@@ -347,7 +350,7 @@ defmodule Curatorian.Public do
   def get_public_collection(id) do
     from(c in Collection,
       where: c.id == ^id and c.status == "published" and c.access_level == "public",
-      preload: [:unit, :collection_fields, :items]
+      preload: [:unit, :resource_class, :collection_fields, :items]
     )
     |> Repo.one()
   end
@@ -389,6 +392,364 @@ defmodule Curatorian.Public do
 
   defp filter_by_collection_type(query, type) do
     where(query, [c], c.collection_type == ^type)
+  end
+
+  # ---------------------------------------------------------------------------
+  # Cross-node collection discovery search (flagship)
+  #
+  # Backed by PostgreSQL full-text search over voile.collections.search_vector
+  # (generated column: title/collection_code at weight A, description at weight B)
+  # plus a pg_trgm ILIKE fallback over voile.collection_fields.value so that
+  # Dublin Core metadata (subject, ISBN/identifier, creator, language, ...) also
+  # surfaces results. Filters are composable and each no-op on nil.
+  # ---------------------------------------------------------------------------
+
+  # Dublin Core local_name aliases mapped to the facet dimensions we expose.
+  @dc_names %{
+    subject: ~w(subject dc:subject),
+    language: ~w(language dc:language),
+    creator: ~w(creator dc:creator)
+  }
+
+  @search_page_size 12
+
+  def search_page_size, do: @search_page_size
+
+  @doc """
+  Comprehensive cross-node collection search.
+
+  ## Options
+
+    * `:search`           - free-text query (FTS over title/description/code +
+                            trigram fallback over metadata values)
+    * `:glam_type`        - `"Gallery" | "Library" | "Archive" | "Museum"`
+    * `:node_id`          - voile node id (filter to a single organization)
+    * `:collection_type`  - `series | book | movie | album | course | other`
+    * `:institution_type` - `library | museum | gallery | archive` (node_profile)
+    * `:city`, `:province`- geographic filter (node_profile)
+    * `:subject`, `:language`, `:creator` - Dublin Core facet values
+    * `:sort`             - `relevance | newest | oldest | title`
+    * `:page`, `:page_size`
+  """
+  def search_collections(opts \\ []) do
+    page = max(1, opts[:page] || 1)
+    page_size = opts[:page_size] || @search_page_size
+    offset = (page - 1) * page_size
+    search = (opts[:search] || "") |> to_string() |> String.trim()
+    has_search? = search != ""
+
+    collection_search_base()
+    |> apply_search_filters(opts)
+    |> order_results(opts[:sort], has_search?, search)
+    |> limit(^page_size)
+    |> offset(^offset)
+    |> preload([:unit, :resource_class])
+    |> Repo.all()
+  end
+
+  def count_search_collections(opts \\ []) do
+    collection_search_base()
+    |> apply_search_filters(opts)
+    |> Repo.aggregate(:count, :id)
+  end
+
+  @doc """
+  Facet counts for the discovery sidebar. Each dimension is computed over the
+  current filter set with that dimension's own filter removed, so users always
+  see the options available for narrowing (standard faceted-search behaviour).
+  """
+  def collection_search_facets(opts \\ []) do
+    %{
+      glam_types: facet_glam_types(Keyword.delete(opts, :glam_type)),
+      collection_types: facet_collection_types(Keyword.delete(opts, :collection_type)),
+      institution_types: facet_institution_types(Keyword.delete(opts, :institution_type)),
+      subjects: facet_dc_values(Keyword.delete(opts, :subject), :subject),
+      languages: facet_dc_values(Keyword.delete(opts, :language), :language),
+      creators: facet_dc_values(Keyword.delete(opts, :creator), :creator)
+    }
+  end
+
+  @doc "Organizations (voile nodes) that own at least one public collection."
+  def list_org_filter_options do
+    from(c in Collection,
+      where: c.status == "published" and c.access_level == "public",
+      join: n in Unit,
+      on: n.id == c.unit_id,
+      group_by: [n.id, n.name, n.abbr, n.image],
+      order_by: [asc: n.name],
+      select: %{node_id: n.id, name: n.name, abbr: n.abbr, image: n.image, count: count(c.id)}
+    )
+    |> Repo.all()
+  end
+
+  @doc "Distinct cities/provinces for organizations that own public collections."
+  def list_org_locations do
+    %{
+      provinces: list_distinct_node_field(:province),
+      cities: list_distinct_node_field(:city)
+    }
+  end
+
+  @doc """
+  Organization context for a collection's owning node — the unit (voile node),
+  its atrium node_profile, and its public org_page (if any). Used by the
+  collection detail page to surface the "belongs to" relationship prominently.
+  """
+  def get_org_context_for_node(nil), do: nil
+
+  def get_org_context_for_node(voile_node_id) do
+    %{
+      unit: Repo.get(Unit, voile_node_id),
+      node_profile: get_node_profile_by_voile_node(voile_node_id),
+      org_page: get_org_page_by_voile_node(voile_node_id)
+    }
+  end
+
+  def get_org_page_by_voile_node(voile_node_id) do
+    from(o in OrgPage,
+      where: o.voile_node_id == ^voile_node_id and o.is_public == true and is_nil(o.deleted_at)
+    )
+    |> Repo.one()
+  end
+
+  @doc "Other public collections from the same organization (for the detail page)."
+  def list_related_collections(collection, opts \\ []) do
+    limit_n = Keyword.get(opts, :limit, 4)
+
+    from(c in Collection,
+      where:
+        c.unit_id == ^collection.unit_id and
+          c.status == "published" and
+          c.access_level == "public" and
+          c.id != ^collection.id,
+      order_by: [desc: c.inserted_at],
+      limit: ^limit_n,
+      preload: [:unit, :resource_class]
+    )
+    |> Repo.all()
+  end
+
+  # --- private query builders ---
+
+  defp collection_search_base do
+    from(c in Collection,
+      as: :collection,
+      where: c.status == "published" and c.access_level == "public",
+      left_join: rc in ResourceClass,
+      on: rc.id == c.type_id,
+      as: :resource_class,
+      left_join: n in Unit,
+      on: n.id == c.unit_id,
+      as: :node,
+      left_join: np in NodeProfile,
+      on:
+        np.voile_node_id == c.unit_id and
+          np.status == :approved and
+          is_nil(np.deleted_at),
+      as: :node_profile
+    )
+  end
+
+  defp apply_search_filters(query, opts) do
+    query
+    |> filter_search(opts[:search])
+    |> filter_glam_type(opts[:glam_type])
+    |> filter_node(opts[:node_id])
+    |> filter_collection_type(opts[:collection_type])
+    |> filter_institution_type(opts[:institution_type])
+    |> filter_location(opts[:city], opts[:province])
+    |> filter_dc_field(:subject, opts[:subject])
+    |> filter_dc_field(:language, opts[:language])
+    |> filter_dc_field(:creator, opts[:creator])
+  end
+
+  defp filter_search(query, search) when is_binary(search) do
+    term = String.trim(search)
+
+    if term == "" do
+      query
+    else
+      where(
+        query,
+        [collection: c],
+        fragment("search_vector @@ websearch_to_tsquery('simple', ?)", ^term) or
+          fragment(
+            "EXISTS (SELECT 1 FROM voile.collection_fields WHERE collection_id = ? AND value ILIKE ?)",
+            c.id,
+            ^"%#{term}%"
+          )
+      )
+    end
+  end
+
+  defp filter_search(query, _), do: query
+
+  defp filter_glam_type(query, nil), do: query
+
+  defp filter_glam_type(query, glam_type) do
+    where(query, [resource_class: rc], rc.glam_type == ^glam_type)
+  end
+
+  defp filter_node(query, nil), do: query
+
+  defp filter_node(query, node_id) do
+    where(query, [collection: c], c.unit_id == ^node_id)
+  end
+
+  defp filter_collection_type(query, nil), do: query
+
+  defp filter_collection_type(query, collection_type) do
+    where(query, [collection: c], c.collection_type == ^collection_type)
+  end
+
+  defp filter_institution_type(query, nil), do: query
+
+  defp filter_institution_type(query, institution_type) do
+    where(query, [node_profile: np], np.institution_type == ^institution_type)
+  end
+
+  defp filter_location(query, nil, nil), do: query
+
+  defp filter_location(query, city, nil) when is_binary(city) do
+    where(
+      query,
+      [node_profile: np],
+      fragment("lower(?) = lower(?)", np.city, ^city)
+    )
+  end
+
+  defp filter_location(query, nil, province) when is_binary(province) do
+    where(
+      query,
+      [node_profile: np],
+      fragment("lower(?) = lower(?)", np.province, ^province)
+    )
+  end
+
+  defp filter_location(query, city, province) when is_binary(city) and is_binary(province) do
+    where(
+      query,
+      [node_profile: np],
+      fragment("lower(?) = lower(?)", np.city, ^city) and
+        fragment("lower(?) = lower(?)", np.province, ^province)
+    )
+  end
+
+  defp filter_dc_field(query, _field, nil), do: query
+
+  defp filter_dc_field(query, field, value) do
+    names = Map.fetch!(@dc_names, field)
+
+    where(
+      query,
+      [collection: c],
+      fragment(
+        "EXISTS (SELECT 1 FROM voile.collection_fields WHERE collection_id = ? AND name = ANY(?) AND value = ?)",
+        c.id,
+        ^names,
+        ^value
+      )
+    )
+  end
+
+  defp order_results(query, sort, true = _has_search?, search) do
+    case sort do
+      "newest" ->
+        order_by(query, [collection: c], desc: c.inserted_at)
+
+      "oldest" ->
+        order_by(query, [collection: c], asc: c.inserted_at)
+
+      "title" ->
+        order_by(query, [collection: c], asc: c.title)
+
+      _ ->
+        order_by(
+          query,
+          [collection: c],
+          desc: fragment("ts_rank_cd(search_vector, websearch_to_tsquery('simple', ?))", ^search),
+          desc: c.inserted_at
+        )
+    end
+  end
+
+  defp order_results(query, sort, false, _search) do
+    case sort do
+      "oldest" -> order_by(query, [collection: c], asc: c.inserted_at)
+      "title" -> order_by(query, [collection: c], asc: c.title)
+      _ -> order_by(query, [collection: c], desc: c.inserted_at)
+    end
+  end
+
+  # --- facet queries ---
+
+  defp facet_glam_types(opts) do
+    collection_search_base()
+    |> apply_search_filters(opts)
+    |> where([resource_class: rc], not is_nil(rc.glam_type))
+    |> group_by([resource_class: rc], rc.glam_type)
+    |> order_by([resource_class: rc], desc: count(rc.id))
+    |> select([resource_class: rc], %{value: rc.glam_type, count: count(rc.id)})
+    |> Repo.all()
+  end
+
+  defp facet_collection_types(opts) do
+    collection_search_base()
+    |> apply_search_filters(opts)
+    |> where([collection: c], not is_nil(c.collection_type) and c.collection_type != "")
+    |> group_by([collection: c], c.collection_type)
+    |> order_by([collection: c], desc: count(c.id))
+    |> select([collection: c], %{value: c.collection_type, count: count(c.id)})
+    |> Repo.all()
+  end
+
+  defp facet_institution_types(opts) do
+    collection_search_base()
+    |> apply_search_filters(opts)
+    |> where([node_profile: np], not is_nil(np.institution_type))
+    |> group_by([node_profile: np], np.institution_type)
+    |> order_by([node_profile: np], desc: count(np.id))
+    |> select([node_profile: np], %{value: np.institution_type, count: count(np.id)})
+    |> Repo.all()
+  end
+
+  defp facet_dc_values(opts, field) do
+    names = Map.fetch!(@dc_names, field)
+
+    collection_search_base()
+    |> apply_search_filters(opts)
+    |> join(
+      :inner,
+      [collection: c],
+      cf in CollectionField,
+      as: :fields,
+      on: cf.collection_id == c.id and cf.name in ^names
+    )
+    |> where([fields: cf], not is_nil(cf.value) and cf.value != "")
+    |> group_by([fields: cf], cf.value)
+    |> order_by([fields: cf], desc: count(cf.id))
+    |> select([fields: cf], %{value: cf.value, count: count(cf.id)})
+    |> limit(15)
+    |> Repo.all()
+  end
+
+  defp list_distinct_node_field(field) do
+    from(np in NodeProfile,
+      join: c in Collection,
+      on:
+        c.unit_id == np.voile_node_id and
+          c.status == "published" and
+          c.access_level == "public",
+      where:
+        np.status == :approved and
+          is_nil(np.deleted_at) and
+          not is_nil(field(np, ^field)) and
+          field(np, ^field) != "",
+      group_by: field(np, ^field),
+      order_by: [asc: field(np, ^field)],
+      select: %{value: field(np, ^field), count: count(c.id)}
+    )
+    |> Repo.all()
   end
 
   # ---------------------------------------------------------------------------

@@ -406,8 +406,7 @@ defmodule CuratorianWeb.Public.CuratorsBlogLive do
                       <%!-- Decorative circles --%>
                       <div class="absolute -bottom-6 -right-6 w-28 h-28 rounded-full bg-white/5">
                       </div>
-                      <div class="absolute -top-3 -left-3 w-14 h-14 rounded-full bg-white/8">
-                      </div>
+                      <div class="absolute -top-3 -left-3 w-14 h-14 rounded-full bg-white/8"></div>
                     </div>
                   <% end %>
 
@@ -510,7 +509,10 @@ defmodule CuratorianWeb.Public.CuratorsBlogLive do
           >
             <.icon name="hero-chevron-left" class="size-4" /> Sebelum
           </button>
-          <div :if={@page == 1} class="px-3.5 h-10 rounded-xl text-sm text-base-content/20 flex items-center gap-1 font-semibold cursor-not-allowed">
+          <div
+            :if={@page == 1}
+            class="px-3.5 h-10 rounded-xl text-sm text-base-content/20 flex items-center gap-1 font-semibold cursor-not-allowed"
+          >
             <.icon name="hero-chevron-left" class="size-4" /> Sebelum
           </div>
 

@@ -37,7 +37,10 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
          |> assign(:og_image, Map.get(event, :cover_image_url))
          |> assign(:og_url, "/events/#{event.slug}")
          |> assign(:og_type, "website")
-         |> assign(:twitter_card, if(Map.get(event, :cover_image_url), do: "summary_large_image", else: "summary"))}
+         |> assign(
+           :twitter_card,
+           if(Map.get(event, :cover_image_url), do: "summary_large_image", else: "summary")
+         )}
     end
   end
 

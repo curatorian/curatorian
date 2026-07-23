@@ -63,7 +63,9 @@ defmodule CuratorianWeb.UserLoginLive do
               <%!-- Form panel --%>
               <div class="col-span-1 lg:col-span-3 p-8 lg:p-10 flex flex-col justify-center">
                 <div class="mb-7">
-                  <h1 class="text-2xl font-semibold text-base-content mb-1">Selamat datang kembali</h1>
+                  <h1 class="text-2xl font-semibold text-base-content mb-1">
+                    Selamat datang kembali
+                  </h1>
                   <p class="text-sm text-base-content/60">
                     Masuk ke akun Curatorian Anda
                   </p>
@@ -120,8 +122,7 @@ defmodule CuratorianWeb.UserLoginLive do
                     phx-disable-with="Sedang masuk…"
                     disabled={!@captcha_valid}
                   >
-                    Masuk
-                    <.icon name="hero-arrow-right" class="size-4" />
+                    Masuk <.icon name="hero-arrow-right" class="size-4" />
                   </.button>
                 </.form>
 

@@ -60,7 +60,7 @@ defmodule CuratorianWeb.Public.GuideShowLive do
       |> Enum.map(fn
         [_full, level, attrs, inner] ->
           text = inner |> String.replace(~r/<[^>]+>/, "") |> String.trim()
-          id_match = Regex.run(~r/\bid="([^"]*)"/,  attrs, capture: :all_but_first)
+          id_match = Regex.run(~r/\bid="([^"]*)"/, attrs, capture: :all_but_first)
           id = if id_match, do: hd(id_match), else: heading_id(text)
           %{level: String.to_integer(level), id: id, text: text}
 
@@ -102,7 +102,10 @@ defmodule CuratorianWeb.Public.GuideShowLive do
   defp category_label("integration"), do: "Integration"
   defp category_label("api"), do: "API"
   defp category_label("faq"), do: "FAQ"
-  defp category_label(c) when is_binary(c), do: c |> String.replace("_", " ") |> String.capitalize()
+
+  defp category_label(c) when is_binary(c),
+    do: c |> String.replace("_", " ") |> String.capitalize()
+
   defp category_label(_), do: nil
 
   @impl true
@@ -116,7 +119,8 @@ defmodule CuratorianWeb.Public.GuideShowLive do
         phx-update="ignore"
         class="fixed top-0 left-0 right-0 z-50 h-1 bg-base-200"
       >
-        <div id="reading-progress-bar" class="h-full bg-primary transition-all duration-100 w-0"></div>
+        <div id="reading-progress-bar" class="h-full bg-primary transition-all duration-100 w-0">
+        </div>
       </div>
 
       <script :type={Phoenix.LiveView.ColocatedHook} name=".ReadingProgress">
@@ -261,11 +265,9 @@ defmodule CuratorianWeb.Public.GuideShowLive do
 
             <%!-- Series prev/next navigation --%>
             <%= if @series_guides != [] do %>
-              <%
-                current_idx = Enum.find_index(@series_guides, &(&1.id == @guide.id))
-                prev_part = current_idx && current_idx > 0 && Enum.at(@series_guides, current_idx - 1)
-                next_part = current_idx && Enum.at(@series_guides, current_idx + 1)
-              %>
+              <% current_idx = Enum.find_index(@series_guides, &(&1.id == @guide.id))
+              prev_part = current_idx && current_idx > 0 && Enum.at(@series_guides, current_idx - 1)
+              next_part = current_idx && Enum.at(@series_guides, current_idx + 1) %>
               <div class="mt-10 pt-8 border-t border-base-200 flex items-center justify-between gap-4">
                 <%= if prev_part do %>
                   <.link
@@ -300,12 +302,10 @@ defmodule CuratorianWeb.Public.GuideShowLive do
             <%!-- Back to guides --%>
             <div class="mt-12 pt-8 border-t border-base-200 flex items-center justify-between">
               <.link navigate={~p"/guides"} class="btn btn-ghost btn-sm gap-2">
-                <.icon name="hero-arrow-left" class="w-4 h-4" />
-                Kembali ke Panduan
+                <.icon name="hero-arrow-left" class="w-4 h-4" /> Kembali ke Panduan
               </.link>
               <a href="#top" class="btn btn-ghost btn-sm gap-2">
-                <.icon name="hero-arrow-up" class="w-4 h-4" />
-                Kembali ke Atas
+                <.icon name="hero-arrow-up" class="w-4 h-4" /> Kembali ke Atas
               </a>
             </div>
           </article>

@@ -4,6 +4,7 @@ defmodule CuratorianWeb.Public.OrganizationsLive do
   use CuratorianWeb, :live_view
 
   alias Curatorian.Public
+  alias CuratorianWeb.Pagination
 
   @institution_type_options [
     {"Semua", nil},
@@ -35,6 +36,8 @@ defmodule CuratorianWeb.Public.OrganizationsLive do
     page = String.to_integer(Map.get(params, "page", "1"))
 
     orgs = Public.list_node_profiles(search, page: page, institution_type: institution_type)
+    total = Public.count_node_profiles(search, institution_type: institution_type)
+    total_pages = if total == 0, do: 1, else: ceil(total / Public.page_size())
 
     {:noreply,
      socket
@@ -42,8 +45,8 @@ defmodule CuratorianWeb.Public.OrganizationsLive do
      |> assign(:institution_type, institution_type)
      |> assign(:page, page)
      |> assign(:org_count, length(orgs))
+     |> assign(:total_pages, total_pages)
      |> assign(:searching, false)
-     |> assign(:has_more, length(orgs) == Public.page_size())
      |> stream(:orgs, orgs |> Enum.map(&flatten_org/1), reset: true)}
   end
 
@@ -63,29 +66,13 @@ defmodule CuratorianWeb.Public.OrganizationsLive do
     {:noreply, push_patch(socket, to: ~p"/orgs?#{params}")}
   end
 
-  def handle_event("load_more", _, socket) do
-    next_page = socket.assigns.page + 1
-
-    orgs =
-      Public.list_node_profiles(socket.assigns.search,
-        page: next_page,
-        institution_type: socket.assigns.institution_type
-      )
-
-    {:noreply,
-     socket
-     |> assign(:page, next_page)
-     |> assign(:has_more, length(orgs) == Public.page_size())
-     |> stream(:orgs, orgs |> Enum.map(&flatten_org/1))}
-  end
-
   # Merge %{profile: node_profile, node: voile_node} into a flat map for the template
   defp flatten_org(%{profile: profile, node: node, org_page: org_page}) do
     merged_avatar =
-      org_page && Map.get(org_page, :avatar_url) || Map.get(profile, :avatar_url)
+      (org_page && Map.get(org_page, :avatar_url)) || Map.get(profile, :avatar_url)
 
     merged_cover =
-      org_page && Map.get(org_page, :cover_url) || Map.get(profile, :cover_url)
+      (org_page && Map.get(org_page, :cover_url)) || Map.get(profile, :cover_url)
 
     %{
       id: profile.id,
@@ -122,6 +109,10 @@ defmodule CuratorianWeb.Public.OrganizationsLive do
     |> then(fn p -> if search != "", do: Map.put(p, "q", search), else: p end)
     |> then(fn p -> if institution_type, do: Map.put(p, "type", institution_type), else: p end)
     |> then(fn p -> if page > 1, do: Map.put(p, "page", page), else: p end)
+  end
+
+  defp page_path(search, institution_type, page) do
+    ~p"/orgs?#{build_params(search, institution_type, page)}"
   end
 
   def render(assigns) do
@@ -206,15 +197,14 @@ defmodule CuratorianWeb.Public.OrganizationsLive do
           </div>
         </div>
 
-        <%!-- Load more --%>
-        <div :if={@has_more} class="flex justify-center mt-10">
-          <button
-            phx-click="load_more"
-            class="inline-flex items-center gap-2 px-8 py-2.5 rounded-full border border-primary/50 text-primary text-sm font-medium hover:bg-primary hover:text-primary-content transition-all duration-200"
-          >
-            <.icon name="hero-arrow-down" class="size-4" /> Muat lebih banyak
-          </button>
-        </div>
+        <%!-- Pagination --%>
+        <Pagination.pagination
+          :if={@total_pages > 1}
+          current={@page}
+          total_pages={@total_pages}
+          path={fn p -> page_path(@search, @institution_type, p) end}
+          class="mt-10"
+        />
       </div>
     </Layouts.app>
     """

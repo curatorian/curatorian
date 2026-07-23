@@ -184,7 +184,12 @@ defmodule CuratorianWeb.Visitor.CheckInLive do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <div id="check-in-page" class="min-h-screen bg-base-200 py-12 px-4" phx-hook="PersistLocation" data-storage-key="curatorian:check_in_selected_location_id">
+      <div
+        id="check-in-page"
+        class="min-h-screen bg-base-200 py-12 px-4"
+        phx-hook="PersistLocation"
+        data-storage-key="curatorian:check_in_selected_location_id"
+      >
         <div class="max-w-2xl mx-auto">
           <div class="text-center mb-8">
             <h1 class="text-3xl font-bold text-base-content">Visitor Check-In</h1>
@@ -289,7 +294,12 @@ defmodule CuratorianWeb.Visitor.CheckInLive do
                 <p class="text-base-content/60 mb-6">
                   Take a moment to rate your check-in experience.
                 </p>
-                <.form for={@survey_form} id="checkin-survey-form" phx-change="validate_survey" phx-submit="submit_survey">
+                <.form
+                  for={@survey_form}
+                  id="checkin-survey-form"
+                  phx-change="validate_survey"
+                  phx-submit="submit_survey"
+                >
                   <div class="space-y-4">
                     <div>
                       <label class="label justify-center">
@@ -297,13 +307,12 @@ defmodule CuratorianWeb.Visitor.CheckInLive do
                       </label>
                       <div class="flex justify-center gap-3 mt-2">
                         <%= for rating <- 1..5 do %>
-                          <% selected = to_string(@survey_form[:rating].value || "") == to_string(rating) %>
-                          <label
-                            class={[
-                              "cursor-pointer flex flex-col items-center gap-1 rounded-2xl border px-4 py-3 transition-all duration-150",
-                              selected && "border-primary bg-primary/10 shadow-sm"
-                            ]}
-                          >
+                          <% selected =
+                            to_string(@survey_form[:rating].value || "") == to_string(rating) %>
+                          <label class={[
+                            "cursor-pointer flex flex-col items-center gap-1 rounded-2xl border px-4 py-3 transition-all duration-150",
+                            selected && "border-primary bg-primary/10 shadow-sm"
+                          ]}>
                             <input
                               type="radio"
                               name="survey[rating]"

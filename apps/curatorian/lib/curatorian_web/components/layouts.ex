@@ -40,7 +40,8 @@ defmodule CuratorianWeb.Layouts do
   end
 
   def meta_title(assigns) do
-    assigns[:og_title] || assigns[:page_title] || Application.get_env(:curatorian, :site_name, "Curatorian")
+    assigns[:og_title] || assigns[:page_title] ||
+      Application.get_env(:curatorian, :site_name, "Curatorian")
   end
 
   @doc """
