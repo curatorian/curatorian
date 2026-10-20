@@ -306,14 +306,17 @@ defmodule CuratorianWeb.Public.Events.CertificateLive do
 
       <%!-- Share Modal --%>
       <%= if @share_modal_open do %>
-        <div
-          class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-          phx-click="toggle_share_modal"
-        >
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <%!-- backdrop — closes the modal on click; card is a sibling so its
+          clicks never reach this handler (JS.stop_propagation was removed in
+          LiveView 1.2) --%>
           <div
-            class="bg-base-100 rounded-2xl max-w-md w-full p-6"
-            phx-click={JS.stop_propagation()}
+            class="absolute inset-0 bg-black/50"
+            phx-click="toggle_share_modal"
           >
+          </div>
+
+          <div class="bg-base-100 rounded-2xl max-w-md w-full p-6 relative z-10">
             <div class="flex items-center justify-between mb-4">
               <h3 class="text-xl font-bold">Bagikan Sertifikat</h3>
               <button phx-click="toggle_share_modal" class="btn btn-ghost btn-sm btn-circle">

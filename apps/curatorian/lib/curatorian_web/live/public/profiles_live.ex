@@ -15,9 +15,14 @@ defmodule CuratorianWeb.Public.ProfilesLive do
   ]
 
   def mount(_params, _session, socket) do
+    # New random ordering per visit; stays stable while navigating (push_patch
+    # keeps this same LiveView process alive).
+    shuffle_seed = :erlang.system_time(:millisecond) |> to_string()
+
     {:ok,
      socket
      |> assign(:page_title, "Kurator")
+     |> assign(:shuffle_seed, shuffle_seed)
      |> assign(:institution_type_options, @institution_type_options)}
   end
 
@@ -26,7 +31,13 @@ defmodule CuratorianWeb.Public.ProfilesLive do
     institution_type = Map.get(params, "type", nil)
     page = String.to_integer(Map.get(params, "page", "1"))
 
-    profiles = Public.list_profiles(search, page: page, institution_type: institution_type)
+    profiles =
+      Public.list_profiles(search,
+        page: page,
+        institution_type: institution_type,
+        shuffle_seed: socket.assigns.shuffle_seed
+      )
+
     total = Public.count_profiles(search, institution_type: institution_type)
     total_pages = if total == 0, do: 1, else: ceil(total / Public.page_size())
 

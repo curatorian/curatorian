@@ -67,7 +67,7 @@ defmodule CuratorianWeb.Public.OrganizationsLive do
   end
 
   # Merge %{profile: node_profile, node: voile_node} into a flat map for the template
-  defp flatten_org(%{profile: profile, node: node, org_page: org_page}) do
+  defp flatten_org(%{profile: profile, node: node, org_page: org_page} = entry) do
     merged_avatar =
       (org_page && Map.get(org_page, :avatar_url)) || Map.get(profile, :avatar_url)
 
@@ -87,7 +87,9 @@ defmodule CuratorianWeb.Public.OrganizationsLive do
       province: profile.province,
       website: profile.website,
       phone: profile.phone,
-      address: profile.address
+      address: profile.address,
+      collections: Map.get(entry, :collections, 0) || 0,
+      items: Map.get(entry, :items, 0) || 0
     }
   end
 
@@ -103,6 +105,18 @@ defmodule CuratorianWeb.Public.OrganizationsLive do
   end
 
   defp parse_institution_type(type) when is_atom(type), do: type
+
+  defp format_count(count) when is_integer(count) do
+    count
+    |> Integer.to_string()
+    |> String.reverse()
+    |> String.graphemes()
+    |> Enum.chunk_every(3)
+    |> Enum.join(".")
+    |> String.reverse()
+  end
+
+  defp format_count(other), do: to_string(other)
 
   defp build_params(search, institution_type, page) do
     %{}
@@ -255,6 +269,18 @@ defmodule CuratorianWeb.Public.OrganizationsLive do
               {@type_label}
             </span>
           </div>
+        </div>
+
+        <div class={["flex", "items-center", "gap-2", "mt-2", "text-xs", "text-base-content/70"]}>
+          <span class={["inline-flex", "items-center", "gap-1"]}>
+            <.icon name="hero-rectangle-group-micro" class="size-3 shrink-0" />
+            {format_count(@org.collections)} {gettext("koleksi")}
+          </span>
+          <span class="text-base-content/30">·</span>
+          <span class={["inline-flex", "items-center", "gap-1"]}>
+            <.icon name="hero-squares-2x2-micro" class="size-3 shrink-0" />
+            {format_count(@org.items)} {gettext("item")}
+          </span>
         </div>
 
         <p

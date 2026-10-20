@@ -30,7 +30,7 @@ defmodule Curatorian.MixProject do
   defp deps do
     [
       # ===== VOILE DEPENDENCY =====
-      {:voile, "~> 0.1.0"},
+      {:voile, "~> 0.1.54"},
       {:earmark, "~> 1.4"},
       {:html_sanitize_ex, "~> 1.4"}
       # ALL OTHER DEPENDENCIES ARE NOW IN UMBRELLA ROOT!

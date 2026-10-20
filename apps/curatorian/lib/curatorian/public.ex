@@ -52,13 +52,24 @@ defmodule Curatorian.Public do
     page = Keyword.get(opts, :page, 1)
     offset = (page - 1) * @page_size
     institution_type = Keyword.get(opts, :institution_type, nil)
+    shuffle_seed = Keyword.get(opts, :shuffle_seed)
 
-    from(p in UserProfile,
-      where: p.is_public == true and is_nil(p.deleted_at)
-    )
-    |> filter_by_institution_type(institution_type)
-    |> search_profiles(search)
-    |> order_by([p], desc: p.follower_count, asc: p.display_name)
+    query =
+      from(p in UserProfile,
+        where: p.is_public == true and is_nil(p.deleted_at)
+      )
+      |> filter_by_institution_type(institution_type)
+      |> search_profiles(search)
+
+    # No seed → alphabetical fallback. A seed (per LiveView mount) gives a
+    # deterministic pseudo-shuffle so pagination stays stable within one visit
+    # while the order differs from visit to visit.
+    query =
+      if is_binary(shuffle_seed) and shuffle_seed != "",
+        do: order_by(query, [p], fragment("md5(?::text || ?)", p.id, ^shuffle_seed)),
+        else: order_by(query, [p], asc: p.display_name)
+
+    query
     |> limit(@page_size)
     |> offset(^offset)
     |> Repo.all()
@@ -840,6 +851,19 @@ defmodule Curatorian.Public do
     offset = (page - 1) * @page_size
     institution_type = Keyword.get(opts, :institution_type, nil)
 
+    total_collections =
+      from(c in Collection,
+        group_by: c.unit_id,
+        select: %{unit_id: c.unit_id, collections: count(c.id)}
+      )
+
+    total_items =
+      from(i in "items",
+        prefix: "voile",
+        group_by: i.unit_id,
+        select: %{unit_id: i.unit_id, items: count(i.id)}
+      )
+
     base_query =
       from(np in NodeProfile,
         join: n in Unit,
@@ -849,14 +873,24 @@ defmodule Curatorian.Public do
           np.voile_node_id == o.voile_node_id and
             o.is_public == true and
             is_nil(o.deleted_at),
+        left_join: tc in subquery(total_collections),
+        on: tc.unit_id == np.voile_node_id,
+        left_join: ti in subquery(total_items),
+        on: ti.unit_id == np.voile_node_id,
         where: np.status == :approved and is_nil(np.deleted_at),
-        select: %{profile: np, node: n, org_page: o}
+        select: %{
+          profile: np,
+          node: n,
+          org_page: o,
+          collections: selected_as(coalesce(tc.collections, 0), :total_collections),
+          items: selected_as(coalesce(ti.items, 0), :total_items)
+        }
       )
 
     base_query
     |> filter_node_by_institution_type(institution_type)
     |> search_node_profiles(search)
-    |> order_by([np, n], asc: np.institution_name)
+    |> order_by([np], desc: selected_as(:total_collections), asc: np.institution_name)
     |> limit(@page_size)
     |> offset(^offset)
     |> Repo.all()

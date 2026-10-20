@@ -20,10 +20,10 @@ defmodule CuratorianUmbrella.MixProject do
     [
       # Core Phoenix & Web
       {:phoenix, "~> 1.8.1"},
-      {:phoenix_ecto, "~> 4.5"},
-      {:phoenix_html, "~> 4.1"},
-      {:phoenix_live_view, "~> 1.1.22"},
-      {:phoenix_live_dashboard, "~> 0.8.3"},
+      {:phoenix_ecto, "~> 4.7"},
+      {:phoenix_html, "~> 4.3"},
+      {:phoenix_live_view, "~> 1.2"},
+      {:phoenix_live_dashboard, "~> 0.9.1"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
 
       # Database
@@ -32,7 +32,7 @@ defmodule CuratorianUmbrella.MixProject do
 
       # Server
       {:bandit, "~> 1.5"},
-      {:dns_cluster, "~> 0.2.0"},
+      {:dns_cluster, "~> 0.3.1"},
 
       # Assets
       {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},
@@ -53,15 +53,15 @@ defmodule CuratorianUmbrella.MixProject do
       {:jason, "~> 1.2"},
       {:gettext, "~> 1.0"},
       {:finch, "~> 0.13"},
-      {:hackney, "~> 1.18"},
-      {:req, "~> 0.5"},
-      {:swoosh, "~> 1.16"},
+      {:hackney, "~> 4.5"},
+      {:req, "~> 0.7"},
+      {:swoosh, "~> 1.21"},
       {:tzdata, "~> 1.1"},
       {:html_sanitize_ex, "~> 1.4"},
       {:earmark, "~> 1.4"},
 
       # AWS
-      {:aws, "~> 1.0.0"},
+      {:aws, "~> 1.0.15"},
 
       # Monitoring
       {:telemetry_metrics, "~> 1.0"},
