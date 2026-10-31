@@ -910,8 +910,8 @@ defmodule Curatorian.Public do
     |> Repo.aggregate(:count, :id)
   end
 
-  def get_node_profile(id) do
-    result =
+  def get_node_profile(id_or_slug) do
+    with {:ok, filter} <- node_profile_filter(id_or_slug) do
       from(np in NodeProfile,
         join: n in Unit,
         on: np.voile_node_id == n.id,
@@ -920,12 +920,43 @@ defmodule Curatorian.Public do
           np.voile_node_id == o.voile_node_id and
             o.is_public == true and
             is_nil(o.deleted_at),
-        where: np.id == ^id and np.status == :approved,
+        where: ^filter,
         select: %{profile: np, node: n, org_page: o}
       )
       |> Repo.one()
+    else
+      _ -> nil
+    end
+  end
 
-    result
+  defp node_profile_filter(id_or_slug) do
+    case Ecto.UUID.cast(id_or_slug) do
+      {:ok, id} ->
+        {:ok,
+         dynamic(
+           [np],
+           np.id == ^id and np.status == :approved and is_nil(np.deleted_at)
+         )}
+
+      :error ->
+        case Repo.one(
+               from(o in OrgPage,
+                 where: o.slug == ^id_or_slug and o.is_public == true and is_nil(o.deleted_at),
+                 select: o
+               )
+             ) do
+          nil ->
+            :error
+
+          page ->
+            {:ok,
+             dynamic(
+               [np],
+               np.voile_node_id == ^page.voile_node_id and np.status == :approved and
+                 is_nil(np.deleted_at)
+             )}
+        end
+    end
   end
 
   def get_node_profile_id_by_voile_node(voile_node_id) do

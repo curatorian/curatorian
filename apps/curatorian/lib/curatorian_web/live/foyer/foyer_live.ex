@@ -1117,14 +1117,6 @@ defmodule CuratorianWeb.Foyer.FoyerLive do
 
   defp format_currency(_), do: "0"
 
-  defp to_label(:draft), do: "Draft"
-  defp to_label(:published), do: "Dipublikasikan"
-  defp to_label(:registration_closed), do: "Pendaftaran Ditutup"
-  defp to_label(:ongoing), do: "Berlangsung"
-  defp to_label(:completed), do: "Selesai"
-  defp to_label(:canceled), do: "Dibatalkan"
-  defp to_label(_), do: "-"
-
   defp application_status_label(:pending), do: "Baru"
   defp application_status_label(:reviewed), do: "Ditinjau"
   defp application_status_label(:shortlisted), do: "Shortlist"
@@ -1135,27 +1127,6 @@ defmodule CuratorianWeb.Foyer.FoyerLive do
   defp to_job_status(:active), do: "Aktif"
   defp to_job_status(:filled), do: "Terisi"
   defp to_job_status(_), do: "-"
-
-  defp event_status_classes(:draft),
-    do: ["bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"]
-
-  defp event_status_classes(:published),
-    do: ["bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400"]
-
-  defp event_status_classes(:registration_closed),
-    do: ["bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400"]
-
-  defp event_status_classes(:ongoing),
-    do: ["bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400"]
-
-  defp event_status_classes(:completed),
-    do: ["bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"]
-
-  defp event_status_classes(:canceled),
-    do: ["bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400"]
-
-  defp event_status_classes(_),
-    do: ["bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-500"]
 
   defp registration_status_classes(:pending),
     do: ["bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400"]
