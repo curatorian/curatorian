@@ -11,10 +11,7 @@ defmodule CuratorianWeb.Public.Events.RegisterLive do
   def mount(%{"slug" => slug}, _session, socket) do
     case Public.get_event_by_slug(slug) do
       nil ->
-        {:ok,
-         socket
-         |> put_flash(:error, "Event tidak ditemukan.")
-         |> push_navigate(to: "/events")}
+        raise Ecto.NoResultsError, queryable: "event"
 
       event ->
         current_scope = socket.assigns.current_scope
@@ -46,7 +43,8 @@ defmodule CuratorianWeb.Public.Events.RegisterLive do
            |> assign(:registration_data, %{})
            |> assign(:form, to_form(%{}, as: :registration))
            |> assign(:payment_url, nil)
-           |> assign(:registration_code, nil)}
+           |> assign(:registration_code, nil)
+           |> assign(:noindex, true)}
         end
     end
   end

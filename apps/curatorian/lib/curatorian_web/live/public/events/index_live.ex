@@ -59,6 +59,11 @@ defmodule CuratorianWeb.Public.Events.IndexLive do
     {:ok,
      socket
      |> assign(:page_title, "Event GLAM Indonesia")
+     |> assign(
+       :og_description,
+       "Agenda event GLAM Indonesia: webinar, pelatihan, dan kegiatan komunitas untuk " <>
+         "pustakawan, arsiparis, dan pengelola museum."
+     )
      |> assign(:search, "")
      |> assign(:event_type, nil)
      |> assign(:mode, nil)

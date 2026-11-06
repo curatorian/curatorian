@@ -40,7 +40,8 @@ defmodule CuratorianWeb.Public.Events.CertificateLive do
            |> assign(:event, event)
            |> assign(:user_id, user_id)
            |> assign(:share_modal_open, false)
-           |> assign(:verification_url, verification_url(certificate))}
+           |> assign(:verification_url, verification_url(certificate))
+           |> assign(:noindex, true)}
         else
           {:ok,
            socket
@@ -69,7 +70,8 @@ defmodule CuratorianWeb.Public.Events.CertificateLive do
          |> assign(:event, event)
          |> assign(:verification_mode, true)
          |> assign(:share_modal_open, false)
-         |> assign(:verification_url, verification_url(certificate))}
+         |> assign(:verification_url, verification_url(certificate))
+         |> assign(:noindex, true)}
     end
   end
 

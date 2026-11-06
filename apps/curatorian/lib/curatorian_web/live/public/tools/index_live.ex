@@ -34,7 +34,14 @@ defmodule CuratorianWeb.Public.Tools.IndexLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, page_title: "Alat Curatorian", tools: @tools)}
+    {:ok,
+     socket
+     |> assign(:page_title, "Alat Curatorian")
+     |> assign(:og_description,
+       "Pusat tools Curatorian: alat bantu katalogisasi dan pengelolaan koleksi " <>
+         "perpustakaan, museum, galeri, dan arsip berbasis GLAM."
+     )
+     |> assign(:tools, @tools)}
   end
 
   @impl true

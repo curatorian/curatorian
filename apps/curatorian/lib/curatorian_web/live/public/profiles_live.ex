@@ -22,6 +22,11 @@ defmodule CuratorianWeb.Public.ProfilesLive do
     {:ok,
      socket
      |> assign(:page_title, "Kurator")
+     |> assign(
+       :og_description,
+       "Direktori kurator dan pengelola koleksi Indonesia: pustakawan, arsiparis, TBM, " <>
+         "sekolah, dan komunitas baca. Temukan profil dan mulai kolaborasi."
+     )
      |> assign(:shuffle_seed, shuffle_seed)
      |> assign(:institution_type_options, @institution_type_options)}
   end

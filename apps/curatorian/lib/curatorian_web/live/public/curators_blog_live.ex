@@ -25,6 +25,11 @@ defmodule CuratorianWeb.Public.CuratorsBlogLive do
     {:ok,
      socket
      |> assign(:page_title, "Curatorial")
+     |> assign(
+       :og_description,
+       "Tulisan dan pengalaman para kurator: praktik pengelolaan koleksi perpustakaan, " <>
+         "museum, arsip, dan galeri dari komunitas Curatorian."
+     )
      |> assign(:sort_options, @sort_options)
      |> assign(:popular_tags, tags)
      |> assign(:posts, [])

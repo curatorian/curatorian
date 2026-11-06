@@ -13,7 +13,13 @@ defmodule CuratorianWeb.Public.Tools.Archive.IndexLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, page_title: "Tools Arsip", tools: @tools)}
+    {:ok,
+     socket
+     |> assign(:page_title, "Tools Arsip")
+     |> assign(:og_description,
+       "Tools arsip: referensi pengelolaan, penyimpanan, dan retensi arsip untuk lembaga kearsipan Indonesia."
+     )
+     |> assign(:tools, @tools)}
   end
 
   @impl true

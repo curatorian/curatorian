@@ -8,10 +8,7 @@ defmodule CuratorianWeb.Public.Crowdfunding.ShowLive do
   def mount(%{"slug" => slug}, _session, socket) do
     case Public.get_campaign_by_slug(slug) do
       nil ->
-        {:ok,
-         socket
-         |> put_flash(:error, "Kampanye tidak ditemukan atau sudah tidak aktif.")
-         |> push_navigate(to: "/crowdfunding")}
+        raise Ecto.NoResultsError, queryable: "crowdfunding campaign"
 
       campaign ->
         {:ok,
@@ -34,9 +31,9 @@ defmodule CuratorianWeb.Public.Crowdfunding.ShowLive do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <div class="max-w-5xl mx-auto py-8 px-4 space-y-6">
-        <.link navigate="/crowdfunding" class="text-sm text-base-content/60 hover:text-base-content">
-          <.icon name="hero-arrow-left" class="size-4" /> Kembali ke daftar kampanye
-        </.link>
+        <.breadcrumbs
+          trail={[{"Beranda", "/"}, {"Crowdfunding", "/crowdfunding"}, {@campaign.title, nil}]}
+        />
 
         <%!-- Header --%>
         <header class="bg-base-100 border border-base-300 rounded-2xl overflow-hidden">

@@ -27,6 +27,11 @@ defmodule CuratorianWeb.Public.Crowdfunding.IndexLive do
     {:ok,
      socket
      |> assign(:page_title, "Donasi & Crowdfunding GLAM Indonesia")
+     |> assign(
+       :og_description,
+       "Dukungan dan donasi untuk proyek kurasi koleksi: penggalangan dana, koleksi, " <>
+         "tenaga, dan kolaborasi komunitas GLAM Indonesia."
+     )
      |> assign(:search, "")
      |> assign(:campaign_type, nil)
      |> assign(:category, nil)

@@ -38,6 +38,11 @@ defmodule CuratorianWeb.Public.Jobs.IndexLive do
     {:ok,
      socket
      |> assign(:page_title, "Lowongan Kerja untuk Curatorian")
+     |> assign(
+       :og_description,
+       "Lowongan kerja bidang GLAM: pustakawan, arsiparis, kurator museum dan galeri, " <>
+         "pengelola records, serta tenaga teknis kearsipan."
+     )
      |> assign(:search, "")
      |> assign(:employment_type, nil)
      |> assign(:category, nil)

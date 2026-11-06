@@ -24,10 +24,7 @@ defmodule CuratorianWeb.Public.ProfileShowLive do
   def handle_params(%{"username" => username}, _uri, socket) do
     case Public.get_public_profile(username) do
       nil ->
-        {:noreply,
-         socket
-         |> put_flash(:error, "Profil tidak ditemukan.")
-         |> push_navigate(to: ~p"/kurator")}
+        raise Ecto.NoResultsError, queryable: "user profile"
 
       profile ->
         blog_posts = Public.list_user_blog_posts(profile.voile_user_id)
@@ -44,6 +41,8 @@ defmodule CuratorianWeb.Public.ProfileShowLive do
             false
           end
 
+        profile_image = profile.avatar_url && asset_url(profile.avatar_url)
+
         {:noreply,
          socket
          |> assign(:page_title, profile.display_name)
@@ -52,9 +51,22 @@ defmodule CuratorianWeb.Public.ProfileShowLive do
          |> assign(:is_following, is_following)
          |> assign(:og_title, profile.display_name)
          |> assign(:og_description, profile.headline || profile.bio)
-         |> assign(:og_image, profile.avatar_url && asset_url(profile.avatar_url))
+         |> assign(:og_image, profile_image)
          |> assign(:og_url, "/u/#{username}")
          |> assign(:og_type, "profile")
+         |> assign(:json_ld, [
+           %{
+             "@context" => "https://schema.org",
+             "@type" => "ProfilePage",
+             "mainEntity" => %{
+               "@type" => "Person",
+               "name" => profile.display_name,
+               "url" => Layouts.meta_base_url() <> "/u/#{username}",
+               "description" => profile.headline || profile.bio,
+               "image" => profile_image && Layouts.meta_image_url(profile_image)
+             }
+           }
+         ])
          |> assign(
            :twitter_card,
            if(profile.avatar_url, do: "summary_large_image", else: "summary")

@@ -14,7 +14,12 @@ defmodule CuratorianWeb.Layouts do
 
   def meta_base_url do
     System.get_env("CURATORIAN_URL") ||
-      Application.get_env(:curatorian, :curatorian_url, "http://localhost:4000")
+      Application.get_env(:curatorian, :curatorian_url) ||
+      CuratorianWeb.Endpoint.struct_url() |> URI.to_string()
+  end
+
+  def meta_locale do
+    Application.get_env(:curatorian, :og_locale, "id_ID")
   end
 
   def absolute_url(nil), do: meta_base_url()
@@ -26,7 +31,7 @@ defmodule CuratorianWeb.Layouts do
   end
 
   def meta_image_url(nil) do
-    Application.get_env(:curatorian, :default_og_image, "/images/lib.webp")
+    Application.get_env(:curatorian, :default_og_image, "/images/og_image.webp")
     |> absolute_url()
   end
 

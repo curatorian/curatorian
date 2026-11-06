@@ -6,17 +6,13 @@ defmodule CuratorianWeb.Public.Jobs.ShowLive do
   alias Curatorian.Public
 
   def mount(%{"slug" => slug}, _session, socket) do
-    dbg(Public.get_job_posting_by_slug(slug))
-
     case Public.get_job_posting_by_slug(slug) do
       nil ->
-        {:ok,
-         socket |> put_flash(:error, "Lowongan tidak ditemukan.") |> push_navigate(to: "/jobs")}
+        raise Ecto.NoResultsError, queryable: "job posting"
 
       posting ->
         if posting.status != :active or posting.deleted_at do
-          {:ok,
-           socket |> put_flash(:error, "Lowongan tidak tersedia.") |> push_navigate(to: "/jobs")}
+          raise Ecto.NoResultsError, queryable: "job posting"
         else
           user_id = socket.assigns.current_scope && socket.assigns.current_scope.user.id
           has_applied = user_id && Public.get_application_by_user_and_posting(user_id, posting.id)
@@ -32,11 +28,79 @@ defmodule CuratorianWeb.Public.Jobs.ShowLive do
            |> assign(:og_image, Map.get(posting, :cover_image_url))
            |> assign(:og_url, "/jobs/#{posting.slug}")
            |> assign(:og_type, "website")
+           |> assign(:json_ld, [job_json(posting)])
            |> assign(
              :twitter_card,
              if(Map.get(posting, :cover_image_url), do: "summary_large_image", else: "summary")
            )}
         end
+    end
+  end
+
+  defp job_json(posting) do
+    base = Layouts.meta_base_url()
+
+    json = %{
+      "@context" => "https://schema.org",
+      "@type" => "JobPosting",
+      "title" => posting.title,
+      "description" => posting.description,
+      "datePosted" => iso_datetime(posting.posted_at),
+      "validThrough" => iso_datetime(posting.application_deadline),
+      "employmentType" => employment_type_label(posting.employment_type),
+      "hiringOrganization" => %{
+        "@type" => "Organization",
+        "name" => posting.institution_name,
+        "url" => base
+      },
+      "url" => "#{base}/jobs/#{posting.slug}",
+      "jobLocation" => job_location(posting)
+    }
+
+    maybe_put_salary(json, posting)
+  end
+
+  defp job_location(%{location_type: :remote} = _posting) do
+    %{
+      "@type" => "Place",
+      "jobLocationType" => "TELECOMMUTE"
+    }
+  end
+
+  defp job_location(posting) do
+    %{
+      "@type" => "Place",
+      "address" => %{
+        "@type" => "PostalAddress",
+        "addressLocality" => posting.location_city,
+        "addressRegion" => posting.location_province,
+        "addressCountry" => "ID"
+      }
+    }
+  end
+
+  defp employment_type_label(:full_time), do: "FULL_TIME"
+  defp employment_type_label(:part_time), do: "PART_TIME"
+  defp employment_type_label(:contract), do: "CONTRACTOR"
+  defp employment_type_label(:freelance), do: "CONTRACTOR"
+  defp employment_type_label(:magang), do: "INTERN"
+  defp employment_type_label(:volunteer), do: "VOLUNTEER"
+  defp employment_type_label(_), do: nil
+
+  defp maybe_put_salary(json, posting) do
+    if posting.salary_visible and (posting.salary_min_idr || posting.salary_max_idr) do
+      Map.put(json, "baseSalary", %{
+        "@type" => "MonetaryAmount",
+        "currency" => "IDR",
+        "value" => %{
+          "@type" => "QuantitativeValue",
+          "minValue" => posting.salary_min_idr,
+          "maxValue" => posting.salary_max_idr,
+          "unitText" => "MONTH"
+        }
+      })
+    else
+      json
     end
   end
 
@@ -63,9 +127,7 @@ defmodule CuratorianWeb.Public.Jobs.ShowLive do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <div class="max-w-5xl mx-auto py-8 px-4 space-y-6">
-        <.link navigate="/jobs" class="text-sm text-base-content/60 hover:text-base-content">
-          <.icon name="hero-arrow-left" class="size-4" /> Kembali ke daftar lowongan
-        </.link>
+        <.breadcrumbs trail={[{"Beranda", "/"}, {"Lowongan", "/jobs"}, {@posting.title, nil}]} />
 
         <header class="bg-base-100 border border-base-300 rounded-2xl p-6">
           <div class="flex flex-wrap items-start justify-between gap-3">

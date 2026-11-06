@@ -111,7 +111,7 @@ defmodule CuratorianWeb.UserPendingConfirmationLive do
     if socket.assigns.current_scope && socket.assigns.current_scope.user do
       {:ok, push_navigate(socket, to: "/")}
     else
-      {:ok, assign(socket, :email, params["email"])}
+      {:ok, socket |> assign(:email, params["email"]) |> assign(:noindex, true)}
     end
   end
 

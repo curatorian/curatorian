@@ -25,6 +25,11 @@ defmodule CuratorianWeb.Public.OrganizationsLive do
     {:ok,
      socket
      |> assign(:page_title, "Organisasi")
+     |> assign(
+       :og_description,
+       "Direktori lembaga GLAM Indonesia — perpustakaan, museum, galeri, dan arsip — " <>
+         "beserta profil, koleksi, dan kegiatan komunitasnya."
+     )
      |> assign(:institution_type_options, @institution_type_options)
      |> assign(:institution_type_labels, @institution_type_labels)
      |> assign(:searching, false)}

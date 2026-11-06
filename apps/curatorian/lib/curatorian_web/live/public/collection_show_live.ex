@@ -54,10 +54,7 @@ defmodule CuratorianWeb.Public.CollectionShowLive do
   def handle_params(%{"id" => id}, _uri, socket) do
     case Public.get_public_collection(id) do
       nil ->
-        {:noreply,
-         socket
-         |> put_flash(:error, "Koleksi tidak ditemukan.")
-         |> push_navigate(to: ~p"/collections")}
+        raise Ecto.NoResultsError, queryable: "collection"
 
       collection ->
         org_context =
@@ -83,6 +80,33 @@ defmodule CuratorianWeb.Public.CollectionShowLive do
           |> Enum.reject(fn f -> is_nil(f.value) or f.value == "" end)
           |> Enum.sort_by(&(&1.sort_order || 0))
 
+        breadcrumb_trail =
+          [
+            {"Beranda", "/"},
+            {"Koleksi", "/collections"},
+            if(org_context && org_context.org_page,
+              do:
+                {org_context.org_page.name || org_context.org_page.slug,
+                 "/orgs/#{org_context.org_page.slug}"},
+              else: nil
+            ),
+            {collection.title, nil}
+          ]
+          |> Enum.reject(&is_nil/1)
+
+        json_ld = [
+          %{
+            "@context" => "https://schema.org",
+            "@type" => "CollectionPage",
+            "name" => collection.title,
+            "description" => collection.description,
+            "url" => Layouts.meta_base_url() <> "/collections/#{collection.id}",
+            "image" =>
+              collection.thumbnail &&
+                Layouts.meta_image_url(asset_url(collection.thumbnail))
+          }
+        ]
+
         {:noreply,
          socket
          |> assign(:page_title, collection.title)
@@ -94,6 +118,8 @@ defmodule CuratorianWeb.Public.CollectionShowLive do
          |> assign(:glam_meta, glam_type && Map.get(@glam_meta, glam_type))
          |> assign(:org_context, org_context)
          |> assign(:related, related)
+         |> assign(:breadcrumb_trail, breadcrumb_trail)
+         |> assign(:json_ld, json_ld)
          |> assign(:can_request_borrow, can_request_borrow)
          |> assign(:is_personal_library_owner, is_personal_library_owner)
          |> assign(:og_title, collection.title)
@@ -198,24 +224,7 @@ defmodule CuratorianWeb.Public.CollectionShowLive do
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <div class="max-w-6xl mx-auto pb-16 px-4 sm:px-6 lg:px-8 pt-6">
         <%!-- Breadcrumbs --%>
-        <nav class="flex items-center flex-wrap gap-1.5 text-xs text-base-content/50 mb-6">
-          <.link navigate={~p"/"} class="hover:text-primary transition-colors">Beranda</.link>
-          <.icon name="hero-chevron-right" class="size-3" />
-          <.link navigate={~p"/collections"} class="hover:text-primary transition-colors">
-            Koleksi
-          </.link>
-          <%= if @org_context && @org_context.org_page do %>
-            <.icon name="hero-chevron-right" class="size-3" />
-            <.link
-              navigate={~p"/orgs/#{@org_context.org_page.slug}"}
-              class="hover:text-primary transition-colors truncate max-w-[12rem]"
-            >
-              {@org_context.org_page.name || @org_context.org_page.slug}
-            </.link>
-          <% end %>
-          <.icon name="hero-chevron-right" class="size-3" />
-          <span class="text-base-content/70 truncate max-w-[16rem]">{@collection.title}</span>
-        </nav>
+        <.breadcrumbs trail={@breadcrumb_trail} class="mb-6" />
 
         <div class="grid gap-8 lg:grid-cols-[minmax(300px,380px)_minmax(0,1fr)] items-start">
           <%!-- Left: thumbnail + belongs-to card --%>

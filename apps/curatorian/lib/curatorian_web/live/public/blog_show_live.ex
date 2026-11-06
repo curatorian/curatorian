@@ -15,10 +15,7 @@ defmodule CuratorianWeb.Public.BlogShowLive do
   def handle_params(%{"username" => username, "slug" => slug}, _uri, socket) do
     case Public.get_public_blog_post(username, slug) do
       nil ->
-        {:noreply,
-         socket
-         |> put_flash(:error, "Artikel tidak ditemukan.")
-         |> push_navigate(to: ~p"/u/#{username}")}
+        raise Ecto.NoResultsError, queryable: "blog post"
 
       post ->
         author = Public.get_public_profile(username)
@@ -39,11 +36,27 @@ defmodule CuratorianWeb.Public.BlogShowLive do
 
         og_image = post.cover_url && asset_url(post.cover_url)
 
-        base =
-          System.get_env("CURATORIAN_URL") ||
-            Application.get_env(:curatorian, :curatorian_url, "http://localhost:4000")
+        base = Layouts.meta_base_url()
 
-        og_url = base <> "/u/#{username}/#{slug}"
+        og_url = base <> "/u/#{username}/blog/#{slug}"
+
+        json_ld = [
+          %{
+            "@context" => "https://schema.org",
+            "@type" => "Article",
+            "headline" => post.title,
+            "description" => og_description,
+            "image" => og_image && Layouts.meta_image_url(og_image),
+            "datePublished" => iso_datetime(post.published_at),
+            "dateModified" => iso_datetime(post.updated_at),
+            "author" => %{
+              "@type" => "Person",
+              "name" => (author && author.display_name) || username,
+              "url" => base <> "/u/#{username}"
+            },
+            "mainEntityOfPage" => og_url
+          }
+        ]
 
         {:noreply,
          socket
@@ -58,6 +71,7 @@ defmodule CuratorianWeb.Public.BlogShowLive do
          |> assign(:og_url, og_url)
          |> assign(:og_type, "article")
          |> assign(:twitter_card, if(og_image, do: "summary_large_image", else: "summary"))
+         |> assign(:json_ld, json_ld)
          |> stream(:comments, comments)}
     end
   end
@@ -110,17 +124,14 @@ defmodule CuratorianWeb.Public.BlogShowLive do
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <div class="max-w-3xl mx-auto py-8 px-4 pb-16">
         <%!-- Breadcrumb --%>
-        <div class="flex items-center gap-2 text-sm text-base-content/50 mb-6 flex-wrap">
-          <.link navigate={~p"/kurator"} class="hover:text-primary transition-colors">
-            Kurator
-          </.link>
-          <.icon name="hero-chevron-right-micro" class="w-3 h-3" />
-          <.link navigate={~p"/u/#{@username}"} class="hover:text-primary transition-colors">
-            {(@author && @author.display_name) || @username}
-          </.link>
-          <.icon name="hero-chevron-right-micro" class="w-3 h-3" />
-          <span class="truncate max-w-xs">{@post.title}</span>
-        </div>
+        <.breadcrumbs
+          trail={[
+            {"Kurator", ~p"/kurator"},
+            {(@author && @author.display_name) || @username, ~p"/u/#{@username}"},
+            {@post.title, nil}
+          ]}
+          class="mb-6"
+        />
 
         <%!-- Cover image --%>
         <div

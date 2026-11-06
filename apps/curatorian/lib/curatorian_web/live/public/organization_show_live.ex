@@ -19,16 +19,10 @@ defmodule CuratorianWeb.Public.OrganizationShowLive do
   def handle_params(%{"slug" => id}, _uri, socket) do
     case Public.get_node_profile(id) do
       nil ->
-        {:noreply,
-         socket
-         |> put_flash(:error, "Organisasi tidak ditemukan.")
-         |> push_navigate(to: ~p"/orgs")}
+        raise Ecto.NoResultsError, queryable: "organization"
 
-      %{profile: _profile, node: _node, org_page: nil} ->
-        {:noreply,
-         socket
-         |> put_flash(:error, "This org is not public.")
-         |> push_navigate(to: ~p"/orgs")}
+      %{org_page: nil} ->
+        raise Ecto.NoResultsError, queryable: "organization"
 
       %{profile: profile, node: node, org_page: org_page} ->
         merged = org_page || profile
@@ -71,10 +65,28 @@ defmodule CuratorianWeb.Public.OrganizationShowLive do
             )
         }
 
-        dbg(org)
-        dbg(merged)
-
         collection_count = Public.count_collections_for_node(profile.voile_node_id)
+
+        json_ld = [
+          %{
+            "@context" => "https://schema.org",
+            "@type" => "Organization",
+            "name" => org.name,
+            "url" => Layouts.meta_base_url() <> "/orgs/#{id}",
+            "description" => org.tagline || org.description,
+            "logo" => org.avatar_url && Layouts.meta_image_url(org.avatar_url),
+            "image" => org.cover_url && Layouts.meta_image_url(org.cover_url),
+            "email" => org.email,
+            "telephone" => org.phone,
+            "website" => org.website,
+            "address" => %{
+              "@type" => "PostalAddress",
+              "addressLocality" => org.city,
+              "addressRegion" => org.province,
+              "addressCountry" => "ID"
+            }
+          }
+        ]
 
         {:noreply,
          socket
@@ -96,6 +108,7 @@ defmodule CuratorianWeb.Public.OrganizationShowLive do
            :twitter_card,
            if(org.cover_url || org.avatar_url, do: "summary_large_image", else: "summary")
          )
+         |> assign(:json_ld, json_ld)
          |> stream(:collections, [])}
     end
   end
@@ -144,18 +157,11 @@ defmodule CuratorianWeb.Public.OrganizationShowLive do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <div class="max-w-6xl mx-auto pb-16 animate-fade-in">
-        <%!-- ── Back navigation ─────────────────────────────────────────────── --%>
-        <div class="mb-5">
-          <.link
-            navigate={~p"/orgs"}
-            class="inline-flex items-center gap-1.5 text-sm font-medium text-base-content/50 hover:text-primary transition-colors duration-150 group"
-          >
-            <.icon
-              name="hero-arrow-left"
-              class="size-4 transition-transform duration-150 group-hover:-translate-x-0.5"
-            /> Kembali ke daftar organisasi
-          </.link>
-        </div>
+        <%!-- ── Breadcrumb ──────────────────────────────────────────────────── --%>
+        <.breadcrumbs
+          trail={[{"Beranda", "/"}, {"Organisasi", ~p"/orgs"}, {@org.name, nil}]}
+          class="mb-5"
+        />
 
         <%!-- ── Hero cover ───────────────────────────────────────────────────── --%>
         <div class="relative rounded-3xl overflow-hidden h-56 md:h-72 shadow-inner">

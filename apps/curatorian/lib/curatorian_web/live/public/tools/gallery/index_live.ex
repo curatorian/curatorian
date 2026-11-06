@@ -13,7 +13,13 @@ defmodule CuratorianWeb.Public.Tools.Gallery.IndexLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, page_title: "Tools Galeri", tools: @tools)}
+    {:ok,
+     socket
+     |> assign(:page_title, "Tools Galeri")
+     |> assign(:og_description,
+       "Tools galeri: referensi pengelolaan koleksi visual dan pameran galeri seni Indonesia."
+     )
+     |> assign(:tools, @tools)}
   end
 
   @impl true

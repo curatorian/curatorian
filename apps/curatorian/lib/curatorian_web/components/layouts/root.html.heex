@@ -8,7 +8,7 @@
       {assigns[:page_title] || "Curatorian"}
     </.live_title>
     <!-- Open Graph / Twitter Card metadata (can be overridden by assigns from LiveViews/controllers) -->
-    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale" content={meta_locale()} />
     <meta
       property="og:site_name"
       content={Application.get_env(:curatorian, :site_name, "Curatorian")}
@@ -33,6 +33,10 @@
       content={absolute_url(assigns[:og_url] || assigns[:current_uri] || "/")}
     />
     <link rel="canonical" href={absolute_url(assigns[:og_url] || assigns[:current_uri] || "/")} />
+    <meta :if={assigns[:noindex]} name="robots" content="noindex, nofollow" />
+    <%= for data <- assigns[:json_ld] || [] do %>
+      <script type="application/ld+json"><%= raw(json_script(data)) %></script>
+    <% end %>
 
     <meta
       name="twitter:card"

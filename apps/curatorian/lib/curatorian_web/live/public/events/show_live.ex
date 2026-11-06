@@ -8,10 +8,7 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
   def mount(%{"slug" => slug}, _session, socket) do
     case Public.get_event_by_slug(slug) do
       nil ->
-        {:ok,
-         socket
-         |> put_flash(:error, "Event tidak ditemukan atau sudah tidak tersedia.")
-         |> push_navigate(to: "/events")}
+        raise Ecto.NoResultsError, queryable: "event"
 
       event ->
         current_scope = socket.assigns.current_scope
@@ -24,6 +21,9 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
         registration =
           if user_id, do: Public.get_registration_for_user(user_id, event.id), else: nil
 
+        base = Layouts.meta_base_url()
+        cover = Map.get(event, :cover_image_url)
+
         {:ok,
          socket
          |> assign(:page_title, "#{event.title} — Event GLAM Indonesia")
@@ -34,12 +34,13 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
          |> assign(:registration_open, registration_open?(event))
          |> assign(:og_title, event.title)
          |> assign(:og_description, event.description)
-         |> assign(:og_image, Map.get(event, :cover_image_url))
+         |> assign(:og_image, cover)
          |> assign(:og_url, "/events/#{event.slug}")
          |> assign(:og_type, "website")
+         |> assign(:json_ld, [event_json(event, base, cover)])
          |> assign(
            :twitter_card,
-           if(Map.get(event, :cover_image_url), do: "summary_large_image", else: "summary")
+           if(cover, do: "summary_large_image", else: "summary")
          )}
     end
   end
@@ -94,9 +95,7 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <div class="max-w-5xl mx-auto py-8 px-4 space-y-6">
-        <.link navigate="/events" class="text-sm text-base-content/60 hover:text-base-content">
-          <.icon name="hero-arrow-left" class="size-4" /> Kembali ke daftar event
-        </.link>
+        <.breadcrumbs trail={[{"Beranda", "/"}, {"Event", "/events"}, {@event.title, nil}]} />
 
         <header class="bg-base-100 border border-base-300 rounded-2xl p-6 space-y-2">
           <div class="flex flex-wrap items-start justify-between gap-3">
@@ -282,6 +281,73 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
       </div>
     </Layouts.app>
     """
+  end
+
+  defp event_json(event, base, cover) do
+    %{
+      "@context" => "https://schema.org",
+      "@type" => "Event",
+      "name" => event.title,
+      "description" => event.description,
+      "startDate" => iso_datetime(event.starts_at),
+      "endDate" => iso_datetime(event.ends_at),
+      "eventAttendanceMode" => attendance_mode_url(event.mode),
+      "eventStatus" => "https://schema.org/EventScheduled",
+      "location" => event_location(event),
+      "image" => cover && Layouts.meta_image_url(cover),
+      "url" => "#{base}/events/#{event.slug}",
+      "isAccessibleForFree" => !event.is_paid
+    }
+    |> maybe_put_offer(event, base)
+  end
+
+  defp maybe_put_offer(json, event, base) do
+    if event.is_paid do
+      Map.put(json, "offers", %{
+        "@type" => "Offer",
+        "price" => event.price_idr || 0,
+        "priceCurrency" => "IDR",
+        "url" => "#{base}/events/#{event.slug}",
+        "availability" =>
+          if(registration_open?(event),
+            do: "https://schema.org/InStock",
+            else: "https://schema.org/SoldOut"
+          )
+      })
+    else
+      json
+    end
+  end
+
+  defp attendance_mode_url(:online), do: "https://schema.org/OnlineEventAttendanceMode"
+  defp attendance_mode_url(:hybrid), do: "https://schema.org/MixedEventAttendanceMode"
+  defp attendance_mode_url(_), do: "https://schema.org/OfflineEventAttendanceMode"
+
+  defp event_location(%{mode: :online} = event) do
+    %{"@type" => "VirtualLocation", "url" => event.meeting_url}
+  end
+
+  defp event_location(%{mode: :hybrid} = event) do
+    [
+      %{"@type" => "VirtualLocation", "url" => event.meeting_url},
+      venue_json(event)
+    ]
+  end
+
+  defp event_location(event), do: venue_json(event)
+
+  defp venue_json(event) do
+    %{
+      "@type" => "Place",
+      "name" => event.venue_name,
+      "address" => %{
+        "@type" => "PostalAddress",
+        "streetAddress" => event.venue_address,
+        "addressLocality" => event.venue_city,
+        "addressRegion" => event.venue_province,
+        "addressCountry" => "ID"
+      }
+    }
   end
 
   defp registration_open?(event) do

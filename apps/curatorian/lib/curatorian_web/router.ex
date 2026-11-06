@@ -43,6 +43,7 @@ defmodule CuratorianWeb.Router do
     get "/roadmap", PageController, :roadmap
     get "/privacy-policy", PageController, :privacy_policy
     get "/library/classification", PageController, :library_classification
+    get "/sitemap.xml", SitemapController, :show
   end
 
   # Session controller handles form POST from login/register LiveViews

@@ -95,6 +95,8 @@ defmodule CuratorianWeb do
       import CuratorianWeb.CoreComponents
       # Reusable search components (flagship discovery)
       import CuratorianWeb.SearchComponents
+      # SEO helpers (JSON-LD, breadcrumbs)
+      import CuratorianWeb.SEOComponents
       # import CuratorianWeb.LayoutComponents
       use Gettext, backend: CuratorianWeb.Gettext
 

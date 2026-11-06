@@ -24,6 +24,11 @@ defmodule CuratorianWeb.Public.CollectionExchange.IndexLive do
     {:ok,
      socket
      |> assign(:page_title, "Tukar Koleksi GLAM Indonesia")
+     |> assign(
+       :og_description,
+       "Tukar koleksi antar lembaga dan komunitas GLAM Indonesia: tawarkan atau cari " <>
+         "koleksi untuk memperkaya perpustakaan dan museum Anda."
+     )
      |> assign(:tab, :offers)
      |> assign(:search, "")
      |> assign(:province, nil)

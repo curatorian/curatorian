@@ -82,6 +82,11 @@ defmodule CuratorianWeb.Public.CollectionsLive do
     {:ok,
      socket
      |> assign(:page_title, "Jelajahi Koleksi")
+     |> assign(
+       :og_description,
+       "Jelajahi koleksi digital GLAM Indonesia: buku, benda museum, arsip, dan karya " <>
+         "galeri dari berbagai lembaga dan komunitas kurator."
+     )
      |> assign(:sort_options, @sort_options)
      |> assign_new(:org_options, fn -> Public.list_org_filter_options() end)
      |> assign_new(:locations, fn -> Public.list_org_locations() end)

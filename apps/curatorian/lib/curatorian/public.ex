@@ -877,7 +877,9 @@ defmodule Curatorian.Public do
         on: tc.unit_id == np.voile_node_id,
         left_join: ti in subquery(total_items),
         on: ti.unit_id == np.voile_node_id,
-        where: np.status == :approved and is_nil(np.deleted_at),
+        # Only list orgs whose public page actually renders (mirrors the show
+        # page's rule) so the listing never links to a 404.
+        where: np.status == :approved and is_nil(np.deleted_at) and not is_nil(o.id),
         select: %{
           profile: np,
           node: n,
@@ -902,6 +904,8 @@ defmodule Curatorian.Public do
     from(np in NodeProfile,
       join: n in Unit,
       on: np.voile_node_id == n.id,
+      join: o in OrgPage,
+      on: np.voile_node_id == o.voile_node_id and o.is_public == true and is_nil(o.deleted_at),
       where: np.status == :approved and is_nil(np.deleted_at),
       select: np
     )

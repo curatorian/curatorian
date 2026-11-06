@@ -109,6 +109,15 @@ config :curatorian,
 
 config :curatorian, :env, config_env()
 
+# SEO / meta tag defaults (overridable per page via og_title/og_description assigns)
+config :curatorian,
+  site_name: "Curatorian",
+  curatorian_url: "http://localhost:4000",
+  default_description:
+    "Komunitas dan platform manajemen koleksi digital untuk pustakawan, arsiparis, museum, galeri, dan TBM di Indonesia — profil lembaga, katalog koleksi, event, dan lowongan kerja.",
+  og_locale: "id_ID",
+  default_og_image: "/images/og_image.webp"
+
 # Curatorian Repo searches voile schema first (Voile tables), then atrium (Atrium tables).
 # Curatorian has no migrations of its own — it only reads from voile and atrium schemas.
 # Write operations to atrium tables go through Atrium (port 4001), not Curatorian.

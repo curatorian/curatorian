@@ -16,6 +16,11 @@ defmodule CuratorianWeb.Public.GuidesLive do
     {:ok,
      socket
      |> assign(:page_title, "Panduan")
+     |> assign(
+       :og_description,
+       "Panduan praktis mengelola koleksi: katalogisasi, klasifikasi DDC, program " <>
+         "keperpustakaan, dan tips untuk komunitas baca dan lembaga GLAM."
+     )
      |> assign(:sort_options, @sort_options)
      |> assign(:popular_tags, tags)
      |> assign(:categories, categories)

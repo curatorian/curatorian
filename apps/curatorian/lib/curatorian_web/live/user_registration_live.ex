@@ -199,6 +199,7 @@ defmodule CuratorianWeb.UserRegistrationLive do
         |> assign(:captcha_valid, false)
         |> assign(:turnstile_theme, "light")
         |> assign(:remote_ip, remote_ip)
+        |> assign(:noindex, true)
 
       {:ok, socket, temporary_assigns: [form: nil]}
     end

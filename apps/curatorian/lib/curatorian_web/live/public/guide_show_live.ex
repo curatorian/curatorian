@@ -24,6 +24,19 @@ defmodule CuratorianWeb.Public.GuideShowLive do
     og_image = guide.cover_url
     og_url = "/guides/#{slug}"
 
+    json_ld = [
+      %{
+        "@context" => "https://schema.org",
+        "@type" => "Article",
+        "headline" => guide.title,
+        "description" => og_description,
+        "image" => og_image && Layouts.meta_image_url(og_image),
+        "datePublished" => iso_datetime(guide.published_at),
+        "dateModified" => iso_datetime(guide.updated_at),
+        "url" => Layouts.meta_base_url() <> og_url
+      }
+    ]
+
     {:ok,
      socket
      |> assign(:page_title, guide.title)
@@ -36,7 +49,8 @@ defmodule CuratorianWeb.Public.GuideShowLive do
      |> assign(:og_image, og_image)
      |> assign(:og_url, og_url)
      |> assign(:og_type, "article")
-     |> assign(:twitter_card, if(og_image, do: "summary_large_image", else: "summary"))}
+     |> assign(:twitter_card, if(og_image, do: "summary_large_image", else: "summary"))
+     |> assign(:json_ld, json_ld)}
   end
 
   defp preview_description(html) do
@@ -144,13 +158,7 @@ defmodule CuratorianWeb.Public.GuideShowLive do
           <%!-- Main content --%>
           <article class="flex-1 min-w-0">
             <%!-- Breadcrumb --%>
-            <nav class="text-sm text-base-content/50 mb-6 flex items-center gap-2">
-              <.link navigate={~p"/guides"} class="hover:text-base-content transition-colors">
-                Panduan
-              </.link>
-              <.icon name="hero-chevron-right" class="w-3.5 h-3.5" />
-              <span class="text-base-content/70 truncate">{@guide.title}</span>
-            </nav>
+            <.breadcrumbs trail={[{"Beranda", "/"}, {"Panduan", ~p"/guides"}, {@guide.title, nil}]} class="mb-6" />
 
             <%!-- Cover --%>
             <%= if @guide.cover_url do %>
