@@ -36,7 +36,8 @@ defmodule CuratorianWeb.Plugs.CSP do
       "font-src 'self'",
       "object-src 'none'",
       "base-uri 'self'",
-      "frame-ancestors 'self'"
+      "frame-ancestors 'self'",
+      "report-uri /csp-report"
     ]
     |> Enum.join("; ")
   end

@@ -24,25 +24,23 @@
             action={~p"/logout"}
             method="delete"
             id="logout-confirm-form"
-            class="hidden"
+            class="w-full"
           >
-            <button type="submit">Keluar</button>
+            <button type="submit" class="btn btn-primary w-full">
+              Konfirmasi keluar
+            </button>
           </.form>
 
-          <button
-            type="button"
-            onclick="document.getElementById('logout-confirm-form').submit()"
-            class="btn btn-primary w-full"
-          >
-            Konfirmasi keluar
-          </button>
+          <p class="text-xs text-base-content/40">
+            Jika halaman tidak keluar otomatis, klik tombol di atas.
+          </p>
         </div>
       </div>
     </div>
 
     <script nonce={@script_nonce}>
       window.addEventListener("DOMContentLoaded", () => {
-        document.getElementById("logout-confirm-form").submit();
+        document.getElementById("logout-confirm-form").requestSubmit();
       });
     </script>
   </body>
