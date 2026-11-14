@@ -21,6 +21,7 @@ defmodule Curatorian.EventPayments do
   require Logger
 
   @atrium_path "/api/internal/event-payments"
+  @profiles_path "/api/internal/profiles"
   @timeout 10_000
 
   @doc """
@@ -94,6 +95,57 @@ defmodule Curatorian.EventPayments do
 
       {:error, reason} ->
         Logger.error("[EventPayments] atrium unreachable: #{inspect(reason)}")
+        {:error, :unavailable}
+    end
+  end
+
+  @doc """
+  Pushes a participant's registration-form data (name, phone) to their atrium
+  profile so every later page resolves their real identity.
+
+  Fire-and-forget style: failures are logged and returned as
+  `{:error, :unavailable}` without raising.
+  """
+  def sync_profile(user_id, name, phone) do
+    api_key = System.get_env("INTERNAL_API_KEY")
+
+    if is_binary(api_key) and api_key != "" do
+      do_sync_profile(api_key, user_id, name, phone)
+    else
+      {:error, :not_configured}
+    end
+  end
+
+  defp do_sync_profile(api_key, user_id, name, phone) do
+    base_url = Application.get_env(:curatorian, :atrium_url, "http://localhost:4001")
+    url = String.trim_trailing(base_url, "/") <> @profiles_path
+
+    body = %{"user_id" => user_id}
+    body = if name in [nil, ""], do: body, else: Map.put(body, "name", name)
+    body = if phone in [nil, ""], do: body, else: Map.put(body, "phone", phone)
+
+    request =
+      Finch.build(
+        :post,
+        url,
+        [
+          {"x-internal-key", api_key},
+          {"content-type", "application/json"},
+          {"accept", "application/json"}
+        ],
+        Jason.encode!(body)
+      )
+
+    case Finch.request(request, Curatorian.Finch, receive_timeout: @timeout) do
+      {:ok, %{status: 200}} ->
+        {:ok, :synced}
+
+      {:ok, %{status: status}} ->
+        Logger.warning("[EventPayments] profile sync rejected by atrium (status=#{status})")
+        {:error, :unavailable}
+
+      {:error, reason} ->
+        Logger.error("[EventPayments] profile sync unreachable: #{inspect(reason)}")
         {:error, :unavailable}
     end
   end

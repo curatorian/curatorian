@@ -10,6 +10,8 @@ defmodule Curatorian.Public do
 
   import Ecto.Query
 
+  require Logger
+
   alias Curatorian.Repo
 
   alias Curatorian.Public.{
@@ -1424,6 +1426,63 @@ defmodule Curatorian.Public do
     |> Repo.one()
   end
 
+  def get_registration_by_token(token) when is_binary(token) do
+    from(r in EventRegistration,
+      where: r.token == ^token,
+      join: e in Event,
+      on: r.event_id == e.id,
+      where: is_nil(e.deleted_at),
+      select: {r, e}
+    )
+    |> Repo.one()
+  end
+
+  @doc "Lists checkpoint records for a registration."
+  def list_checkpoint_records(registration_id) do
+    from(r in "event_checkpoint_records",
+      where: r.registration_id == ^registration_id,
+      select: %{checkpoint_id: r.checkpoint_id, recorded_at: r.recorded_at}
+    )
+    |> Repo.all()
+  end
+
+  @doc "Validates a session code and records a checkpoint attendance."
+  def record_checkpoint_attendance(registration_id, code) do
+    checkpoint =
+      from(c in "event_checkpoints",
+        where: fragment("upper(?)", c.code) == ^String.upcase(code),
+        select: %{id: c.id, opens_at: c.opens_at, closes_at: c.closes_at}
+      )
+      |> Repo.one()
+
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    cond do
+      is_nil(checkpoint) ->
+        {:error, :invalid_code}
+
+      checkpoint.opens_at && DateTime.compare(now, checkpoint.opens_at) == :lt ->
+        {:error, :invalid_code}
+
+      checkpoint.closes_at && DateTime.compare(now, checkpoint.closes_at) == :gt ->
+        {:error, :invalid_code}
+
+      true ->
+        %{"registration_id" => registration_id, "checkpoint_id" => checkpoint.id, "recorded_at" => now}
+        |> Ecto.Changeset.change()
+        |> Ecto.Changeset.unique_constraint([:registration_id, :checkpoint_id])
+        |> Repo.insert(
+          on_conflict: :nothing,
+          conflict_target: [:registration_id, :checkpoint_id]
+        )
+        |> case do
+          {:ok, _} -> {:ok, :recorded}
+          # on_conflict: :nothing returns {nil, nil} when the row already exists
+          {nil, _} -> {:error, :already_recorded}
+        end
+    end
+  end
+
   def get_event(event_id) do
     from(e in Event,
       where: e.id == ^event_id and is_nil(e.deleted_at)
@@ -1443,6 +1502,24 @@ defmodule Curatorian.Public do
       where: c.verification_token == ^token and c.is_valid == true
     )
     |> Repo.one()
+  end
+
+  @doc "Returns the valid certificate for a registration, or nil."
+  def get_certificate_for_registration(registration_id) do
+    from(c in EventCertificate,
+      where: c.registration_id == ^registration_id and c.is_valid == true,
+      limit: 1
+    )
+    |> Repo.one()
+  end
+
+  @doc "Public announcements for an event, newest first."
+  def list_broadcasts_for_event(event_id) do
+    from(b in Curatorian.Public.EventBroadcast,
+      where: b.event_id == ^event_id,
+      order_by: [desc: b.inserted_at]
+    )
+    |> Repo.all()
   end
 
   def increment_certificate_download(certificate_id) do
@@ -1482,10 +1559,12 @@ defmodule Curatorian.Public do
         event_id: event_id,
         voile_user_id: to_string(user_id),
         registration_code: generate_registration_code(),
+        token: generate_registration_token(),
         registered_at: DateTime.utc_now(),
         status: status,
         amount_paid_idr: amount_paid_idr,
-        registration_data: registration_data
+        registration_data: registration_data,
+        consented_at: DateTime.utc_now() |> DateTime.truncate(:second)
       }
 
       %EventRegistration{}
@@ -1495,6 +1574,8 @@ defmodule Curatorian.Public do
       |> tap(fn
         {:ok, registration} ->
           send_registration_confirmation(registration, event)
+          increment_event_registration_count(event_id)
+          sync_profile_to_atrium(registration, registration_data)
 
         _ ->
           :ok
@@ -1502,6 +1583,36 @@ defmodule Curatorian.Public do
     else
       {:error, reason} -> {:error, reason}
     end
+  end
+
+  # Fire-and-forget: pushes the participant's name + phone to their atrium
+  # profile so every later page shows their real identity instead of a UUID
+  # slice. Failures are logged and silently ignored.
+  defp sync_profile_to_atrium(registration, registration_data) do
+    name = registration_data["name"] || ""
+    phone = registration_data["phone"] || ""
+
+    if name != "" or phone != "" do
+      case Curatorian.EventPayments.sync_profile(registration.voile_user_id, name, phone) do
+        {:ok, _} ->
+          :ok
+
+        {:error, reason} ->
+          Logger.warning("[Events] profile sync skipped: #{inspect(reason)}")
+      end
+    end
+  rescue
+    error ->
+      Logger.error("[Events] profile sync crashed for #{registration.id}: #{inspect(error)}")
+  end
+
+  # Keeps the public "Tersedia/Penuh" capacity badge and JSON-LD availability
+  # in sync with actual active registrations.
+  defp increment_event_registration_count(event_id) do
+    from(e in Event, where: e.id == ^event_id)
+    |> Repo.update_all(inc: [registration_count: 1])
+
+    :ok
   end
 
   # Fire-and-forget: a confirmation email failure must never block the
@@ -1588,6 +1699,10 @@ defmodule Curatorian.Public do
 
   defp generate_registration_code do
     "REG-" <> (:crypto.strong_rand_bytes(4) |> Base.encode16())
+  end
+
+  defp generate_registration_token do
+    :crypto.strong_rand_bytes(32) |> Base.encode16(case: :lower)
   end
 
   defp filter_event_type(query, nil), do: query

@@ -81,6 +81,7 @@ defmodule CuratorianWeb.Router do
       live "/users/confirm/:token", UserConfirmationLive, :edit
       live "/users/reset_password", UserForgotPasswordLive, :new
       live "/users/reset_password/:token", UserResetPasswordLive, :edit
+      live "/r/:token", Public.ParticipantPageLive, :show
     end
   end
 
@@ -140,6 +141,7 @@ defmodule CuratorianWeb.Router do
       live "/jobs/my-applications", Public.Jobs.MyApplicationsLive, :index
       live "/jobs/:slug/apply", Public.Jobs.ApplyLive, :apply
       live "/foyer", Foyer.FoyerLive, :index
+      live "/me/certificates", Public.CertificateWalletLive, :index
       live "/visitor/check-in", Visitor.CheckInLive, :index
       live "/visitor/check-out", Visitor.CheckOutLive, :index
       live "/personal/borrow-reviews", PersonalLibrary.BorrowRequestsLive, :index

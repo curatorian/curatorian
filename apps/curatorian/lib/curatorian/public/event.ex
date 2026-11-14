@@ -58,6 +58,12 @@ defmodule Curatorian.Public.Event do
     field :requires_approval, :boolean, default: false
     field :registration_questions, {:array, :map}, default: []
 
+    field :training_hours, :decimal
+    field :attendance_mode, :string, default: "manual"
+    field :eligibility_rule, :string, default: "any_checkpoint"
+    field :min_checkpoints, :integer
+    field :event_code, :string
+
     field :is_paid, :boolean, default: false
     field :price_idr, :integer, default: 0
     field :early_bird_price_idr, :integer

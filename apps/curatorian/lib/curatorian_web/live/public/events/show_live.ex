@@ -5,6 +5,7 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
 
   alias Curatorian.EventPayments
   alias Curatorian.Public
+  alias CuratorianWeb.Markdown
 
   @impl true
   def mount(%{"slug" => slug}, _session, socket) do
@@ -26,6 +27,8 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
         host_org =
           event.host_org_page_id && Public.get_public_org_page_brief(event.host_org_page_id)
 
+        broadcasts = Public.list_broadcasts_for_event(event.id)
+
         base = Layouts.meta_base_url()
         cover = Map.get(event, :cover_image_url)
 
@@ -36,7 +39,9 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
          |> assign(:user_id, user_id)
          |> assign(:registration, registration)
          |> assign(:host_org, host_org)
-         |> assign(:payment_step, false)
+         |> assign(:broadcasts, broadcasts)
+         |> assign(:show_registration_form, false)
+         |> assign_registration_form_prefill(current_scope)
          |> assign(:registration_open, registration_open?(event))
          |> assign(:og_title, event.title)
          |> assign(:og_description, event.description)
@@ -51,6 +56,23 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
     end
   end
 
+  # Pre-fills the registration form from the account data, so repeat
+  # registrants never re-type their details.
+  defp assign_registration_form_prefill(socket, current_scope) do
+    user = current_scope && current_scope.user
+
+    if user do
+      assign(socket,
+        prefill_name: user.fullname || "",
+        prefill_email: user.email || "",
+        prefill_phone: user.phone_number || ""
+      )
+    else
+      assign(socket, prefill_name: "", prefill_email: "", prefill_phone: "")
+    end
+  end
+
+  @impl true
   def handle_event("register", _params, socket) do
     %{event: event, user_id: user_id} = socket.assigns
 
@@ -58,25 +80,29 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
       is_nil(user_id) ->
         {:noreply, push_navigate(socket, to: "/login?return_to=/events/#{event.slug}")}
 
-      event.is_paid ->
-        {:noreply, assign(socket, :payment_step, true)}
-
       true ->
-        do_register(socket, 0)
+        {:noreply, assign(socket, :show_registration_form, true)}
     end
   end
 
-  def handle_event("confirm_payment", _params, socket) do
-    # Online payment integration is pending — record the registration as
-    # unpaid; the organizer follows up on payment manually.
-    do_register(socket, 0)
+  def handle_event("cancel_registration_form", _params, socket) do
+    {:noreply, assign(socket, :show_registration_form, false)}
   end
 
-  def handle_event("cancel_payment", _params, socket) do
-    {:noreply, assign(socket, :payment_step, false)}
+  def handle_event("submit_registration", %{"registration" => params}, socket) do
+    if params["consent"] != "true" do
+      {:noreply, put_flash(socket, :error, "Anda harus menyetujui pemrosesan data.")}
+    else
+      registration_data = %{
+        "name" => String.trim(params["name"] || ""),
+        "email" => String.trim(params["email"] || ""),
+        "phone" => String.trim(params["phone"] || "")
+      }
+
+      do_register(socket, 0, registration_data)
+    end
   end
 
-  @impl true
   def handle_event("start_payment", _params, socket) do
     %{event: event, registration: registration, user_id: user_id} = socket.assigns
 
@@ -100,12 +126,13 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
     end
   end
 
-  defp do_register(socket, amount_paid_idr) do
+  defp do_register(socket, amount_paid_idr, registration_data) do
     %{event: event, user_id: user_id} = socket.assigns
 
     opts = [
       requires_approval: event.requires_approval,
-      amount_paid_idr: amount_paid_idr
+      amount_paid_idr: amount_paid_idr,
+      registration_data: registration_data
     ]
 
     case Public.register_for_event(user_id, event.id, opts) do
@@ -113,7 +140,7 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
         {:noreply,
          socket
          |> assign(:registration, registration)
-         |> assign(:payment_step, false)
+         |> assign(:show_registration_form, false)
          |> put_flash(:info, "Pendaftaran berhasil dikirim!")}
 
       {:error, :already_registered} ->
@@ -195,6 +222,27 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
                 <p><strong>Jenis:</strong> {to_label(@event.event_type)}</p>
               </div>
             </article>
+
+            <%= if @broadcasts != [] do %>
+              <article class="bg-base-100 border border-base-300 rounded-2xl p-6 space-y-4">
+                <p class="text-sm text-base-content font-semibold flex items-center gap-2">
+                  <.icon name="hero-megaphone" class="size-4 text-primary" /> Pengumuman
+                </p>
+                <%= for broadcast <- @broadcasts do %>
+                  <div class="border border-base-200 rounded-xl p-4 bg-base-200/30">
+                    <%= if broadcast.title && broadcast.title != "" do %>
+                      <p class="text-sm font-semibold text-base-content">{broadcast.title}</p>
+                    <% end %>
+                    <div class="prose prose-sm max-w-none text-base-content/85 text-sm mt-1">
+                      {Markdown.to_html(broadcast.body)}
+                    </div>
+                    <p class="text-[10px] text-base-content/40 mt-2">
+                      {format_optional_datetime(broadcast.inserted_at)}
+                    </p>
+                  </div>
+                <% end %>
+              </article>
+            <% end %>
           </section>
 
           <aside class="space-y-4">
@@ -222,38 +270,95 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
               <% end %>
             </div>
 
-            <%!-- Payment step overlay --%>
-            <%= if @payment_step do %>
+            <%!-- Registration form overlay --%>
+            <%= if @show_registration_form do %>
               <div
-                id="payment-panel"
+                id="registration-form-panel"
                 class="bg-base-100 border-2 border-primary rounded-2xl p-5 space-y-4"
               >
-                <p class="font-semibold text-base-content">Konfirmasi Pendaftaran</p>
+                <p class="font-semibold text-base-content">Formulir Pendaftaran</p>
                 <div class="bg-base-200 rounded-xl px-4 py-3 text-sm space-y-1">
                   <p class="font-medium text-base-content">{@event.title}</p>
-                  <p class="text-base-content/60">
-                    Rp {format_idr(@event.price_idr || 0)}
-                  </p>
+                  <%= if @event.is_paid do %>
+                    <p class="text-base-content/60">
+                      Rp {format_idr(@event.price_idr || 0)}
+                    </p>
+                  <% end %>
                 </div>
-                <p class="text-sm text-base-content/70">
-                  Pembayaran online akan segera tersedia. Pendaftaran Anda akan dicatat tanpa
-                  pembayaran terlebih dahulu — penyelenggara akan menghubungi Anda untuk
-                  penyelesaian pembayaran.
-                </p>
-                <div class="flex gap-2">
-                  <button
-                    phx-click="confirm_payment"
-                    class="flex-1 px-4 py-2 rounded-xl bg-primary text-primary-content font-semibold text-sm hover:brightness-90 transition"
-                  >
-                    Lanjutkan Pendaftaran
-                  </button>
-                  <button
-                    phx-click="cancel_payment"
-                    class="flex-1 px-4 py-2 rounded-xl bg-base-200 text-base-content font-semibold text-sm hover:bg-base-300 transition"
-                  >
-                    Batal
-                  </button>
-                </div>
+
+                <.form for={%{}} phx-submit="submit_registration" class="space-y-3">
+                  <label class="block">
+                    <span class="block text-xs font-medium text-base-content/70 mb-1">
+                      Nama lengkap
+                    </span>
+                    <input
+                      type="text"
+                      name="registration[name]"
+                      value={@prefill_name}
+                      class="input input-bordered w-full"
+                      placeholder="Nama lengkap Anda"
+                      required
+                    />
+                  </label>
+                  <label class="block">
+                    <span class="block text-xs font-medium text-base-content/70 mb-1">Email</span>
+                    <input
+                      type="email"
+                      name="registration[email]"
+                      value={@prefill_email}
+                      class="input input-bordered w-full"
+                      placeholder="email@contoh.com"
+                      required
+                    />
+                  </label>
+                  <label class="block">
+                    <span class="block text-xs font-medium text-base-content/70 mb-1">
+                      No. HP / WhatsApp
+                    </span>
+                    <input
+                      type="text"
+                      name="registration[phone]"
+                      value={@prefill_phone}
+                      class="input input-bordered w-full"
+                      placeholder="Opsional"
+                    />
+                  </label>
+                  <label class="flex items-start gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      name="registration[consent]"
+                      value="true"
+                      class="checkbox checkbox-sm checkbox-primary mt-0.5"
+                      required
+                    />
+                    <span class="text-xs text-base-content/70">
+                      Saya menyetujui pemrosesan data pribadi untuk keperluan event ini.
+                    </span>
+                  </label>
+
+                  <%= if @event.is_paid do %>
+                    <p class="text-sm text-base-content/70">
+                      Pendaftaran Anda akan dicatat tanpa pembayaran terlebih dahulu —
+                      pembayaran online menyusul, dan penyelenggara akan menghubungi Anda.
+                    </p>
+                  <% end %>
+
+                  <div class="flex gap-2">
+                    <button
+                      type="submit"
+                      class="flex-1 px-4 py-2 rounded-xl bg-primary text-primary-content font-semibold text-sm hover:brightness-90 transition"
+                    >
+                      Kirim Pendaftaran
+                    </button>
+                    <button
+                      type="button"
+                      phx-click="cancel_registration_form"
+                      class="flex-1 px-4 py-2 rounded-xl bg-base-200 text-base-content font-semibold text-sm hover:bg-base-300 transition"
+                    >
+                      Batal
+                    </button>
+                  </div>
+                </.form>
               </div>
             <% else %>
               <div id="registration-cta" class="bg-base-100 border border-base-300 rounded-2xl p-4">
@@ -368,6 +473,7 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
       "endDate" => iso_datetime(event.ends_at),
       "eventAttendanceMode" => attendance_mode_url(event.mode),
       "eventStatus" => "https://schema.org/EventScheduled",
+      # meeting_url is gated to approved registrants — not exposed in public JSON-LD
       "location" => event_location(event),
       "image" => cover && Layouts.meta_image_url(cover),
       "url" => "#{base}/events/#{event.slug}",
@@ -398,13 +504,13 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
   defp attendance_mode_url(:hybrid), do: "https://schema.org/MixedEventAttendanceMode"
   defp attendance_mode_url(_), do: "https://schema.org/OfflineEventAttendanceMode"
 
-  defp event_location(%{mode: :online} = event) do
-    %{"@type" => "VirtualLocation", "url" => event.meeting_url}
+  defp event_location(%{mode: :online}) do
+    %{"@type" => "VirtualLocation"}
   end
 
   defp event_location(%{mode: :hybrid} = event) do
     [
-      %{"@type" => "VirtualLocation", "url" => event.meeting_url},
+      %{"@type" => "VirtualLocation"},
       venue_json(event)
     ]
   end

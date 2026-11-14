@@ -23,6 +23,8 @@ defmodule Curatorian.Public.EventRegistration do
     field :approved_at, :utc_datetime
     field :rejected_at, :utc_datetime
     field :registration_code, :string
+    field :token, :string
+    field :consented_at, :utc_datetime
     field :amount_paid_idr, :integer, default: 0
     field :paid_at, :utc_datetime
     field :payment_id, :binary_id

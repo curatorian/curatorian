@@ -70,7 +70,23 @@ defmodule CuratorianWeb.Public.Events.RegisterLive do
   def handle_event("submit_registration", params, socket) do
     %{event: event, user_id: user_id, registration_data: data} = socket.assigns
 
-    final_data = Map.merge(data, params)
+    user = socket.assigns.current_scope && socket.assigns.current_scope.user
+
+    # Auto-fill the account identity into the registration data (custom
+    # question answers keep precedence), so organizers always receive the
+    # participant's real name and contact.
+    user_data =
+      if user do
+        %{
+          "name" => user.fullname || user.username || "",
+          "email" => user.email || "",
+          "phone" => user.phone_number || ""
+        }
+      else
+        %{}
+      end
+
+    final_data = Map.merge(data, Map.merge(params, user_data))
 
     opts = [
       registration_data: final_data,
