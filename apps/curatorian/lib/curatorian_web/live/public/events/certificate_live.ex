@@ -113,6 +113,7 @@ defmodule CuratorianWeb.Public.Events.CertificateLive do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <div
+        id="certificate-actions"
         class="min-h-screen bg-gradient-to-br from-primary/5 via-base-200/30 to-secondary/5 py-12"
         phx-hook=".CertificateActions"
       >
