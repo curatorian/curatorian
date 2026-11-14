@@ -297,7 +297,21 @@ defmodule CuratorianWeb.UserAuth do
     socket = mount_current_scope(socket, session)
 
     if socket.assigns.current_scope && socket.assigns.current_scope.user do
-      {:cont, socket}
+      user = socket.assigns.current_scope.user
+
+      if is_nil(user.confirmed_at) do
+        socket =
+          socket
+          |> Phoenix.LiveView.put_flash(
+            :error,
+            "Please confirm your email address before using this page."
+          )
+          |> Phoenix.LiveView.redirect(to: ~p"/users/pending_confirmation")
+
+        {:halt, socket}
+      else
+        {:cont, socket}
+      end
     else
       socket =
         socket

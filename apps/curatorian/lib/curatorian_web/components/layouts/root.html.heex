@@ -35,7 +35,7 @@
     <link rel="canonical" href={absolute_url(assigns[:og_url] || assigns[:current_uri] || "/")} />
     <meta :if={assigns[:noindex]} name="robots" content="noindex, nofollow" />
     <%= for data <- assigns[:json_ld] || [] do %>
-      <script type="application/ld+json"><%= raw(json_script(data)) %></script>
+      <script nonce={@script_nonce} type="application/ld+json"><%= raw(json_script(data)) %></script>
     <% end %>
 
     <meta
@@ -62,7 +62,7 @@
 
     <Turnstile.script />
 
-    <script>
+    <script nonce={@script_nonce}>
       (() => {
         const setTheme = (theme) => {
           if (theme === "system") {

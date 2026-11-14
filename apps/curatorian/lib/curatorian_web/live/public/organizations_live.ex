@@ -81,6 +81,7 @@ defmodule CuratorianWeb.Public.OrganizationsLive do
 
     %{
       id: profile.id,
+      slug: org_page && Map.get(org_page, :slug),
       name: profile.institution_name || node.name,
       abbr: node.abbr,
       avatar_url: Public.asset_url(merged_avatar),
@@ -303,8 +304,8 @@ defmodule CuratorianWeb.Public.OrganizationsLive do
 
         <div class="mt-3">
           <.link
-            navigate={~p"/orgs/#{@org.id}"}
-            class="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl text-sm font-medium text-primary border border-primary/30 group-hover:bg-primary group-hover:!text-primary-content group-hover:border-primary transition-all duration-200"
+            navigate={"/orgs/#{@org.slug || @org.id}"}
+            class="block w-full mt-4 px-4 py-2.5 bg-primary text-primary-content text-center rounded-xl font-semibold hover:brightness-90 transition"
           >
             Lihat Organisasi
           </.link>

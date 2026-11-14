@@ -40,3 +40,6 @@ npm-debug.log
 # Language Server
 .elixir_ls/
 .expert
+
+# assets priv image
+apps/curatorian/priv/static/images/

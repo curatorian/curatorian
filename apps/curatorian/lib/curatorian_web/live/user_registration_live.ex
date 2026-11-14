@@ -14,6 +14,7 @@ defmodule CuratorianWeb.UserRegistrationLive do
   require Logger
 
   alias Curatorian.Accounts
+  alias Curatorian.RateLimiter
   alias Turnstile
   alias Voile.Schema.Accounts.User
 
@@ -219,7 +220,8 @@ defmodule CuratorianWeb.UserRegistrationLive do
        |> assign(captcha_valid: false)
        |> Turnstile.refresh()}
     else
-      with {:ok, _} <- Turnstile.verify(params, socket.assigns.remote_ip) do
+      with {:ok, _} <- verify_turnstile(params, socket.assigns.remote_ip),
+           :ok <- RateLimiter.check(:registration, remote_ip(socket.assigns.remote_ip), 5, 3600) do
         # Derive username from email prefix; add today's registration_date
         username = user_params["email"] |> String.split("@") |> hd()
 
@@ -229,8 +231,13 @@ defmodule CuratorianWeb.UserRegistrationLive do
             _ -> Date.utc_today() |> Date.to_iso8601()
           end
 
+        # Strict whitelist — never pass raw client params through. Prevents
+        # mass-assignment of confirmed_at / user_type_id / node_id / roles.
         attrs =
           user_params
+          |> Map.take(
+            ~w(email password fullname user_image address phone_number birth_date birth_place gender organization department position twitter facebook linkedin instagram)
+          )
           |> Map.put("username", username)
           |> Map.put("registration_date", registration_date)
 
@@ -292,6 +299,20 @@ defmodule CuratorianWeb.UserRegistrationLive do
   def handle_event("turnstile:expired", _params, socket) do
     {:noreply, assign(socket, :captcha_valid, false)}
   end
+
+  # Guard against a missing token raising inside the Turnstile library —
+  # a request without the field is just a failed verification.
+  defp verify_turnstile(params, remote_ip) do
+    if Map.has_key?(params, "cf-turnstile-response") do
+      Turnstile.verify(params, remote_ip)
+    else
+      {:error, :missing_turnstile_token}
+    end
+  end
+
+  defp remote_ip({a, b, c, d}), do: "#{a}.#{b}.#{c}.#{d}"
+  defp remote_ip(ip) when is_binary(ip), do: ip
+  defp remote_ip(_), do: "unknown"
 
   # ---------------------------------------------------------------------------
 

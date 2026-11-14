@@ -12,6 +12,7 @@ defmodule CuratorianWeb.Router do
     plug :put_root_layout, html: {CuratorianWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug CuratorianWeb.Plugs.CSP
     plug CuratorianWeb.UserAuth
     plug CuratorianWeb.Plugs.CrossAppCookie
     plug CuratorianWeb.Plugs.GetCurrentPath
@@ -44,6 +45,7 @@ defmodule CuratorianWeb.Router do
     get "/privacy-policy", PageController, :privacy_policy
     get "/library/classification", PageController, :library_classification
     get "/sitemap.xml", SitemapController, :show
+    post "/csp-report", CspReportController, :report
   end
 
   # Session controller handles form POST from login/register LiveViews
@@ -51,10 +53,12 @@ defmodule CuratorianWeb.Router do
     pipe_through :browser
 
     post "/login", UserSessionController, :create
-    # DELETE is used by same-app logout links; GET allows cross-app redirect-based logout
-    # (e.g. Atrium redirecting here after clearing its own session).
+    # DELETE is used by same-app logout links. GET renders a small
+    # auto-submitting logout form for cross-app redirect-based logout
+    # (e.g. Atrium redirecting here after clearing its own session) — this
+    # keeps logout a POST with CSRF protection, never a GET state change.
     delete "/logout", UserSessionController, :delete
-    get "/logout", UserSessionController, :delete
+    get "/logout", LogoutConfirmController, :confirm
 
     # OAuth callbacks
     get "/auth/google", GoogleAuthController, :request
@@ -75,6 +79,8 @@ defmodule CuratorianWeb.Router do
       live "/register", UserRegistrationLive, :new
       live "/users/pending_confirmation", UserPendingConfirmationLive, :new
       live "/users/confirm/:token", UserConfirmationLive, :edit
+      live "/users/reset_password", UserForgotPasswordLive, :new
+      live "/users/reset_password/:token", UserResetPasswordLive, :edit
     end
   end
 

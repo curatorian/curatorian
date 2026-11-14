@@ -91,45 +91,23 @@ defmodule CuratorianWeb.Public.Events.IndexLive do
     show_paid_only = Map.get(params, "paid") == "true"
     page = String.to_integer(Map.get(params, "page", "1"))
 
-    starts_at_after = compute_time_filter(time_filter)
+    socket =
+      socket
+      |> assign(:search, q)
+      |> assign(:event_type, event_type)
+      |> assign(:mode, mode)
+      |> assign(:category, category)
+      |> assign(:time_filter, time_filter)
+      |> assign(:sort_by, sort_by)
+      |> assign(:show_paid_only, show_paid_only)
 
-    opts = [
-      event_type: event_type,
-      mode: mode,
-      category: category,
-      starts_at_after: starts_at_after,
-      page: page
-    ]
-
-    events = Public.list_events(q, opts)
-    events = maybe_filter_paid(events, show_paid_only)
-    events = apply_sort(events, sort_by)
-
-    # Check user registrations
-    current_user_id = socket.assigns.current_user_id
-
-    events_with_reg_status =
-      if current_user_id do
-        Enum.map(events, fn event ->
-          registered = Public.check_event_registration(current_user_id, event.id)
-          Map.put(event, :user_registered, registered)
-        end)
-      else
-        Enum.map(events, &Map.put(&1, :user_registered, false))
-      end
+    {events_with_reg_status, total} = load_events(socket, page)
 
     {:noreply,
      socket
-     |> assign(:search, q)
-     |> assign(:event_type, event_type)
-     |> assign(:mode, mode)
-     |> assign(:category, category)
-     |> assign(:time_filter, time_filter)
-     |> assign(:sort_by, sort_by)
-     |> assign(:show_paid_only, show_paid_only)
      |> assign(:page, page)
-     |> assign(:events_count, length(events_with_reg_status))
-     |> assign(:has_more, length(events) == Public.page_size())
+     |> assign(:events_count, total)
+     |> assign(:has_more, page * Public.page_size() < total)
      |> stream(:events, events_with_reg_status, reset: true)}
   end
 
@@ -173,20 +151,30 @@ defmodule CuratorianWeb.Public.Events.IndexLive do
 
   def handle_event("load_more", _, socket) do
     next_page = socket.assigns.page + 1
-    starts_at_after = compute_time_filter(socket.assigns.time_filter)
+    {events_with_reg_status, _total} = load_events(socket, next_page)
 
+    {:noreply,
+     socket
+     |> assign(:page, next_page)
+     |> assign(:has_more, next_page * Public.page_size() < socket.assigns.events_count)
+     |> stream(:events, events_with_reg_status)}
+  end
+
+  defp load_events(socket, page) do
     opts = [
       event_type: socket.assigns.event_type,
       mode: socket.assigns.mode,
       category: socket.assigns.category,
-      starts_at_after: starts_at_after,
-      page: next_page
+      starts_at_after: compute_time_filter(socket.assigns.time_filter),
+      paid: socket.assigns.show_paid_only,
+      sort_by: socket.assigns.sort_by,
+      page: page
     ]
 
     events = Public.list_events(socket.assigns.search, opts)
-    events = maybe_filter_paid(events, socket.assigns.show_paid_only)
-    events = apply_sort(events, socket.assigns.sort_by)
+    total = Public.count_events(socket.assigns.search, Keyword.delete(opts, :sort_by))
 
+    # Check user registrations
     current_user_id = socket.assigns.current_user_id
 
     events_with_reg_status =
@@ -199,14 +187,7 @@ defmodule CuratorianWeb.Public.Events.IndexLive do
         Enum.map(events, &Map.put(&1, :user_registered, false))
       end
 
-    updated_count = socket.assigns.events_count + length(events_with_reg_status)
-
-    {:noreply,
-     socket
-     |> assign(:page, next_page)
-     |> assign(:events_count, updated_count)
-     |> assign(:has_more, length(events) == Public.page_size())
-     |> stream(:events, events_with_reg_status)}
+    {events_with_reg_status, total}
   end
 
   defp normalize_param(""), do: nil
@@ -231,23 +212,6 @@ defmodule CuratorianWeb.Public.Events.IndexLive do
 
   defp compute_time_filter("upcoming"), do: Date.utc_today() |> Date.to_string()
   defp compute_time_filter(_), do: nil
-
-  defp maybe_filter_paid(events, true), do: Enum.filter(events, & &1.is_paid)
-  defp maybe_filter_paid(events, _), do: events
-
-  defp apply_sort(events, "newest") do
-    Enum.sort_by(events, & &1.inserted_at, {:desc, DateTime})
-  end
-
-  defp apply_sort(events, "soonest") do
-    Enum.sort_by(events, & &1.starts_at, {:asc, DateTime})
-  end
-
-  defp apply_sort(events, "popular") do
-    Enum.sort_by(events, & &1.registration_count, :desc)
-  end
-
-  defp apply_sort(events, _), do: events
 
   defp build_params(socket, search) do
     %{}

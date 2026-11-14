@@ -10,25 +10,20 @@ defmodule CuratorianWeb.UserSessionController do
   use CuratorianWeb, :controller
 
   alias Curatorian.Accounts
+  alias Curatorian.RateLimiter
   alias CuratorianWeb.UserAuth
 
   @doc "Called when the user submits the login form."
-  def create(conn, %{"_action" => "registered"} = params) do
-    create(conn, params, "Account created successfully!")
-  end
-
-  def create(conn, params) do
+  def create(conn, %{"user" => _user_params} = params) do
     create(conn, params, "Welcome back!")
   end
 
-  defp create(conn, %{"user" => user_params} = params, flash_message) do
-    with {:ok, _} <-
-           Turnstile.verify(conn.params, conn.remote_ip || conn.assigns[:remote_ip] || nil) do
-      %{"email" => login, "password" => password} = user_params
+  defp create(conn, %{"user" => user_params} = _params, _flash_message) do
+    ip = remote_ip(conn)
 
-      # When coming from registration we trust the user is confirmed (or skip the
-      # check entirely — confirmation emails may not be enabled in all deployments).
-      skip_confirmation_check = Map.get(params, "_action") == "registered"
+    with :ok <- RateLimiter.check(:login, ip, 30, 3600),
+         {:ok, _} <- verify_turnstile(conn.params, conn.remote_ip || conn.assigns[:remote_ip]) do
+      %{"email" => login, "password" => password} = user_params
 
       case Accounts.get_user_by_login_and_password(login, password) do
         nil ->
@@ -38,24 +33,43 @@ defmodule CuratorianWeb.UserSessionController do
           |> redirect(to: ~p"/login")
 
         user ->
-          if not skip_confirmation_check and is_nil(user.confirmed_at) do
+          if is_nil(user.confirmed_at) do
             conn
-            |> put_flash(
-              :error,
-              "Please confirm your email address before logging in."
-            )
+            |> put_flash(:error, "Please confirm your email address before logging in.")
             |> redirect(to: ~p"/login")
           else
             conn
-            |> put_flash(:info, flash_message)
+            |> put_flash(:info, "Welcome back!")
             |> UserAuth.log_in_user(user, user_params)
           end
       end
     else
+      {:error, :rate_limited} ->
+        conn
+        |> put_flash(:error, "Too many attempts from your network. Please try again later.")
+        |> redirect(to: ~p"/login")
+
       {:error, _} ->
         conn
         |> put_flash(:error, "Captcha verification failed. Please complete the challenge.")
         |> redirect(to: ~p"/login")
+    end
+  end
+
+  # Guard against a missing token raising inside the Turnstile library —
+  # a request without the field is just a failed verification.
+  defp verify_turnstile(params, remote_ip) do
+    if Map.has_key?(params, "cf-turnstile-response") do
+      Turnstile.verify(params, remote_ip)
+    else
+      {:error, :missing_turnstile_token}
+    end
+  end
+
+  defp remote_ip(conn) do
+    case conn.remote_ip do
+      {a, b, c, d} -> "#{a}.#{b}.#{c}.#{d}"
+      _ -> "unknown"
     end
   end
 

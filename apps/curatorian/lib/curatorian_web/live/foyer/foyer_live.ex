@@ -627,13 +627,13 @@ defmodule CuratorianWeb.Foyer.FoyerLive do
 
                         <%!-- Actions --%>
                         <div class="flex gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-                          <%= if cert.pdf_url do %>
+                          <%= if cert.is_valid do %>
                             <.link
-                              href={cert.pdf_url}
-                              target="_blank"
+                              navigate={"/certificates/#{cert.id}"}
                               class="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-violet-600 hover:bg-violet-700 !text-white text-xs font-semibold transition-colors"
                             >
-                              <.icon name="hero-arrow-down-tray" class="w-3.5 h-3.5" /> Unduh
+                              <.icon name="hero-arrow-top-right-on-square" class="w-3.5 h-3.5" />
+                              Lihat / Cetak
                             </.link>
                           <% end %>
                           <.link

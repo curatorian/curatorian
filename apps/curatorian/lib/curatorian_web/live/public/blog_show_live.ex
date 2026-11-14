@@ -4,6 +4,7 @@ defmodule CuratorianWeb.Public.BlogShowLive do
   use CuratorianWeb, :live_view
 
   alias Curatorian.Public
+  alias Curatorian.RateLimiter
   alias CuratorianWeb.Markdown
 
   @impl true
@@ -21,6 +22,12 @@ defmodule CuratorianWeb.Public.BlogShowLive do
         author = Public.get_public_profile(username)
         comments = Public.list_public_comments(post.id)
         comment_form = to_form(%{"body" => ""}, as: :comment)
+
+        current_user_id =
+          case socket.assigns.current_scope do
+            %{user: user} when not is_nil(user) -> user.id
+            _ -> nil
+          end
         # Prepare Open Graph metadata
         og_title = "#{post.title} — #{(author && author.display_name) || username}"
 
@@ -64,6 +71,7 @@ defmodule CuratorianWeb.Public.BlogShowLive do
          |> assign(:post, post)
          |> assign(:author, author)
          |> assign(:username, username)
+         |> assign(:user_id, current_user_id)
          |> assign(:comment_form, comment_form)
          |> assign(:og_title, og_title)
          |> assign(:og_description, og_description)
@@ -90,11 +98,21 @@ defmodule CuratorianWeb.Public.BlogShowLive do
       body = String.trim(body)
 
       cond do
+        is_nil(user.confirmed_at) ->
+          {:noreply,
+           socket
+           |> put_flash(:error, "Konfirmasi email Anda terlebih dahulu untuk berkomentar.")
+           |> redirect(to: ~p"/users/pending_confirmation")}
+
         body == "" ->
           {:noreply, put_flash(socket, :error, "Komentar tidak boleh kosong.")}
 
         String.length(body) > 5000 ->
           {:noreply, put_flash(socket, :error, "Komentar terlalu panjang (maks. 5000 karakter).")}
+
+        RateLimiter.check(:comment, user.id, 10, 60) == {:error, :rate_limited} ->
+          {:noreply,
+           put_flash(socket, :error, "Terlalu banyak komentar. Tunggu sebentar lagi.")}
 
         true ->
           case Public.create_blog_comment(post.id, user, body) do
@@ -112,6 +130,43 @@ defmodule CuratorianWeb.Public.BlogShowLive do
               {:noreply, put_flash(socket, :error, "Gagal mengirim komentar.")}
           end
       end
+    end
+  end
+
+  @impl true
+  def handle_event("report_post", _params, socket) do
+    report_content(socket, :blog_post, socket.assigns.post.id)
+  end
+
+  @impl true
+  def handle_event("report_comment", %{"id" => comment_id}, socket) do
+    report_content(socket, :blog_comment, comment_id)
+  end
+
+  defp report_content(socket, content_type, content_id) do
+    user = socket.assigns.current_scope && socket.assigns.current_scope.user
+
+    cond do
+      is_nil(user) ->
+        {:noreply, socket |> put_flash(:error, "Anda harus masuk untuk melaporkan.") |> redirect(to: ~p"/login")}
+
+      is_nil(user.confirmed_at) ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "Konfirmasi email Anda terlebih dahulu.")
+         |> redirect(to: ~p"/users/pending_confirmation")}
+
+      RateLimiter.check(:report, user.id, 10, 3600) == {:error, :rate_limited} ->
+        {:noreply, put_flash(socket, :error, "Terlalu banyak laporan. Coba lagi nanti.")}
+
+      true ->
+        case Public.create_content_report(content_type, content_id, user.id, :spam) do
+          {:ok, _} ->
+            {:noreply, put_flash(socket, :info, "Terima kasih! Laporan telah dikirim ke moderator.")}
+
+          {:error, _} ->
+            {:noreply, put_flash(socket, :error, "Gagal mengirim laporan.")}
+        end
     end
   end
 
@@ -189,6 +244,16 @@ defmodule CuratorianWeb.Public.BlogShowLive do
                 do: "#{@post.comment_count} komentar",
                 else: "Belum ada komentar"}
             </p>
+            <%= if @user_id do %>
+              <button
+                type="button"
+                phx-click="report_post"
+                class="mt-1 text-xs text-base-content/40 hover:text-error transition-colors inline-flex items-center gap-0.5"
+                title="Laporkan artikel ini"
+              >
+                <.icon name="hero-flag" class="w-3.5 h-3.5" /> Laporkan
+              </button>
+            <% end %>
           </div>
         </div>
 
@@ -277,6 +342,18 @@ defmodule CuratorianWeb.Public.BlogShowLive do
                     <span class="text-xs text-base-content/40">
                       {format_date(comment.inserted_at)}
                     </span>
+
+                    <%= if @user_id do %>
+                      <button
+                        type="button"
+                        phx-click="report_comment"
+                        phx-value-id={comment.id}
+                        class="ml-auto text-xs text-base-content/40 hover:text-error transition-colors flex items-center gap-0.5"
+                        title="Laporkan komentar ini"
+                      >
+                        <.icon name="hero-flag" class="w-3.5 h-3.5" /> Laporkan
+                      </button>
+                    <% end %>
                   </div>
                   <p class="text-sm text-base-content/80 leading-relaxed">
                     {comment.body}

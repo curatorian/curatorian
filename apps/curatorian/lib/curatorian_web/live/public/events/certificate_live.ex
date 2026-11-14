@@ -1,7 +1,10 @@
 defmodule CuratorianWeb.Public.Events.CertificateLive do
   @moduledoc """
   Public certificate display and verification page.
-  Shows certificate details, allows download, and provides sharing options.
+
+  The certificate is rendered from its stored data (recipient, event snapshot)
+  — there is no server-side PDF file. The recipient prints the certificate or
+  saves it as PDF directly from the browser.
   """
 
   use CuratorianWeb, :live_view
@@ -78,16 +81,16 @@ defmodule CuratorianWeb.Public.Events.CertificateLive do
   def handle_event("download", _params, socket) do
     certificate = socket.assigns.certificate
 
-    if certificate.pdf_url do
-      # Track download
+    if certificate.is_valid do
+      # Track the print/save action
       Public.increment_certificate_download(certificate.id)
 
       {:noreply,
        socket
-       |> put_flash(:info, "Mengunduh sertifikat...")
-       |> push_event("download_pdf", %{url: certificate.pdf_url})}
+       |> put_flash(:info, "Membuka dialog cetak — pilih \"Simpan sebagai PDF\".")
+       |> push_event("print_certificate", %{})}
     else
-      {:noreply, put_flash(socket, :error, "File sertifikat belum tersedia")}
+      {:noreply, put_flash(socket, :error, "Sertifikat ini sudah dicabut.")}
     end
   end
 
@@ -109,7 +112,10 @@ defmodule CuratorianWeb.Public.Events.CertificateLive do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <div class="min-h-screen bg-gradient-to-br from-primary/5 via-base-200/30 to-secondary/5 py-12">
+      <div
+        class="min-h-screen bg-gradient-to-br from-primary/5 via-base-200/30 to-secondary/5 py-12"
+        phx-hook=".CertificateActions"
+      >
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <%!-- Header --%>
           <div class="text-center mb-8">
@@ -126,53 +132,45 @@ defmodule CuratorianWeb.Public.Events.CertificateLive do
 
           <%!-- Certificate Preview Card --%>
           <div class="bg-base-100 rounded-2xl shadow-2xl overflow-hidden mb-8">
-            <%!-- Certificate Image/Preview --%>
-            <div class="relative bg-gradient-to-br from-primary/10 to-secondary/10 p-12 sm:p-16">
+            <%!-- Certificate Preview (print area) --%>
+            <div
+              id="certificate-print-area"
+              class="relative bg-gradient-to-br from-primary/10 to-secondary/10 p-12 sm:p-16"
+            >
               <div class="aspect-[1.414/1] bg-white rounded-lg shadow-xl flex items-center justify-center">
-                <%= if @certificate.pdf_url do %>
-                  <%!-- Placeholder for certificate preview --%>
-                  <div class="text-center p-8">
-                    <div class="mb-6">
-                      <.icon name="hero-academic-cap" class="w-20 h-20 text-primary mx-auto" />
+                <div class="text-center p-8">
+                  <div class="mb-6">
+                    <.icon name="hero-academic-cap" class="w-20 h-20 text-primary mx-auto" />
+                  </div>
+
+                  <h2 class="text-2xl sm:text-3xl font-serif font-bold mb-4">
+                    Sertifikat Penghargaan
+                  </h2>
+
+                  <p class="text-sm text-base-content/60 mb-4">Diberikan kepada</p>
+
+                  <p class="text-xl sm:text-2xl font-bold mb-6">{@certificate.recipient_name}</p>
+
+                  <p class="text-sm text-base-content/70 mb-4">
+                    Atas partisipasi dalam
+                  </p>
+
+                  <p class="text-lg font-semibold mb-6">{@certificate.event_title}</p>
+
+                  <div class="flex items-center justify-center gap-8 text-sm text-base-content/60">
+                    <div>
+                      <p class="font-semibold">Tanggal</p>
+                      <p>{format_date(@certificate.event_date)}</p>
                     </div>
 
-                    <h2 class="text-2xl sm:text-3xl font-serif font-bold mb-4">
-                      Sertifikat Penghargaan
-                    </h2>
-
-                    <p class="text-sm text-base-content/60 mb-4">Diberikan kepada</p>
-
-                    <p class="text-xl sm:text-2xl font-bold mb-6">{@certificate.recipient_name}</p>
-
-                    <p class="text-sm text-base-content/70 mb-4">
-                      Atas partisipasi dalam
-                    </p>
-
-                    <p class="text-lg font-semibold mb-6">{@certificate.event_title}</p>
-
-                    <div class="flex items-center justify-center gap-8 text-sm text-base-content/60">
+                    <%= if @certificate.event_duration_minutes do %>
                       <div>
-                        <p class="font-semibold">Tanggal</p>
-                        <p>{format_date(@certificate.event_date)}</p>
+                        <p class="font-semibold">Durasi</p>
+                        <p>{format_duration(@certificate.event_duration_minutes)}</p>
                       </div>
-
-                      <%= if @certificate.event_duration_minutes do %>
-                        <div>
-                          <p class="font-semibold">Durasi</p>
-                          <p>{format_duration(@certificate.event_duration_minutes)}</p>
-                        </div>
-                      <% end %>
-                    </div>
+                    <% end %>
                   </div>
-                <% else %>
-                  <div class="text-center">
-                    <.icon
-                      name="hero-document-text"
-                      class="w-16 h-16 text-base-content/30 mx-auto mb-4"
-                    />
-                    <p class="text-base-content/50">Sedang memproses sertifikat...</p>
-                  </div>
-                <% end %>
+                </div>
               </div>
 
               <%!-- Certificate Number Badge --%>
@@ -275,9 +273,9 @@ defmodule CuratorianWeb.Public.Events.CertificateLive do
 
           <%!-- Action Buttons --%>
           <div class="flex flex-col sm:flex-row gap-3 justify-center mb-8">
-            <%= if @certificate.pdf_url do %>
+            <%= if @certificate.is_valid do %>
               <button phx-click="download" class="btn btn-primary btn-lg">
-                <.icon name="hero-arrow-down-tray" class="w-5 h-5" /> Unduh Sertifikat (PDF)
+                <.icon name="hero-printer" class="w-5 h-5" /> Cetak / Simpan sebagai PDF
               </button>
             <% end %>
 
@@ -377,14 +375,38 @@ defmodule CuratorianWeb.Public.Events.CertificateLive do
       <% end %>
     </Layouts.app>
 
-    <script>
-      window.addEventListener("phx:download_pdf", (e) => {
-        window.open(e.detail.url, '_blank');
-      });
+    <style>
+      @media print {
+        body * {
+          visibility: hidden;
+        }
 
-      window.addEventListener("phx:copy_to_clipboard", (e) => {
-        navigator.clipboard.writeText(e.detail.text);
-      });
+        #certificate-print-area,
+        #certificate-print-area * {
+          visibility: visible;
+        }
+
+        #certificate-print-area {
+          position: absolute;
+          inset: 0;
+          padding: 24px;
+          background: white;
+        }
+      }
+    </style>
+
+    <script :type={Phoenix.LiveView.ColocatedHook} name=".CertificateActions">
+      export default {
+        mounted() {
+          window.addEventListener("phx:print_certificate", () => {
+            window.print();
+          });
+
+          window.addEventListener("phx:copy_to_clipboard", (e) => {
+            navigator.clipboard.writeText(e.detail.text);
+          });
+        }
+      }
     </script>
     """
   end

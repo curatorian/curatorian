@@ -3,8 +3,10 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
 
   use CuratorianWeb, :live_view
 
+  alias Curatorian.EventPayments
   alias Curatorian.Public
 
+  @impl true
   def mount(%{"slug" => slug}, _session, socket) do
     case Public.get_event_by_slug(slug) do
       nil ->
@@ -21,6 +23,9 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
         registration =
           if user_id, do: Public.get_registration_for_user(user_id, event.id), else: nil
 
+        host_org =
+          event.host_org_page_id && Public.get_public_org_page_brief(event.host_org_page_id)
+
         base = Layouts.meta_base_url()
         cover = Map.get(event, :cover_image_url)
 
@@ -30,6 +35,7 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
          |> assign(:event, event)
          |> assign(:user_id, user_id)
          |> assign(:registration, registration)
+         |> assign(:host_org, host_org)
          |> assign(:payment_step, false)
          |> assign(:registration_open, registration_open?(event))
          |> assign(:og_title, event.title)
@@ -61,13 +67,37 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
   end
 
   def handle_event("confirm_payment", _params, socket) do
-    %{event: event} = socket.assigns
-    amount = event.price_idr || 0
-    do_register(socket, amount)
+    # Online payment integration is pending — record the registration as
+    # unpaid; the organizer follows up on payment manually.
+    do_register(socket, 0)
   end
 
   def handle_event("cancel_payment", _params, socket) do
     {:noreply, assign(socket, :payment_step, false)}
+  end
+
+  @impl true
+  def handle_event("start_payment", _params, socket) do
+    %{event: event, registration: registration, user_id: user_id} = socket.assigns
+
+    cond do
+      is_nil(registration) or is_nil(user_id) ->
+        {:noreply, put_flash(socket, :error, "Pendaftaran tidak ditemukan.")}
+
+      true ->
+        case EventPayments.start_payment(event.id, registration.id, user_id) do
+          {:ok, %{redirect_url: redirect_url}} ->
+            {:noreply, redirect(socket, external: redirect_url)}
+
+          {:error, _reason} ->
+            {:noreply,
+             socket
+             |> put_flash(
+               :warning,
+               "Pembayaran online sedang tidak tersedia. Penyelenggara akan menghubungi Anda untuk penyelesaian pembayaran."
+             )}
+        end
+    end
   end
 
   defp do_register(socket, amount_paid_idr) do
@@ -86,11 +116,27 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
          |> assign(:payment_step, false)
          |> put_flash(:info, "Pendaftaran berhasil dikirim!")}
 
+      {:error, :already_registered} ->
+        {:noreply, put_flash(socket, :error, "Anda sudah terdaftar untuk event ini.")}
+
+      {:error, :event_full} ->
+        {:noreply, put_flash(socket, :error, "Kuota event sudah penuh.")}
+
+      {:error, :registration_closed} ->
+        {:noreply,
+         socket
+         |> assign(:registration_open, false)
+         |> put_flash(:error, "Pendaftaran untuk event ini sudah ditutup.")}
+
+      {:error, :event_not_found} ->
+        {:noreply, put_flash(socket, :error, "Event tidak ditemukan.")}
+
       {:error, _changeset} ->
         {:noreply, put_flash(socket, :error, "Gagal mendaftar, coba lagi.")}
     end
   end
 
+  @impl true
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
@@ -104,7 +150,19 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
                 {event_badge(@event)}
               </p>
               <h1 class="text-3xl font-semibold text-base-content">{@event.title}</h1>
-              <p class="text-sm text-base-content/70">{host_name(@event)}</p>
+              <p class="text-sm text-base-content/70">
+                <%= if @host_org do %>
+                  Diselenggarakan oleh
+                  <.link
+                    navigate={"/orgs/#{@host_org.slug}"}
+                    class="font-medium hover:text-primary transition"
+                  >
+                    {@host_org.name}
+                  </.link>
+                <% else %>
+                  {host_name(@event)}
+                <% end %>
+              </p>
             </div>
             <div class="text-right">
               <p class="text-sm text-base-content/60">{date_range(@event)}</p>
@@ -170,25 +228,24 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
                 id="payment-panel"
                 class="bg-base-100 border-2 border-primary rounded-2xl p-5 space-y-4"
               >
-                <p class="font-semibold text-base-content">Konfirmasi Pembayaran</p>
-                <p class="text-sm text-base-content/70">
-                  Selesaikan pembayaran untuk mendaftar ke event ini.
-                </p>
+                <p class="font-semibold text-base-content">Konfirmasi Pendaftaran</p>
                 <div class="bg-base-200 rounded-xl px-4 py-3 text-sm space-y-1">
                   <p class="font-medium text-base-content">{@event.title}</p>
                   <p class="text-base-content/60">
                     Rp {format_idr(@event.price_idr || 0)}
                   </p>
                 </div>
-                <p class="text-xs text-base-content/40 italic">
-                  Demo — integrasi payment gateway akan ditambahkan kemudian.
+                <p class="text-sm text-base-content/70">
+                  Pembayaran online akan segera tersedia. Pendaftaran Anda akan dicatat tanpa
+                  pembayaran terlebih dahulu — penyelenggara akan menghubungi Anda untuk
+                  penyelesaian pembayaran.
                 </p>
                 <div class="flex gap-2">
                   <button
                     phx-click="confirm_payment"
                     class="flex-1 px-4 py-2 rounded-xl bg-primary text-primary-content font-semibold text-sm hover:brightness-90 transition"
                   >
-                    Bayar Sekarang
+                    Lanjutkan Pendaftaran
                   </button>
                   <button
                     phx-click="cancel_payment"
@@ -261,17 +318,35 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
                       >
                         Masuk untuk daftar
                       </.link>
+                    <% has_registration_questions?(@event) -> %>
+                      <.link
+                        navigate={"/events/#{@event.slug}/register"}
+                        class="inline-flex items-center justify-center w-full px-4 py-2 rounded-xl bg-white font-semibold hover:brightness-90 transition"
+                      >
+                        Daftar Sekarang
+                      </.link>
                     <% true -> %>
                       <button
                         phx-click="register"
                         class="inline-flex items-center justify-center w-full px-4 py-2 rounded-xl bg-white font-semibold hover:brightness-90 transition"
                       >
-                        <%= if @event.is_paid do %>
-                          Daftar &amp; Bayar
-                        <% else %>
-                          Daftar Sekarang
-                        <% end %>
+                        Daftar Sekarang
                       </button>
+                  <% end %>
+
+                  <%!-- Payment CTA for registered users of paid events --%>
+                  <%= if @event.is_paid and @registration != nil and is_nil(@registration.paid_at) do %>
+                    <div class="mt-3 pt-3 border-t border-base-300">
+                      <button
+                        phx-click="start_payment"
+                        class="inline-flex items-center justify-center gap-1 w-full px-4 py-2 rounded-xl bg-warning/90 text-warning-content font-semibold text-sm hover:brightness-90 transition"
+                      >
+                        <.icon name="hero-credit-card" class="size-4" /> Bayar Sekarang
+                      </button>
+                      <p class="text-xs text-base-content/50 mt-1 text-center">
+                        Selesaikan pembayaran online untuk event ini.
+                      </p>
+                    </div>
                   <% end %>
                 <% end %>
               </div>
@@ -370,6 +445,10 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
       true ->
         true
     end
+  end
+
+  defp has_registration_questions?(event) do
+    is_list(event.registration_questions) and event.registration_questions != []
   end
 
   defp event_badge(event) do

@@ -119,8 +119,11 @@ config :curatorian,
   default_og_image: "/images/og_image.webp"
 
 # Curatorian Repo searches voile schema first (Voile tables), then atrium (Atrium tables).
-# Curatorian has no migrations of its own — it only reads from voile and atrium schemas.
-# Write operations to atrium tables go through Atrium (port 4001), not Curatorian.
+# Curatorian has no migrations of its own — atrium owns and migrates its schema.
+# Most atrium tables are read-only from Curatorian. Three approved exceptions are
+# written directly (single shared database): event_registrations (public
+# registration), event_certificates (download counters), and content_reports
+# (moderation reports).
 config :curatorian, Curatorian.Repo,
   after_connect: {Postgrex, :query!, ["SET search_path TO voile,atrium,public", []]}
 

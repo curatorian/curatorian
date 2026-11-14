@@ -29,6 +29,7 @@ defmodule Curatorian.Public do
     EventPayment,
     EventCertificate,
     EventAttendance,
+    ContentReport,
     OrgPageFollower,
     CrowdfundingCampaign,
     ExchangeOffer,
@@ -303,6 +304,39 @@ defmodule Curatorian.Public do
 
   def get_public_org_page(slug) do
     Repo.get_by(OrgPage, slug: slug, is_public: true)
+  end
+
+  @doc """
+  Returns `%{slug, name}` for a public, non-deleted org page by id, or nil.
+  Used to link an event's host organization to its public /orgs/<slug> page.
+  """
+  def get_public_org_page_brief(org_page_id) when is_binary(org_page_id) do
+    from(o in OrgPage,
+      where: o.id == ^org_page_id and o.is_public == true and is_nil(o.deleted_at),
+      select: %{slug: o.slug, name: o.name}
+    )
+    |> Repo.one()
+  end
+
+  def get_public_org_page_brief(_), do: nil
+
+  # ---------------------------------------------------------------------------
+  # Content reports (writes atrium.content_reports — see approved write list
+  # in curatorian/config/config.exs)
+  # ---------------------------------------------------------------------------
+
+  @doc "Files a moderation report from a logged-in user. Reason is an atom slug like :spam."
+  def create_content_report(content_type, content_id, reporter_id, reason)
+      when content_type in [:blog_post, :blog_comment] do
+    %ContentReport{}
+    |> ContentReport.changeset(%{
+      content_type: content_type,
+      content_id: content_id,
+      reporter_id: to_string(reporter_id),
+      reason: reason,
+      status: :pending
+    })
+    |> Repo.insert()
   end
 
   defp search_org_pages(query, ""), do: query
@@ -1294,6 +1328,8 @@ defmodule Curatorian.Public do
   # Events
   # ---------------------------------------------------------------------------
 
+  @active_registration_statuses [:pending, :approved, :waitlisted]
+
   def list_events(search \\ "", opts \\ []) do
     page = Keyword.get(opts, :page, 1)
     offset = (page - 1) * @page_size
@@ -1301,6 +1337,7 @@ defmodule Curatorian.Public do
     category = Keyword.get(opts, :category)
     mode = Keyword.get(opts, :mode)
     starts_at_after = Keyword.get(opts, :starts_at_after)
+    paid = Keyword.get(opts, :paid)
 
     now = DateTime.utc_now()
 
@@ -1314,8 +1351,9 @@ defmodule Curatorian.Public do
     |> filter_event_category(category)
     |> filter_event_mode(mode)
     |> filter_event_starts_after(starts_at_after)
+    |> filter_event_paid(paid)
     |> filter_event_search(search)
-    |> order_by([e], desc: e.is_paid, desc: e.starts_at)
+    |> order_events_by(Keyword.get(opts, :sort_by))
     |> limit(@page_size)
     |> offset(^offset)
     |> Repo.all()
@@ -1326,6 +1364,7 @@ defmodule Curatorian.Public do
     category = Keyword.get(opts, :category)
     mode = Keyword.get(opts, :mode)
     starts_at_after = Keyword.get(opts, :starts_at_after)
+    paid = Keyword.get(opts, :paid)
 
     now = DateTime.utc_now()
 
@@ -1339,6 +1378,7 @@ defmodule Curatorian.Public do
     |> filter_event_category(category)
     |> filter_event_mode(mode)
     |> filter_event_starts_after(starts_at_after)
+    |> filter_event_paid(paid)
     |> filter_event_search(search)
     |> Repo.aggregate(:count, :id)
   end
@@ -1366,13 +1406,22 @@ defmodule Curatorian.Public do
   def check_event_registration(user_id, event_id) do
     Repo.exists?(
       from(r in EventRegistration,
-        where: r.voile_user_id == ^user_id and r.event_id == ^event_id
+        where:
+          r.voile_user_id == ^user_id and r.event_id == ^event_id and
+            r.status in ^@active_registration_statuses
       )
     )
   end
 
   def get_registration_for_user(user_id, event_id) do
-    Repo.get_by(EventRegistration, voile_user_id: user_id, event_id: event_id)
+    from(r in EventRegistration,
+      where:
+        r.voile_user_id == ^user_id and r.event_id == ^event_id and
+          r.status in ^@active_registration_statuses,
+      order_by: [desc: r.registered_at],
+      limit: 1
+    )
+    |> Repo.one()
   end
 
   def get_event(event_id) do
@@ -1404,23 +1453,137 @@ defmodule Curatorian.Public do
     )
   end
 
+  @doc """
+  Registers a user for a public event.
+
+  Server-side guards (returning `{:error, atom}`):
+    - `:event_not_found` — event missing, deleted, or not visible
+    - `:registration_closed` — event status, or outside the registration window
+    - `:event_full` — active registrations already at `max_attendees`
+    - `:already_registered` — user already holds an active registration
+      (pending/approved/waitlisted); canceled or rejected registrations
+      don't block re-registering
+
+  Options:
+    - `:requires_approval` (default true) — `:pending` when true, `:approved` otherwise
+    - `:amount_paid_idr` (default 0)
+    - `:registration_data` (default %{}) — answers to the event's registration questions
+  """
   def register_for_event(user_id, event_id, opts \\ []) do
     requires_approval = Keyword.get(opts, :requires_approval, true)
     amount_paid_idr = Keyword.get(opts, :amount_paid_idr, 0)
+    registration_data = Keyword.get(opts, :registration_data, %{})
     status = if requires_approval, do: :pending, else: :approved
 
-    attrs = %{
-      event_id: event_id,
-      voile_user_id: to_string(user_id),
-      registration_code: generate_registration_code(),
-      registered_at: DateTime.utc_now(),
-      status: status,
-      amount_paid_idr: amount_paid_idr
-    }
+    with {:ok, event} <- get_registerable_event(event_id),
+         :ok <- check_registration_window(event),
+         :ok <- check_event_capacity(event) do
+      attrs = %{
+        event_id: event_id,
+        voile_user_id: to_string(user_id),
+        registration_code: generate_registration_code(),
+        registered_at: DateTime.utc_now(),
+        status: status,
+        amount_paid_idr: amount_paid_idr,
+        registration_data: registration_data
+      }
 
-    %EventRegistration{}
-    |> EventRegistration.changeset(attrs)
-    |> Repo.insert()
+      %EventRegistration{}
+      |> EventRegistration.changeset(attrs)
+      |> Repo.insert()
+      |> map_registration_insert_error()
+      |> tap(fn
+        {:ok, registration} ->
+          send_registration_confirmation(registration, event)
+
+        _ ->
+          :ok
+      end)
+    else
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  # Fire-and-forget: a confirmation email failure must never block the
+  # registration. The tracking column (confirmation_sent_at) is stamped so
+  # nothing else re-sends it.
+  defp send_registration_confirmation(registration, event) do
+    case Curatorian.EventNotifier.deliver_registration_confirmation(registration, event) do
+      {:ok, :sent} ->
+        confirmation_query =
+          from(r in EventRegistration,
+            where: r.id == ^registration.id and is_nil(r.confirmation_sent_at)
+          )
+
+        Repo.update_all(confirmation_query,
+          set: [confirmation_sent_at: DateTime.utc_now() |> DateTime.truncate(:second)]
+        )
+
+      {:error, reason} ->
+        require Logger
+
+        Logger.error(
+          "[Events] failed to deliver registration confirmation for #{registration.id}: #{inspect(reason)}"
+        )
+    end
+  rescue
+    error ->
+      require Logger
+
+      Logger.error(
+        "[Events] confirmation email crashed for #{registration.id}: #{inspect(error)}"
+      )
+  end
+
+  defp get_registerable_event(event_id) do
+    event =
+      from(e in Event, where: e.id == ^event_id and is_nil(e.deleted_at))
+      |> Repo.one()
+
+    cond do
+      is_nil(event) -> {:error, :event_not_found}
+      event.status not in [:published, :ongoing] -> {:error, :registration_closed}
+      true -> {:ok, event}
+    end
+  end
+
+  defp check_registration_window(event) do
+    now = DateTime.utc_now()
+
+    cond do
+      event.registration_opens_at &&
+          DateTime.compare(now, event.registration_opens_at) == :lt ->
+        {:error, :registration_closed}
+
+      event.registration_closes_at &&
+          DateTime.compare(now, event.registration_closes_at) != :lt ->
+        {:error, :registration_closed}
+
+      true ->
+        :ok
+    end
+  end
+
+  defp check_event_capacity(%Event{max_attendees: max}) when is_nil(max) or max <= 0, do: :ok
+
+  defp check_event_capacity(event) do
+    active_count =
+      from(r in EventRegistration,
+        where: r.event_id == ^event.id and r.status in ^@active_registration_statuses
+      )
+      |> Repo.aggregate(:count, :id)
+
+    if active_count >= event.max_attendees, do: {:error, :event_full}, else: :ok
+  end
+
+  defp map_registration_insert_error({:ok, registration}), do: {:ok, registration}
+
+  defp map_registration_insert_error({:error, %Ecto.Changeset{} = changeset}) do
+    if Keyword.has_key?(changeset.errors, :event_id) do
+      {:error, :already_registered}
+    else
+      {:error, changeset}
+    end
   end
 
   defp generate_registration_code do
@@ -1429,16 +1592,55 @@ defmodule Curatorian.Public do
 
   defp filter_event_type(query, nil), do: query
 
-  defp filter_event_type(query, event_type),
-    do: where(query, [e], e.event_type == ^String.to_atom(event_type))
+  defp filter_event_type(query, event_type) when is_binary(event_type) do
+    case enum_value_atom(Event, :event_type, event_type) do
+      nil -> query
+      atom -> where(query, [e], e.event_type == ^atom)
+    end
+  end
+
+  defp filter_event_type(query, _), do: query
 
   defp filter_event_category(query, nil), do: query
 
-  defp filter_event_category(query, category),
-    do: where(query, [e], e.category == ^String.to_atom(category))
+  defp filter_event_category(query, category) when is_binary(category) do
+    case enum_value_atom(Event, :category, category) do
+      nil -> query
+      atom -> where(query, [e], e.category == ^atom)
+    end
+  end
+
+  defp filter_event_category(query, _), do: query
 
   defp filter_event_mode(query, nil), do: query
-  defp filter_event_mode(query, mode), do: where(query, [e], e.mode == ^String.to_atom(mode))
+
+  defp filter_event_mode(query, mode) when is_binary(mode) do
+    case enum_value_atom(Event, :mode, mode) do
+      nil -> query
+      atom -> where(query, [e], e.mode == ^atom)
+    end
+  end
+
+  defp filter_event_mode(query, _), do: query
+
+  defp filter_event_paid(query, true), do: where(query, [e], e.is_paid == true)
+  defp filter_event_paid(query, _), do: query
+
+  defp order_events_by(query, "newest"), do: order_by(query, [e], desc: e.inserted_at)
+  defp order_events_by(query, "soonest"), do: order_by(query, [e], asc: e.starts_at)
+  defp order_events_by(query, "popular"), do: order_by(query, [e], desc: e.registration_count)
+
+  # Default order kept identical to the pre-existing behavior for callers
+  # that don't pass :sort_by.
+  defp order_events_by(query, _), do: order_by(query, [e], desc: e.is_paid, desc: e.starts_at)
+
+  # Maps a user-supplied string to an existing Ecto.Enum atom without ever
+  # calling String.to_atom/1 (which would leak atoms from query params).
+  defp enum_value_atom(schema, field, value) do
+    schema
+    |> Ecto.Enum.values(field)
+    |> Enum.find(&(Atom.to_string(&1) == value))
+  end
 
   defp filter_event_starts_after(query, nil), do: query
 

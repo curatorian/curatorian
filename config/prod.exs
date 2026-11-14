@@ -12,6 +12,14 @@ config :curatorian, :curatorian_url, System.get_env("CURATORIAN_URL", "https://c
 config :curatorian, CuratorianWeb.Endpoint,
   cache_static_manifest: "priv/static/cache_manifest.json"
 
+# Force using SSL in production (HSTS header). Requests arriving over plain
+# HTTP through the reverse proxy are rewritten via X-Forwarded-Proto.
+config :curatorian, CuratorianWeb.Endpoint,
+  force_ssl: [rewrite_on: [:x_forwarded_proto]],
+  exclude: [
+    hosts: ["localhost", "127.0.0.1"]
+  ]
+
 # ===== SWOOSH =====
 config :swoosh, api_client: Swoosh.ApiClient.Finch, finch_name: Voile.Finch
 config :swoosh, local: false

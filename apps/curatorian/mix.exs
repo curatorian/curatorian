@@ -31,7 +31,7 @@ defmodule Curatorian.MixProject do
     [
       # ===== VOILE DEPENDENCY =====
       {:voile, "~> 0.1.54"},
-      {:earmark, "~> 1.4"},
+      {:mdex, "~> 0.8"},
       {:html_sanitize_ex, "~> 1.4"}
       # ALL OTHER DEPENDENCIES ARE NOW IN UMBRELLA ROOT!
       # No need to duplicate Phoenix, Ecto, etc.

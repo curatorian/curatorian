@@ -14,6 +14,7 @@ defmodule Curatorian.Application do
       {Phoenix.PubSub, name: Curatorian.PubSub},
       # Start the Finch HTTP client for sending emails
       {Finch, name: Curatorian.Finch},
+      Curatorian.RateLimiter,
       Curatorian.SEO.SitemapCache,
       # Start to serve requests, typically the last entry
       CuratorianWeb.Endpoint

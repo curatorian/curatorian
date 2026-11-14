@@ -1,5 +1,5 @@
 defmodule CuratorianWeb.Public.OrganizationShowLive do
-  @moduledoc "Public organization detail page (/orgs/:id)."
+  @moduledoc "Public organization detail page (/orgs/:slug)."
 
   use CuratorianWeb, :live_view
 
@@ -24,93 +24,101 @@ defmodule CuratorianWeb.Public.OrganizationShowLive do
       %{org_page: nil} ->
         raise Ecto.NoResultsError, queryable: "organization"
 
-      %{profile: profile, node: node, org_page: org_page} ->
-        merged = org_page || profile
-
-        org = %{
-          id: profile.id,
-          voile_node_id: profile.voile_node_id,
-          name: Map.get(merged, :name) || profile.institution_name || Map.get(node, :name) || "",
-          abbr: Map.get(node, :abbr) || "",
-          node_image: Public.asset_url(Map.get(node, :image)),
-          institution_type: Map.get(merged, :institution_type) || profile.institution_type,
-          node_type: Map.get(merged, :node_type) || profile.node_type,
-          tagline: Map.get(merged, :tagline),
-          description: Map.get(merged, :description),
-          category: Map.get(merged, :category),
-          institution_size: Map.get(merged, :institution_size),
-          avatar_url:
-            Public.asset_url(Map.get(merged, :avatar_url) || Map.get(profile, :avatar_url)),
-          cover_url:
-            Public.asset_url(Map.get(merged, :cover_url) || Map.get(profile, :cover_url)),
-          website: Map.get(merged, :website) || Map.get(profile, :website),
-          email: Map.get(merged, :email) || Map.get(profile, :email),
-          phone: Map.get(merged, :phone) || Map.get(profile, :phone),
-          whatsapp: Map.get(merged, :whatsapp) || Map.get(profile, :whatsapp),
-          address: Map.get(merged, :address) || Map.get(profile, :address),
-          city: Map.get(merged, :city) || Map.get(profile, :city),
-          province: Map.get(merged, :province) || Map.get(profile, :province),
-          social_links: Map.get(merged, :social_links) || Map.get(profile, :social_links) || %{},
-          is_public:
-            Map.get(merged, :is_public)
-            |> then(fn x -> if(is_nil(x), do: Map.get(profile, :is_public), else: x) end),
-          is_verified:
-            Map.get(merged, :is_verified)
-            |> then(fn x -> if(is_nil(x), do: Map.get(profile, :is_verified), else: x) end),
-          type_label:
-            Map.get(
-              @institution_type_labels,
-              Map.get(merged, :institution_type) || profile.institution_type,
-              nil
-            )
-        }
-
-        collection_count = Public.count_collections_for_node(profile.voile_node_id)
-
-        json_ld = [
-          %{
-            "@context" => "https://schema.org",
-            "@type" => "Organization",
-            "name" => org.name,
-            "url" => Layouts.meta_base_url() <> "/orgs/#{id}",
-            "description" => org.tagline || org.description,
-            "logo" => org.avatar_url && Layouts.meta_image_url(org.avatar_url),
-            "image" => org.cover_url && Layouts.meta_image_url(org.cover_url),
-            "email" => org.email,
-            "telephone" => org.phone,
-            "website" => org.website,
-            "address" => %{
-              "@type" => "PostalAddress",
-              "addressLocality" => org.city,
-              "addressRegion" => org.province,
-              "addressCountry" => "ID"
-            }
-          }
-        ]
-
-        {:noreply,
-         socket
-         |> assign(:page_title, org.name)
-         |> assign(:org, org)
-         |> assign(:active_tab, "info")
-         |> assign(:collection_count, collection_count)
-         |> assign(:collections_page, 1)
-         |> assign(:collections_loaded, false)
-         |> assign(:has_more_collections, false)
-         |> assign(:staff_loaded, false)
-         |> assign(:staff_members, [])
-         |> assign(:og_title, org.name)
-         |> assign(:og_description, org.tagline || org.description)
-         |> assign(:og_image, org.cover_url || org.avatar_url)
-         |> assign(:og_url, "/orgs/#{id}")
-         |> assign(:og_type, "website")
-         |> assign(
-           :twitter_card,
-           if(org.cover_url || org.avatar_url, do: "summary_large_image", else: "summary")
-         )
-         |> assign(:json_ld, json_ld)
-         |> stream(:collections, [])}
+      %{org_page: org_page} = resolved ->
+        # Canonical URLs are slug-based: when someone lands on a legacy
+        # /orgs/<uuid> link, redirect to the shareable /orgs/<slug> URL.
+        if Ecto.UUID.cast(id) == {:ok, id} do
+          {:noreply, push_navigate(socket, to: "/orgs/#{org_page.slug}")}
+        else
+          assign_org_page(socket, id, org_page, resolved)
+        end
     end
+  end
+
+  defp assign_org_page(socket, _id, org_page, %{profile: profile, node: node}) do
+    merged = org_page || profile
+
+    org = %{
+      id: profile.id,
+      voile_node_id: profile.voile_node_id,
+      name: Map.get(merged, :name) || profile.institution_name || Map.get(node, :name) || "",
+      abbr: Map.get(node, :abbr) || "",
+      node_image: Public.asset_url(Map.get(node, :image)),
+      institution_type: Map.get(merged, :institution_type) || profile.institution_type,
+      node_type: Map.get(merged, :node_type) || profile.node_type,
+      tagline: Map.get(merged, :tagline),
+      description: Map.get(merged, :description),
+      category: Map.get(merged, :category),
+      institution_size: Map.get(merged, :institution_size),
+      avatar_url: Public.asset_url(Map.get(merged, :avatar_url) || Map.get(profile, :avatar_url)),
+      cover_url: Public.asset_url(Map.get(merged, :cover_url) || Map.get(profile, :cover_url)),
+      website: Map.get(merged, :website) || Map.get(profile, :website),
+      email: Map.get(merged, :email) || Map.get(profile, :email),
+      phone: Map.get(merged, :phone) || Map.get(profile, :phone),
+      whatsapp: Map.get(merged, :whatsapp) || Map.get(profile, :whatsapp),
+      address: Map.get(merged, :address) || Map.get(profile, :address),
+      city: Map.get(merged, :city) || Map.get(profile, :city),
+      province: Map.get(merged, :province) || Map.get(profile, :province),
+      social_links: Map.get(merged, :social_links) || Map.get(profile, :social_links) || %{},
+      is_public:
+        Map.get(merged, :is_public)
+        |> then(fn x -> if(is_nil(x), do: Map.get(profile, :is_public), else: x) end),
+      is_verified:
+        Map.get(merged, :is_verified)
+        |> then(fn x -> if(is_nil(x), do: Map.get(profile, :is_verified), else: x) end),
+      type_label:
+        Map.get(
+          @institution_type_labels,
+          Map.get(merged, :institution_type) || profile.institution_type,
+          nil
+        )
+    }
+
+    collection_count = Public.count_collections_for_node(profile.voile_node_id)
+
+    json_ld = [
+      %{
+        "@context" => "https://schema.org",
+        "@type" => "Organization",
+        "name" => org.name,
+        "url" => Layouts.meta_base_url() <> "/orgs/#{org_page.slug}",
+        "description" => org.tagline || org.description,
+        "logo" => org.avatar_url && Layouts.meta_image_url(org.avatar_url),
+        "image" => org.cover_url && Layouts.meta_image_url(org.cover_url),
+        "email" => org.email,
+        "telephone" => org.phone,
+        "website" => org.website,
+        "address" => %{
+          "@type" => "PostalAddress",
+          "addressLocality" => org.city,
+          "addressRegion" => org.province,
+          "addressCountry" => "ID"
+        }
+      }
+    ]
+
+    {:noreply,
+     socket
+     |> assign(:page_title, org.name)
+     |> assign(:org, org)
+     |> assign(:active_tab, "info")
+     |> assign(:collection_count, collection_count)
+     |> assign(:collections_page, 1)
+     |> assign(:collections_loaded, false)
+     |> assign(:has_more_collections, false)
+     |> assign(:staff_loaded, false)
+     |> assign(:staff_members, [])
+     |> assign(:og_title, org.name)
+     |> assign(:og_description, org.tagline || org.description)
+     |> assign(:og_image, org.cover_url || org.avatar_url)
+     |> assign(:og_url, "/orgs/#{org_page.slug}")
+     |> assign(:og_type, "website")
+     |> assign(
+       :twitter_card,
+       if(org.cover_url || org.avatar_url, do: "summary_large_image", else: "summary")
+     )
+     |> assign(:json_ld, json_ld)
+     |> stream(:collections, [])}
   end
 
   def handle_event("switch_tab", %{"tab" => tab}, socket) do

@@ -9,6 +9,7 @@ defmodule CuratorianWeb.UserPendingConfirmationLive do
   require Logger
 
   alias Curatorian.Accounts
+  alias Curatorian.RateLimiter
 
   def render(assigns) do
     ~H"""
@@ -116,37 +117,50 @@ defmodule CuratorianWeb.UserPendingConfirmationLive do
   end
 
   def handle_event("resend_confirmation", %{"email" => email}, socket) do
+    # Keyed on the normalized email — this LiveView has no reliable remote IP.
+    email_key = String.downcase(String.trim(email))
+
+    with :ok <- RateLimiter.check(:resend, email_key, 3, 3600),
+         {:ok, _} <- deliver_if_unconfirmed(email) do
+      # One neutral message for every outcome — never reveal whether the
+      # account exists or is already confirmed.
+      {:noreply,
+       put_flash(
+         socket,
+         :info,
+         "If that email belongs to an unconfirmed account, a confirmation link has been sent."
+       )}
+    else
+      {:error, :rate_limited} ->
+        {:noreply,
+         put_flash(socket, :error, "Too many requests. Please try again later.")}
+
+      {:error, reason} ->
+        Logger.error("Failed to resend confirmation email: #{inspect(reason)}")
+
+        {:noreply,
+         put_flash(
+           socket,
+           :warning,
+           "If that email belongs to an unconfirmed account, a confirmation link has been sent."
+         )}
+    end
+  end
+
+  defp deliver_if_unconfirmed(email) do
     case Accounts.get_user_by_email(email) do
       nil ->
-        {:noreply,
-         socket
-         |> put_flash(:error, "No account found with that email address.")
-         |> push_navigate(to: ~p"/register")}
+        # Pretend success — identical timing/message as the real path.
+        {:ok, %{sent: false}}
 
       user ->
         if user.confirmed_at do
-          {:noreply,
-           socket
-           |> put_flash(:info, "This account is already confirmed. You can sign in now.")
-           |> push_navigate(to: ~p"/login")}
+          {:ok, %{sent: false}}
         else
-          case Accounts.deliver_user_confirmation_instructions(
-                 user,
-                 &url(~p"/users/confirm/#{&1}")
-               ) do
-            {:ok, _} ->
-              {:noreply, put_flash(socket, :info, "Confirmation email sent! Check your inbox.")}
-
-            {:error, reason} ->
-              Logger.error("Failed to resend confirmation email: #{inspect(reason)}")
-
-              {:noreply,
-               put_flash(
-                 socket,
-                 :warning,
-                 "Could not send confirmation email right now. Please try again in a few minutes."
-               )}
-          end
+          Accounts.deliver_user_confirmation_instructions(
+            user,
+            &url(~p"/users/confirm/#{&1}")
+          )
         end
     end
   end

@@ -2,14 +2,10 @@ defmodule CuratorianWeb.Markdown do
   @moduledoc """
   Renders Markdown to sanitized HTML for display in templates.
 
-  Uses Earmark for parsing and HtmlSanitizeEx for sanitization,
-  ensuring user-generated content is safe to render.
+  Uses MDEx (CommonMark/GFM via comrak) for parsing and HtmlSanitizeEx for
+  sanitization. Raw HTML in the markdown source is escaped (`unsafe: false`)
+  *and* scrubbed — user-generated content is safe to render.
   """
-
-  # Earmark is included as an umbrella dep (via phoenix_markdown) and is
-  # available at runtime, but Mix's cross-app static analysis can't always
-  # verify it at compile time in umbrella apps.
-  @compile {:no_warn_undefined, Earmark}
 
   @doc """
   Converts a Markdown string to a sanitized Phoenix.HTML.safe value.
@@ -21,15 +17,14 @@ defmodule CuratorianWeb.Markdown do
 
   def to_html(markdown) when is_binary(markdown) do
     html =
-      if Code.ensure_loaded?(Earmark) do
-        case Earmark.as_html(markdown, smartypants: false, code_class_prefix: "language-") do
-          {:ok, html, _warnings} -> IO.iodata_to_binary(html)
-          {:error, html, _errors} -> IO.iodata_to_binary(html)
-        end
-      else
-        require Logger
-        Logger.warning("Earmark not available at runtime — falling back to raw markdown")
-        markdown
+      try do
+        MDEx.to_html!(markdown,
+          extension: [autolink: true, table: true, strikethrough: true],
+          render: [unsafe: false],
+          syntax_highlight: false
+        )
+      rescue
+        _ -> markdown
       end
 
     sanitized = HtmlSanitizeEx.markdown_html(html)

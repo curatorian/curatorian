@@ -106,7 +106,12 @@ defmodule CuratorianWeb.UserLoginLive do
                       />
                       <span>Ingat saya</span>
                     </label>
-                    <%!-- TODO: add /users/reset_password route when password-reset LiveView is built --%>
+                    <.link
+                      navigate={~p"/users/reset_password"}
+                      class="text-sm text-primary hover:underline"
+                    >
+                      Lupa kata sandi?
+                    </.link>
                   </div>
 
                   <.captcha

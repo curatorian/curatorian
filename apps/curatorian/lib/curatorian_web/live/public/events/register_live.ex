@@ -6,8 +6,10 @@ defmodule CuratorianWeb.Public.Events.RegisterLive do
 
   use CuratorianWeb, :live_view
 
+  alias Curatorian.EventPayments
   alias Curatorian.Public
 
+  @impl true
   def mount(%{"slug" => slug}, _session, socket) do
     case Public.get_event_by_slug(slug) do
       nil ->
@@ -38,11 +40,11 @@ defmodule CuratorianWeb.Public.Events.RegisterLive do
            |> assign(:page_title, "Daftar — #{event.title}")
            |> assign(:event, event)
            |> assign(:user_id, user_id)
+           |> assign(:registration, nil)
            |> assign(:current_step, 1)
-           |> assign(:max_steps, if(event.is_paid, do: 4, else: 3))
+           |> assign(:max_steps, 3)
            |> assign(:registration_data, %{})
            |> assign(:form, to_form(%{}, as: :registration))
-           |> assign(:payment_url, nil)
            |> assign(:registration_code, nil)
            |> assign(:noindex, true)}
         end
@@ -72,40 +74,67 @@ defmodule CuratorianWeb.Public.Events.RegisterLive do
 
     opts = [
       registration_data: final_data,
-      requires_approval: event.requires_approval,
-      amount_paid_idr: if(event.is_paid, do: event.price_idr, else: 0)
+      requires_approval: event.requires_approval
     ]
 
     case Public.register_for_event(user_id, event.id, opts) do
       {:ok, registration} ->
-        if event.is_paid do
-          # Initiate payment
-          payment_url = initiate_payment(event, registration)
+        {:noreply,
+         socket
+         |> assign(:registration, registration)
+         |> assign(:registration_code, registration.registration_code)
+         |> assign(:current_step, socket.assigns.current_step + 1)
+         |> put_flash(:info, "Pendaftaran berhasil!")}
 
-          {:noreply,
-           socket
-           |> assign(:registration_code, registration.registration_code)
-           |> assign(:payment_url, payment_url)
-           |> assign(:current_step, socket.assigns.current_step + 1)}
-        else
-          {:noreply,
-           socket
-           |> assign(:registration_code, registration.registration_code)
-           |> assign(:current_step, socket.assigns.current_step + 1)
-           |> put_flash(:info, "Pendaftaran berhasil! Cek email untuk konfirmasi.")}
-        end
+      {:error, :already_registered} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "Anda sudah terdaftar untuk event ini.")
+         |> push_navigate(to: "/events/#{event.slug}")}
+
+      {:error, :event_full} ->
+        {:noreply, put_flash(socket, :error, "Kuota event sudah penuh.")}
+
+      {:error, :registration_closed} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "Pendaftaran untuk event ini sudah ditutup.")
+         |> push_navigate(to: "/events/#{event.slug}")}
+
+      {:error, :event_not_found} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "Event tidak ditemukan.")
+         |> push_navigate(to: "/events")}
 
       {:error, _changeset} ->
         {:noreply, put_flash(socket, :error, "Gagal mendaftar, silakan coba lagi.")}
     end
   end
 
-  defp initiate_payment(event, registration) do
-    # TODO: Integrate with payment gateway (Midtrans, Xendit, etc.)
-    # For now, return placeholder
-    "/events/#{event.slug}/payment/#{registration.registration_code}"
+  @impl true
+  def handle_event("start_payment", _params, socket) do
+    %{event: event, registration: registration, user_id: user_id} = socket.assigns
+
+    if is_nil(registration) or is_nil(user_id) do
+      {:noreply, put_flash(socket, :error, "Pendaftaran tidak ditemukan.")}
+    else
+      case EventPayments.start_payment(event.id, registration.id, user_id) do
+        {:ok, %{redirect_url: redirect_url}} ->
+          {:noreply, redirect(socket, external: redirect_url)}
+
+        {:error, _reason} ->
+          {:noreply,
+           socket
+           |> put_flash(
+             :warning,
+             "Pembayaran online sedang tidak tersedia. Penyelenggara akan menghubungi Anda untuk penyelesaian pembayaran."
+           )}
+      end
+    end
   end
 
+  @impl true
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
@@ -172,23 +201,9 @@ defmodule CuratorianWeb.Public.Events.RegisterLive do
                   registration_data={@registration_data}
                 />
               <% 3 -> %>
-                <%= if @event.is_paid do %>
-                  <.render_step_payment
-                    event={@event}
-                    form={@form}
-                    registration_data={@registration_data}
-                  />
-                <% else %>
-                  <.render_step_confirmation
-                    event={@event}
-                    registration_code={@registration_code}
-                  />
-                <% end %>
-              <% 4 -> %>
                 <.render_step_confirmation
                   event={@event}
                   registration_code={@registration_code}
-                  payment_url={@payment_url}
                 />
             <% end %>
           </div>
@@ -276,73 +291,10 @@ defmodule CuratorianWeb.Public.Events.RegisterLive do
           </button>
 
           <button type="submit" class="btn btn-primary">
-            {if @event.is_paid, do: "Lanjut ke Pembayaran", else: "Submit Pendaftaran"}
-            <.icon name="hero-arrow-right" class="w-4 h-4 ml-1" />
+            Submit Pendaftaran <.icon name="hero-arrow-right" class="w-4 h-4 ml-1" />
           </button>
         </div>
       </.form>
-    </div>
-    """
-  end
-
-  defp render_step_payment(assigns) do
-    ~H"""
-    <div>
-      <h2 class="text-2xl font-bold mb-2">Pembayaran</h2>
-      <p class="text-base-content/70 mb-6">
-        Silakan lakukan pembayaran untuk menyelesaikan pendaftaran Anda.
-      </p>
-
-      <div class="bg-base-200 rounded-lg p-6 mb-6">
-        <div class="flex justify-between items-start mb-4">
-          <div>
-            <h3 class="font-semibold">{@event.title}</h3>
-            <p class="text-sm text-base-content/60">Biaya Pendaftaran</p>
-          </div>
-          <div class="text-right">
-            <p class="text-2xl font-bold text-primary">{format_idr(@event.price_idr)}</p>
-          </div>
-        </div>
-
-        <div class="divider my-2"></div>
-
-        <div class="space-y-2 text-sm">
-          <div class="flex justify-between">
-            <span>Subtotal</span>
-            <span>{format_idr(@event.price_idr)}</span>
-          </div>
-          <div class="flex justify-between">
-            <span>Biaya Admin</span>
-            <span>Rp 0</span>
-          </div>
-          <div class="divider my-2"></div>
-          <div class="flex justify-between font-bold text-base">
-            <span>Total</span>
-            <span class="text-primary">{format_idr(@event.price_idr)}</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="alert alert-warning mb-6">
-        <.icon name="hero-exclamation-triangle" class="w-5 h-5" />
-        <div>
-          <p class="font-semibold">Penting!</p>
-          <p class="text-sm">
-            Setelah mengklik "Lanjut ke Pembayaran", Anda akan diarahkan ke halaman payment gateway.
-            Pastikan untuk menyelesaikan pembayaran dalam waktu yang ditentukan.
-          </p>
-        </div>
-      </div>
-
-      <div class="flex justify-between gap-3">
-        <button type="button" phx-click="prev_step" class="btn btn-ghost">
-          <.icon name="hero-arrow-left" class="w-4 h-4 mr-1" /> Kembali
-        </button>
-
-        <button type="button" phx-click="submit_registration" class="btn btn-primary">
-          Lanjut ke Pembayaran <.icon name="hero-arrow-right" class="w-4 h-4 ml-1" />
-        </button>
-      </div>
     </div>
     """
   end
@@ -358,9 +310,14 @@ defmodule CuratorianWeb.Public.Events.RegisterLive do
         <h2 class="text-2xl font-bold mb-2">Pendaftaran Berhasil!</h2>
         <p class="text-base-content/70">
           <%= if @event.is_paid do %>
-            Silakan lanjutkan pembayaran untuk menyelesaikan pendaftaran.
+            Pendaftaran Anda tercatat. Selesaikan pembayaran online di bawah —
+            atau penyelenggara akan menghubungi Anda.
           <% else %>
-            Email konfirmasi telah dikirim ke alamat email Anda.
+            <%= if @event.requires_approval do %>
+              Pendaftaran Anda sedang ditinjau oleh penyelenggara.
+            <% else %>
+              Kode pendaftaran di bawah dapat digunakan untuk check-in saat event.
+            <% end %>
           <% end %>
         </p>
       </div>
@@ -377,14 +334,13 @@ defmodule CuratorianWeb.Public.Events.RegisterLive do
         </div>
       <% end %>
 
-      <%= if @payment_url do %>
-        <a href={@payment_url} class="btn btn-primary btn-lg mb-4 w-full sm:w-auto">
-          <.icon name="hero-credit-card" class="w-5 h-5 mr-2" /> Bayar Sekarang
-        </a>
-
-        <p class="text-sm text-base-content/60 mb-6">
-          Atau Anda dapat melakukan pembayaran nanti dari halaman dashboard.
-        </p>
+      <%= if @event.is_paid and @registration do %>
+        <button
+          phx-click="start_payment"
+          class="btn btn-warning w-full mb-6 gap-2"
+        >
+          <.icon name="hero-credit-card" class="w-5 h-5" /> Bayar Sekarang
+        </button>
       <% end %>
 
       <div class="flex flex-col sm:flex-row gap-3 justify-center">
@@ -401,9 +357,7 @@ defmodule CuratorianWeb.Public.Events.RegisterLive do
 
   defp step_title(1, _paid), do: "Konfirmasi Detail"
   defp step_title(2, _paid), do: "Pertanyaan Pendaftaran"
-  defp step_title(3, true), do: "Pembayaran"
-  defp step_title(3, false), do: "Konfirmasi"
-  defp step_title(4, true), do: "Konfirmasi"
+  defp step_title(3, _paid), do: "Konfirmasi"
 
   defp format_date(datetime) do
     Calendar.strftime(datetime, "%d %B %Y")
