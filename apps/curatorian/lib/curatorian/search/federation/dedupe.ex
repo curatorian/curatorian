@@ -76,7 +76,7 @@ defmodule Curatorian.Search.Federation.Dedupe do
   defp normalize_isbn(isbn), do: isbn |> String.replace("-", "") |> String.downcase()
 
   # Keep the richer record: non-nil fields win; attach the other source.
-  defp merge(a, b) do
+  defp merge(%Result{} = a, %Result{} = b) do
     merged_ids = MapSet.new([a.source_id, b.source_id | a.extra[:merged_ids] || []])
 
     %Result{
