@@ -27,8 +27,10 @@ defmodule CuratorianWeb.Public.CertificateWalletLive do
 
   defp fetch_certificates(user_id) do
     from(c in "event_certificates",
-      join: r in "event_registrations", on: c.registration_id == r.id,
-      join: e in "events", on: c.event_id == e.id,
+      join: r in "event_registrations",
+      on: c.registration_id == r.id,
+      join: e in "events",
+      on: c.event_id == e.id,
       where: r.voile_user_id == ^user_id and c.is_valid == true and is_nil(e.deleted_at),
       select: %{
         id: c.id,

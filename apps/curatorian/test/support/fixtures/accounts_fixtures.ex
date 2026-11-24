@@ -4,7 +4,14 @@ defmodule Curatorian.AccountsFixtures do
   """
 
   alias Curatorian.Accounts
-  def unique_user_email, do: "user#{System.unique_integer([:positive, :monotonic])}@example.com"
+
+  def unique_user_email do
+    # The voile users table is not sandboxed — rows persist across test runs —
+    # so uniqueness must survive VM restarts (System.unique_integer resets each
+    # run). The random suffix provides durable uniqueness.
+    suffix = :crypto.strong_rand_bytes(4) |> Base.encode16(case: :lower)
+    "user-#{System.unique_integer([:positive])}-#{suffix}@example.com"
+  end
 
   def valid_user_password, do: "hello world!"
 
@@ -37,7 +44,10 @@ defmodule Curatorian.AccountsFixtures do
 
   def extract_user_token(fun) do
     {:ok, captured_email} = fun.(&"[TOKEN]#{&1}[TOKEN]")
-    [_, token | _] = String.split(captured_email.text_body, "[TOKEN]")
+
+    # Voile's UserNotifier sends html_body only (no text_body).
+    body = captured_email.text_body || captured_email.html_body
+    [_, token | _] = String.split(body, "[TOKEN]")
     token
   end
 end

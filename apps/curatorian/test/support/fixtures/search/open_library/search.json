@@ -1,0 +1,34 @@
+{
+  "numFound": 134,
+  "start": 0,
+  "docs": [
+    {
+      "key": "/works/OL12345W",
+      "title": "The Rainbow Troops",
+      "author_name": ["Andrea Hirata"],
+      "first_publish_year": 2005,
+      "cover_i": 8231856,
+      "ia": ["rainbowtroops0000hira"],
+      "public_scan_b": true,
+      "language": ["eng"],
+      "edition_count": 12,
+      "has_fulltext": true
+    },
+    {
+      "key": "/works/OL67890W",
+      "title": "This Earth of Mankind",
+      "author_name": "Pramoedya Ananta Toer",
+      "first_publish_year": 1980,
+      "ia": ["earthofmankind0000pram"],
+      "public_scan_b": false,
+      "language": ["eng", "ind"]
+    },
+    {
+      "key": "/works/OL00000W",
+      "title": "A Record With Almost No Fields"
+    },
+    {
+      "key": "/works/OL99999W"
+    }
+  ]
+}

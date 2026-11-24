@@ -8,10 +8,9 @@ defmodule CuratorianWeb.UserLoginLiveTest do
     test "renders log in page", %{conn: conn} do
       {:ok, _lv, html} = live(conn, ~p"/login")
 
-      assert html =~ "Sign in"
-      assert html =~ "Create an account"
-      assert html =~ "Sign in with Google"
-      assert html =~ "/auth/google"
+      assert html =~ "Masuk ke akun Curatorian Anda"
+      assert html =~ "Daftar sekarang"
+      assert html =~ "Masuk dengan Google"
     end
 
     test "redirects if already logged in", %{conn: conn} do
@@ -48,7 +47,7 @@ defmodule CuratorianWeb.UserLoginLiveTest do
 
       conn = submit_form(form, conn)
 
-      assert Phoenix.Flash.get(conn.assigns.flash, :error) =~ "Invalid email"
+      assert Phoenix.Flash.get(conn.assigns.flash, :error) =~ "Invalid email/username"
 
       assert redirected_to(conn) == ~p"/login"
     end
@@ -60,11 +59,11 @@ defmodule CuratorianWeb.UserLoginLiveTest do
 
       {:ok, _register_live, register_html} =
         lv
-        |> element("main a", "Create an account")
+        |> element("main a", "Daftar sekarang")
         |> render_click()
         |> follow_redirect(conn, ~p"/register")
 
-      assert register_html =~ "Create account"
+      assert register_html =~ "Buat akun Anda"
     end
   end
 end

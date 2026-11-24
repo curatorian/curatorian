@@ -62,6 +62,8 @@ defmodule CuratorianWeb.Public.CollectionShowLive do
 
         related = Public.list_related_collections(collection, limit: 4)
 
+        ebook_attachment = Public.get_readable_ebook_for_collection(collection.id)
+
         glam_type = collection.resource_class && collection.resource_class.glam_type
 
         current_user = socket.assigns.current_scope && socket.assigns.current_scope.user
@@ -122,6 +124,7 @@ defmodule CuratorianWeb.Public.CollectionShowLive do
          |> assign(:json_ld, json_ld)
          |> assign(:can_request_borrow, can_request_borrow)
          |> assign(:is_personal_library_owner, is_personal_library_owner)
+         |> assign(:ebook_attachment, ebook_attachment)
          |> assign(:og_title, collection.title)
          |> assign(:og_description, collection.description)
          |> assign(:og_image, collection.thumbnail && asset_url(collection.thumbnail))
@@ -352,6 +355,17 @@ defmodule CuratorianWeb.Public.CollectionShowLive do
                   <.icon name="hero-qr-code" class="size-3.5" />
                   {@collection.collection_code}
                 </p>
+              <% end %>
+
+              <%= if @ebook_attachment do %>
+                <div class="mt-5">
+                  <.link
+                    navigate={~p"/collections/#{@collection.id}/read/#{@ebook_attachment.id}"}
+                    class="btn btn-primary gap-2"
+                  >
+                    <.icon name="hero-book-open" class="size-4" /> Baca e-book
+                  </.link>
+                </div>
               <% end %>
 
               <%= if @is_personal_library_owner do %>

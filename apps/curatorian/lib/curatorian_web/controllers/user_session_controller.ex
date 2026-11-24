@@ -18,7 +18,7 @@ defmodule CuratorianWeb.UserSessionController do
     create(conn, params, "Welcome back!")
   end
 
-  defp create(conn, %{"user" => user_params} = _params, _flash_message) do
+  defp create(conn, %{"user" => user_params} = params, _flash_message) do
     ip = remote_ip(conn)
 
     with :ok <- RateLimiter.check(:login, ip, 30, 3600),
@@ -38,9 +38,13 @@ defmodule CuratorianWeb.UserSessionController do
             |> put_flash(:error, "Please confirm your email address before logging in.")
             |> redirect(to: ~p"/login")
           else
+            # Keep the Atrium profile in sync on every successful password
+            # login (also covers the post-registration session POST).
+            Curatorian.AtriumProfileSync.enqueue(user.id)
+
             conn
             |> put_flash(:info, "Welcome back!")
-            |> UserAuth.log_in_user(user, user_params)
+            |> UserAuth.log_in_user(user, user_params, return_to: params["return_to"])
           end
       end
     else
@@ -59,10 +63,16 @@ defmodule CuratorianWeb.UserSessionController do
   # Guard against a missing token raising inside the Turnstile library —
   # a request without the field is just a failed verification.
   defp verify_turnstile(params, remote_ip) do
-    if Map.has_key?(params, "cf-turnstile-response") do
-      Turnstile.verify(params, remote_ip)
+    # Test seam: no captcha in tests (config/test.exs disables it) — the real
+    # check needs Cloudflare Turnstile tokens the browser supplies.
+    if Application.get_env(:curatorian, :disable_turnstile, false) do
+      {:ok, %{"success" => true}}
     else
-      {:error, :missing_turnstile_token}
+      if Map.has_key?(params, "cf-turnstile-response") do
+        Turnstile.verify(params, remote_ip)
+      else
+        {:error, :missing_turnstile_token}
+      end
     end
   end
 

@@ -369,9 +369,9 @@ defmodule CuratorianWeb.Public.Events.IndexLive do
             <div class="relative aspect-video bg-gradient-to-br from-primary/10 to-secondary/10 overflow-hidden">
               <%= if event.cover_image_url do %>
                 <img
-                  src={event.cover_image_url}
+                  src={asset_url(event.cover_image_url)}
                   alt={event.title}
-                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
                 />
               <% else %>
                 <div class="w-full h-full flex items-center justify-center">

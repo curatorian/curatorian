@@ -11,6 +11,17 @@ defmodule CuratorianWeb.Public.Events.CertificateLive do
 
   alias Curatorian.Public
 
+  # Mirrors Atrium's certificate designer defaults
+  # (`AtriumWeb.Community.Events.CertificateTemplateLive`). The apps deploy
+  # separately, so this map is kept in sync manually.
+  @certificate_default_layout %{
+    "event_title" => %{"x" => 50, "y" => 35, "size" => 18, "align" => "center"},
+    "participant_name" => %{"x" => 50, "y" => 45, "size" => 32, "align" => "center"},
+    "issue_date" => %{"x" => 50, "y" => 60, "size" => 14, "align" => "center"},
+    "certificate_number" => %{"x" => 10, "y" => 5, "size" => 10, "align" => "left"},
+    "signature" => %{"x" => 50, "y" => 80, "size" => 12, "align" => "center"}
+  }
+
   def mount(%{"id" => certificate_id}, _session, socket) do
     case Public.get_certificate(certificate_id) do
       nil ->
@@ -36,11 +47,18 @@ defmodule CuratorianWeb.Public.Events.CertificateLive do
         if can_view do
           event = Public.get_event(certificate.event_id)
 
+          # The recipient email is personal data: it is only shown to the
+          # logged-in owner of the certificate. Verification-mode visitors and
+          # guests opening a guest certificate never see it (spec §4.5).
+          owner_view? = not is_nil(user_id) and certificate.voile_user_id == user_id
+
           {:ok,
            socket
            |> assign(:page_title, "Sertifikat — #{certificate.event_title}")
            |> assign(:certificate, certificate)
            |> assign(:event, event)
+           |> assign(:template, certificate_template(certificate, event))
+           |> assign(:owner_view?, owner_view?)
            |> assign(:user_id, user_id)
            |> assign(:share_modal_open, false)
            |> assign(:verification_url, verification_url(certificate))
@@ -71,7 +89,11 @@ defmodule CuratorianWeb.Public.Events.CertificateLive do
          |> assign(:page_title, "Verifikasi Sertifikat — #{certificate.event_title}")
          |> assign(:certificate, certificate)
          |> assign(:event, event)
+         |> assign(:template, certificate_template(certificate, event))
          |> assign(:verification_mode, true)
+         # Verification page is public — never shows the recipient email
+         # (spec §4.5: no email addresses or other personal data).
+         |> assign(:owner_view?, false)
          |> assign(:share_modal_open, false)
          |> assign(:verification_url, verification_url(certificate))
          |> assign(:noindex, true)}
@@ -106,7 +128,56 @@ defmodule CuratorianWeb.Public.Events.CertificateLive do
   end
 
   defp verification_url(certificate) do
-    "https://curatorian.id/certificates/verify/#{certificate.verification_token}"
+    # From config so dev/staging links point at the running app, not prod.
+    base = Application.get_env(:curatorian, :curatorian_url, "https://curatorian.id")
+    "#{base}/certificates/verify/#{certificate.verification_token}"
+  end
+
+  # Organization-designed certificate: background image/colour plus the fields
+  # positioned in Atrium's template designer. The layout config stores
+  # percentages, so the design scales to any screen and to print (A4 landscape).
+  defp templated_certificate(assigns) do
+    ~H"""
+    <div
+      id="templated-certificate"
+      class="relative w-full overflow-hidden bg-white shadow-xl print:shadow-none"
+      style={"aspect-ratio: 297/210; background-color: #{@template.background_color || "#FFFFFF"}; font-family: #{@template.font_family || "Playfair Display"};"}
+    >
+      <img
+        :if={@template.background_image_url}
+        src={asset_url(@template.background_image_url)}
+        class="absolute inset-0 w-full h-full object-cover"
+        alt=""
+      />
+
+      <%= for {field, value} <- certificate_fields(@template, @certificate) do %>
+        <% config = certificate_field_config(@template, field) %>
+        <div
+          class="absolute transform -translate-x-1/2 -translate-y-1/2"
+          style={"left: #{config["x"]}%; top: #{config["y"]}%; font-size: #{config["size"]}pt; text-align: #{config["align"]};"}
+        >
+          <%= if field == "signature" do %>
+            <img
+              :if={@template.signature_image_url}
+              src={asset_url(@template.signature_image_url)}
+              class="mx-auto mb-1 object-contain"
+              style="width: 8em; max-height: 4em;"
+              alt=""
+            />
+            <div>{value}</div>
+            <div
+              :if={@template.signature_title}
+              style="font-size: 0.72em; margin-top: 0.15em"
+            >
+              {@template.signature_title}
+            </div>
+          <% else %>
+            {value}
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+    """
   end
 
   def render(assigns) do
@@ -138,49 +209,53 @@ defmodule CuratorianWeb.Public.Events.CertificateLive do
               id="certificate-print-area"
               class="relative bg-gradient-to-br from-primary/10 to-secondary/10 p-12 sm:p-16"
             >
-              <div class="aspect-[1.414/1] bg-white rounded-lg shadow-xl flex items-center justify-center">
-                <div class="text-center p-8">
-                  <div class="mb-6">
-                    <.icon name="hero-academic-cap" class="w-20 h-20 text-primary mx-auto" />
-                  </div>
-
-                  <h2 class="text-2xl sm:text-3xl font-serif font-bold mb-4">
-                    Sertifikat Penghargaan
-                  </h2>
-
-                  <p class="text-sm text-base-content/60 mb-4">Diberikan kepada</p>
-
-                  <p class="text-xl sm:text-2xl font-bold mb-6">{@certificate.recipient_name}</p>
-
-                  <p class="text-sm text-base-content/70 mb-4">
-                    Atas partisipasi dalam
-                  </p>
-
-                  <p class="text-lg font-semibold mb-6">{@certificate.event_title}</p>
-
-                  <div class="flex items-center justify-center gap-8 text-sm text-base-content/60">
-                    <div>
-                      <p class="font-semibold">Tanggal</p>
-                      <p>{format_date(@certificate.event_date)}</p>
+              <%= if @template do %>
+                <.templated_certificate template={@template} certificate={@certificate} />
+              <% else %>
+                <div class="aspect-[1.414/1] bg-white rounded-lg shadow-xl flex items-center justify-center">
+                  <div class="text-center p-8">
+                    <div class="mb-6">
+                      <.icon name="hero-academic-cap" class="w-20 h-20 text-primary mx-auto" />
                     </div>
 
-                    <%= if @certificate.event_duration_minutes do %>
+                    <h2 class="text-2xl sm:text-3xl font-serif font-bold mb-4">
+                      Sertifikat Penghargaan
+                    </h2>
+
+                    <p class="text-sm text-base-content/60 mb-4">Diberikan kepada</p>
+
+                    <p class="text-xl sm:text-2xl font-bold mb-6">{@certificate.recipient_name}</p>
+
+                    <p class="text-sm text-base-content/70 mb-4">
+                      Atas partisipasi dalam
+                    </p>
+
+                    <p class="text-lg font-semibold mb-6">{@certificate.event_title}</p>
+
+                    <div class="flex items-center justify-center gap-8 text-sm text-base-content/60">
                       <div>
-                        <p class="font-semibold">Durasi</p>
-                        <p>{format_duration(@certificate.event_duration_minutes)}</p>
+                        <p class="font-semibold">Tanggal</p>
+                        <p>{format_date(@certificate.event_date)}</p>
                       </div>
-                    <% end %>
+
+                      <%= if @certificate.event_duration_minutes do %>
+                        <div>
+                          <p class="font-semibold">Durasi</p>
+                          <p>{format_duration(@certificate.event_duration_minutes)}</p>
+                        </div>
+                      <% end %>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <%!-- Certificate Number Badge --%>
-              <div class="absolute top-4 right-4">
-                <div class="bg-base-100/90 backdrop-blur-sm rounded-lg px-4 py-2 shadow-lg">
-                  <p class="text-xs text-base-content/60">No. Sertifikat</p>
-                  <p class="font-mono text-sm font-bold">{@certificate.certificate_number}</p>
+                <%!-- Certificate Number Badge --%>
+                <div class="absolute top-4 right-4">
+                  <div class="bg-base-100/90 backdrop-blur-sm rounded-lg px-4 py-2 shadow-lg">
+                    <p class="text-xs text-base-content/60">No. Sertifikat</p>
+                    <p class="font-mono text-sm font-bold">{@certificate.certificate_number}</p>
+                  </div>
                 </div>
-              </div>
+              <% end %>
             </div>
 
             <%!-- Certificate Details --%>
@@ -195,7 +270,7 @@ defmodule CuratorianWeb.Public.Events.CertificateLive do
                       <p class="text-base-content/60">Nama</p>
                       <p class="font-medium">{@certificate.recipient_name}</p>
                     </div>
-                    <%= if @certificate.recipient_email do %>
+                    <%= if @owner_view? and @certificate.recipient_email do %>
                       <div>
                         <p class="text-base-content/60">Email</p>
                         <p class="font-medium">{@certificate.recipient_email}</p>
@@ -378,6 +453,11 @@ defmodule CuratorianWeb.Public.Events.CertificateLive do
 
     <style>
       @media print {
+        @page {
+          size: A4 landscape;
+          margin: 0;
+        }
+
         body * {
           visibility: hidden;
         }
@@ -387,11 +467,19 @@ defmodule CuratorianWeb.Public.Events.CertificateLive do
           visibility: visible;
         }
 
+        /* Fill the A4 landscape page exactly — the templated design is 297:210. */
         #certificate-print-area {
           position: absolute;
           inset: 0;
-          padding: 24px;
+          padding: 0;
           background: white;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+
+        #certificate-print-area > :first-child {
+          border-radius: 0;
+          box-shadow: none;
         }
       }
     </style>
@@ -410,6 +498,49 @@ defmodule CuratorianWeb.Public.Events.CertificateLive do
       }
     </script>
     """
+  end
+
+  # Prefer the template snapshotted on the certificate; fall back to the
+  # event's current design so certificates issued before snapshots existed
+  # still pick up the organizer's template.
+  defp certificate_template(certificate, event) do
+    Public.get_certificate_template(certificate.template_id) ||
+      (event && Public.get_certificate_template(event.certificate_template_id))
+  end
+
+  # Values come from the certificate snapshot (recipient/event at issuance),
+  # not the live event record.
+  defp certificate_fields(template, certificate) do
+    [
+      {"event_title", certificate.event_title},
+      {"participant_name", certificate.recipient_name},
+      {"issue_date", format_date(certificate.event_date)},
+      {"certificate_number", certificate.certificate_number},
+      {"signature", template.signature_name}
+    ]
+    |> Enum.filter(fn {field, _value} -> certificate_field_visible?(template, field) end)
+  end
+
+  defp certificate_field_visible?(template, "signature") do
+    Enum.any?(
+      [template.signature_name, template.signature_title, template.signature_image_url],
+      &(&1 not in [nil, ""])
+    )
+  end
+
+  defp certificate_field_visible?(template, "event_title"), do: template.show_event_title != false
+  defp certificate_field_visible?(template, "issue_date"), do: template.show_date != false
+
+  defp certificate_field_visible?(template, "certificate_number"),
+    do: template.show_cert_number != false
+
+  defp certificate_field_visible?(_template, _field), do: true
+
+  defp certificate_field_config(template, field) do
+    defaults = Map.fetch!(@certificate_default_layout, field)
+    stored = template.layout_config || %{}
+
+    Map.merge(defaults, Map.get(stored, field) || %{})
   end
 
   defp format_date(date) when is_struct(date, Date) do

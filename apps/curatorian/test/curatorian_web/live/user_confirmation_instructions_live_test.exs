@@ -4,64 +4,56 @@ defmodule CuratorianWeb.UserConfirmationInstructionsLiveTest do
   import Phoenix.LiveViewTest
   import Curatorian.AccountsFixtures
 
-  alias Curatorian.Accounts
-  alias Curatorian.Repo
-
-  setup do
-    %{user: user_fixture()}
-  end
+  # Voile auth tables are written through Voile.Repo — assertions must use the
+  # same repo (same sandbox connection) to see in-test writes.
+  alias Voile.Repo
+  alias Voile.Schema.Accounts.UserToken
 
   describe "Resend confirmation" do
-    test "renders the resend confirmation page", %{conn: conn} do
-      {:ok, _lv, html} = live(conn, ~p"/users/confirm")
-      assert html =~ "Resend confirmation instructions"
+    test "renders the pending confirmation page with the registrant's email", %{conn: conn} do
+      {:ok, _lv, html} = live(conn, ~p"/users/pending_confirmation?email=user@example.com")
+
+      assert html =~ "Cek kotak masuk Anda"
+      assert html =~ "user@example.com"
     end
 
-    test "sends a new confirmation token", %{conn: conn, user: user} do
-      {:ok, lv, _html} = live(conn, ~p"/users/confirm")
+    test "sends a new confirmation token for an unconfirmed user", %{conn: conn} do
+      user = user_fixture()
 
-      {:ok, conn} =
-        lv
-        |> form("#resend_confirmation_form", user: %{email: user.email})
-        |> render_submit()
-        |> follow_redirect(conn, ~p"/")
+      {:ok, user} =
+        user
+        |> Ecto.Changeset.change(confirmed_at: nil)
+        |> Voile.Repo.update()
 
-      assert Phoenix.Flash.get(conn.assigns.flash, :info) =~
-               "If your email is in our system"
+      {:ok, lv, _html} = live(conn, ~p"/users/pending_confirmation?email=#{user.email}")
 
-      assert Repo.get_by!(Accounts.UserToken, user_id: user.id).context == "confirm"
+      html = lv |> element("#resend_form") |> render_submit()
+
+      assert html =~ "If that email belongs to an unconfirmed account"
+      assert token = Repo.get_by!(UserToken, user_id: user.id)
+      assert token.context == "confirm"
     end
 
-    test "does not send confirmation token if user is confirmed", %{conn: conn, user: user} do
-      Repo.update!(Accounts.User.confirm_changeset(user))
+    test "does not send a token if the user is already confirmed", %{conn: conn} do
+      user = user_fixture()
 
-      {:ok, lv, _html} = live(conn, ~p"/users/confirm")
+      {:ok, lv, _html} = live(conn, ~p"/users/pending_confirmation?email=#{user.email}")
 
-      {:ok, conn} =
-        lv
-        |> form("#resend_confirmation_form", user: %{email: user.email})
-        |> render_submit()
-        |> follow_redirect(conn, ~p"/")
+      html = lv |> element("#resend_form") |> render_submit()
 
-      assert Phoenix.Flash.get(conn.assigns.flash, :info) =~
-               "If your email is in our system"
-
-      refute Repo.get_by(Accounts.UserToken, user_id: user.id)
+      # One neutral message for every outcome — never reveals the state.
+      assert html =~ "If that email belongs to an unconfirmed account"
+      refute Repo.get_by(UserToken, user_id: user.id)
     end
 
-    test "does not send confirmation token if email is invalid", %{conn: conn} do
-      {:ok, lv, _html} = live(conn, ~p"/users/confirm")
+    test "does not send a token for an unknown email", %{conn: conn} do
+      {:ok, lv, _html} =
+        live(conn, ~p"/users/pending_confirmation?email=unknown@example.com")
 
-      {:ok, conn} =
-        lv
-        |> form("#resend_confirmation_form", user: %{email: "unknown@example.com"})
-        |> render_submit()
-        |> follow_redirect(conn, ~p"/")
+      html = lv |> element("#resend_form") |> render_submit()
 
-      assert Phoenix.Flash.get(conn.assigns.flash, :info) =~
-               "If your email is in our system"
-
-      assert Repo.all(Accounts.UserToken) == []
+      assert html =~ "If that email belongs to an unconfirmed account"
+      assert Repo.all(UserToken) == []
     end
   end
 end

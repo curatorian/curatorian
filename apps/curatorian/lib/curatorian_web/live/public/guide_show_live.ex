@@ -158,7 +158,10 @@ defmodule CuratorianWeb.Public.GuideShowLive do
           <%!-- Main content --%>
           <article class="flex-1 min-w-0">
             <%!-- Breadcrumb --%>
-            <.breadcrumbs trail={[{"Beranda", "/"}, {"Panduan", ~p"/guides"}, {@guide.title, nil}]} class="mb-6" />
+            <.breadcrumbs
+              trail={[{"Beranda", "/"}, {"Panduan", ~p"/guides"}, {@guide.title, nil}]}
+              class="mb-6"
+            />
 
             <%!-- Cover --%>
             <%= if @guide.cover_url do %>

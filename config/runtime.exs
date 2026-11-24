@@ -180,3 +180,50 @@ if config_env() == :prod do
       redirect_uri: System.get_env("VOILE_GOOGLE_REDIRECT_URI")
     ]
 end
+
+# ===== EXTERNAL SEARCH FEDERATION (all environments, spec §12) =====
+# Per-provider enable/disable switches so a misbehaving source can be turned
+# off without a deploy. Contact email goes into the identifying User-Agent
+# that Open Library / Wikimedia require.
+config :curatorian,
+  contact_email: System.get_env("CURATORIAN_CONTACT_EMAIL", "admin@curatorian.id")
+
+config :curatorian, Curatorian.Search.Federation.Providers.OpenLibrary,
+  enabled: System.get_env("SEARCH_OPEN_LIBRARY", "true") == "true"
+
+config :curatorian, Curatorian.Search.Federation.Providers.InternetArchive,
+  enabled: System.get_env("SEARCH_INTERNET_ARCHIVE", "true") == "true"
+
+# OpenAlex requires a free API key in 2026; without one the provider is
+# disabled and never called (spec §9.3).
+config :curatorian, Curatorian.Search.Federation.Providers.OpenAlex,
+  enabled: System.get_env("SEARCH_OPENALEX", "true") == "true",
+  api_key: System.get_env("OPENALEX_API_KEY"),
+  base_url: System.get_env("OPENALEX_BASE_URL", "https://api.openalex.org")
+
+config :curatorian, Curatorian.Search.Federation.Providers.Gutendex,
+  enabled: System.get_env("SEARCH_GUTENDEX", "true") == "true"
+
+# DOAB's API answers "You address is not allowed to access this API" for some
+# networks; disabled by default until the host's address is allowlisted
+# (set SEARCH_DOAB=true where DOAB permits access).
+config :curatorian, Curatorian.Search.Federation.Providers.Doab,
+  enabled: System.get_env("SEARCH_DOAB", "false") == "true"
+
+# --- C4 expansion (spec §9.6–§9.8) ---
+config :curatorian, Curatorian.Search.Federation.Providers.Wikisource,
+  enabled: System.get_env("SEARCH_WIKISOURCE", "true") == "true"
+
+config :curatorian, Curatorian.Search.Federation.Providers.Commons,
+  enabled: System.get_env("SEARCH_COMMONS", "true") == "true"
+
+config :curatorian, Curatorian.Search.Federation.Providers.Artic,
+  enabled: System.get_env("SEARCH_ARTIC", "true") == "true"
+
+config :curatorian, Curatorian.Search.Federation.Providers.Cleveland,
+  enabled: System.get_env("SEARCH_CLEVELAND", "true") == "true"
+
+# Europeana needs a free key; disabled without one (spec §9.7).
+config :curatorian, Curatorian.Search.Federation.Providers.Europeana,
+  enabled: System.get_env("SEARCH_EUROPEANA", "true") == "true",
+  api_key: System.get_env("EUROPEANA_API_KEY")

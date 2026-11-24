@@ -27,6 +27,9 @@ defmodule Curatorian.EventPayments do
   @doc """
   Starts (or resumes) a gateway charge for a registration.
 
+  Account registrations pass the `voile_user_id`; guest registrations
+  (no account) pass `registration_token` instead — see `:registration_token`.
+
   Returns:
 
     * `{:ok, %{redirect_url: url, order_id: id, amount_idr: n, status: "pending"}}`
@@ -34,17 +37,33 @@ defmodule Curatorian.EventPayments do
     * `{:error, :unavailable}` — Atrium unreachable, gateway down, or a
       non-2xx response from the internal API
   """
-  def start_payment(event_id, registration_id, user_id) do
+  def start_payment(event_id, registration_id, user_id, opts \\ []) do
+    registration_token = Keyword.get(opts, :registration_token)
+
+    if is_binary(user_id) and user_id != "" do
+      do_start_payment(event_id, registration_id, %{voile_user_id: user_id})
+    else
+      case registration_token do
+        token when is_binary(token) and token != "" ->
+          do_start_payment(event_id, registration_id, %{registration_token: token})
+
+        _ ->
+          {:error, :unauthorized}
+      end
+    end
+  end
+
+  defp do_start_payment(event_id, registration_id, identity) do
     api_key = System.get_env("INTERNAL_API_KEY")
 
     if is_binary(api_key) and api_key != "" do
-      do_start_payment(api_key, event_id, registration_id, user_id)
+      do_start_payment(api_key, event_id, registration_id, identity)
     else
       {:error, :not_configured}
     end
   end
 
-  defp do_start_payment(api_key, event_id, registration_id, user_id) do
+  defp do_start_payment(api_key, event_id, registration_id, identity) do
     base_url = Application.get_env(:curatorian, :atrium_url, "http://localhost:4001")
     url = String.trim_trailing(base_url, "/") <> @atrium_path
 
@@ -57,11 +76,12 @@ defmodule Curatorian.EventPayments do
           {"content-type", "application/json"},
           {"accept", "application/json"}
         ],
-        Jason.encode!(%{
-          event_id: event_id,
-          registration_id: registration_id,
-          voile_user_id: user_id
-        })
+        Jason.encode!(
+          Map.merge(
+            %{event_id: event_id, registration_id: registration_id},
+            identity
+          )
+        )
       )
 
     case Finch.request(request, Curatorian.Finch, receive_timeout: @timeout) do

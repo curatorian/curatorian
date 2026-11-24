@@ -1,0 +1,20 @@
+[
+  {
+    "uuid": "d4f1c5f0-1111-2222-3333-444455556666",
+    "handle": "20.500.12854/12345",
+    "metadata": [
+      {"key": "dc.title", "value": "Southeast Asian Studies in the Digital Age", "language": "en"},
+      {"key": "dc.contributor.author", "value": "Doe, Jane", "language": "en"},
+      {"key": "dc.contributor.author", "value": "Santoso, Budi", "language": "en"},
+      {"key": "dc.date.issued", "value": "2021-06-01", "language": "en"},
+      {"key": "dc.description.abstract", "value": "<p>An <b>open</b> volume &amp; survey.</p>", "language": "en"},
+      {"key": "dc.language", "value": "en", "language": "en"},
+      {"key": "dc.identifier.uri", "value": "https://directory.doabooks.org/handle/20.500.12854/12345", "language": "en"},
+      {"key": "dc.rights.uri", "value": "https://creativecommons.org/licenses/by/4.0/", "language": "en"}
+    ]
+  },
+  {
+    "uuid": "no-title-item",
+    "metadata": []
+  }
+]

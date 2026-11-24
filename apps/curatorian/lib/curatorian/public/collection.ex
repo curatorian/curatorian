@@ -17,6 +17,10 @@ defmodule Curatorian.Public.Collection do
 
     belongs_to :unit, Curatorian.Public.Unit, type: :integer
 
+    belongs_to :mst_creator, Voile.Schema.Master.Creator,
+      foreign_key: :creator_id,
+      type: :integer
+
     belongs_to :resource_class, Voile.Schema.Metadata.ResourceClass,
       foreign_key: :type_id,
       type: :integer

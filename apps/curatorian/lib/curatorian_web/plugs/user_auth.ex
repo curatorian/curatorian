@@ -38,6 +38,10 @@ defmodule CuratorianWeb.UserAuth do
 
   use CuratorianWeb, :verified_routes
 
+  require Logger
+
+  alias Curatorian.Public
+
   import Plug.Conn
   import Phoenix.Controller
 
@@ -66,7 +70,7 @@ defmodule CuratorianWeb.UserAuth do
 
   Creates a session token and cross-app token, then redirects.
   """
-  def log_in_user(conn, user, params \\ %{}) do
+  def log_in_user(conn, user, params \\ %{}, opts \\ []) do
     # Check if user is suspended
     if Accounts.is_manually_suspended?(user) do
       reason = user.suspension_reason || "Your account has been suspended"
@@ -76,6 +80,7 @@ defmodule CuratorianWeb.UserAuth do
       |> redirect(to: "/login")
     else
       user_return_to = get_session(conn, :user_return_to)
+      return_to = validate_return_to(Keyword.get(opts, :return_to))
 
       # Update last_login and last_login_ip
       ip =
@@ -86,10 +91,60 @@ defmodule CuratorianWeb.UserAuth do
 
       Accounts.update_user_login(user, %{last_login: DateTime.utc_now(), last_login_ip: ip})
 
+      # Guests who registered without an account and then log in (directly
+      # or via Google) get their existing registrations attached. Fire and
+      # forget — a claim failure must never block login.
+      claim_guest_registrations(user)
+
       conn
       |> create_or_extend_session(user, params)
-      |> redirect_after_login(user_return_to || signed_in_path(user))
+      |> redirect_after_login(user_return_to || return_to || signed_in_path(user))
     end
+  end
+
+  defp claim_guest_registrations(user) do
+    Public.claim_guest_registrations(user.id, user.email)
+  rescue
+    error -> Logger.warning("[Auth] guest claim failed: #{Exception.message(error)}")
+  end
+
+  # Only allow return_to URLs that point at trusted app origins (Atrium) or
+  # same-app relative paths — never off-site open redirects.
+  defp validate_return_to(url) when is_binary(url) do
+    cond do
+      relative_path?(url) -> url
+      atrium_origin?(url) -> url
+      true -> nil
+    end
+  end
+
+  defp validate_return_to(_), do: nil
+
+  # No scheme/host, no protocol-relative "//host", and no backslashes or
+  # CR/LF, which browsers may normalize into an absolute URL.
+  defp relative_path?("/" <> rest = url) do
+    rest != "" and not String.starts_with?(rest, "/") and
+      not String.contains?(url, ["\\", "\r", "\n"])
+  end
+
+  defp relative_path?(_), do: false
+
+  defp atrium_origin?(url) do
+    atrium = atrium_url()
+
+    with true <- String.starts_with?(url, atrium) do
+      # Require an origin boundary right after the configured base URL, so
+      # "http://localhost:4001.evil.example.com" and
+      # "http://localhost:4001@evil.example.com" are both rejected.
+      rest = binary_part(url, byte_size(atrium), byte_size(url) - byte_size(atrium))
+      rest == "" or String.starts_with?(rest, ["/", "?", "#"])
+    else
+      _ -> false
+    end
+  end
+
+  defp atrium_url do
+    Application.get_env(:curatorian, :atrium_url, "http://localhost:4001")
   end
 
   @doc """
@@ -195,11 +250,22 @@ defmodule CuratorianWeb.UserAuth do
     # Generate cross-app token at session creation
     cross_app_token = generate_cross_app_token(user)
 
-    conn
-    |> renew_session()
-    |> put_token_in_session(token)
-    |> put_session(:cross_app_token, cross_app_token)
-    |> maybe_write_remember_me_cookie(token, params, remember_me)
+    conn =
+      conn
+      |> renew_session()
+      |> put_token_in_session(token)
+      |> put_session(:cross_app_token, cross_app_token)
+      |> maybe_write_remember_me_cookie(token, params, remember_me)
+
+    # Write the cross-app cookie on this response too. The browser pipeline plug
+    # normally does it, but it runs before the controller — so without this the
+    # redirect that follows login (e.g. back to Atrium) would arrive without the
+    # cookie and bounce back to the login page.
+    CuratorianWeb.Plugs.CrossAppCookie.put_cross_app_cookie(
+      conn,
+      cross_app_token,
+      remember_me: get_session(conn, :user_remember_me) == true
+    )
   end
 
   defp renew_session(conn) do
@@ -257,6 +323,8 @@ defmodule CuratorianWeb.UserAuth do
       user.user_type && String.starts_with?(user.user_type.slug, "member_") ->
         atrium_url <> "/dashboard"
 
+      # Guests and other unlisted types live on Curatorian; but if login was
+      # initiated from Atrium (return_to set), send them back there.
       true ->
         "/"
     end

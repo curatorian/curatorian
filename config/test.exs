@@ -37,6 +37,11 @@ config :curatorian, CuratorianWeb.Endpoint,
 # ===== MAILER =====
 config :voile, Voile.Mailer, adapter: Swoosh.Adapters.Test
 config :curatorian, Curatorian.Mailer, adapter: Swoosh.Adapters.Test
+
+# Captcha is browser-supplied; tests can't produce real Turnstile tokens, so
+# both login and registration flows skip verification in the test env
+# (see verify_turnstile/2 seams in UserSessionController and RegisterLive).
+config :curatorian, disable_turnstile: true
 config :swoosh, :api_client, false
 
 # ===== LOGGER =====

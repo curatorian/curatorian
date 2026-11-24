@@ -132,8 +132,7 @@ defmodule CuratorianWeb.UserPendingConfirmationLive do
        )}
     else
       {:error, :rate_limited} ->
-        {:noreply,
-         put_flash(socket, :error, "Too many requests. Please try again later.")}
+        {:noreply, put_flash(socket, :error, "Too many requests. Please try again later.")}
 
       {:error, reason} ->
         Logger.error("Failed to resend confirmation email: #{inspect(reason)}")

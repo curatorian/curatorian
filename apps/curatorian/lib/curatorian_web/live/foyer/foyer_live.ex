@@ -1103,7 +1103,20 @@ defmodule CuratorianWeb.Foyer.FoyerLive do
   end
 
   defp format_date(nil), do: "-"
-  defp format_date(dt), do: DateTime.to_date(dt) |> Date.to_string()
+
+  defp format_date(dt) do
+    # Atrium timestamps arrive as NaiveDateTime (UTC, `timestamp(0)` columns)
+    # — normalize before converting, or a ~N crashes the payments tab.
+    dt
+    |> normalize_datetime()
+    |> DateTime.to_date()
+    |> Date.to_string()
+  end
+
+  defp normalize_datetime(%NaiveDateTime{} = dt), do: DateTime.from_naive!(dt, "Etc/UTC")
+  defp normalize_datetime(%DateTime{} = dt), do: dt
+  defp normalize_datetime(dt) when is_struct(dt, Date), do: DateTime.new!(dt, ~T[00:00:00])
+  defp normalize_datetime(_), do: nil
 
   defp format_currency(amount) when is_integer(amount) do
     amount

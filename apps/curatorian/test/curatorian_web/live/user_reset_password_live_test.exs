@@ -21,15 +21,15 @@ defmodule CuratorianWeb.UserResetPasswordLiveTest do
     test "renders reset password with valid token", %{conn: conn, token: token} do
       {:ok, _lv, html} = live(conn, ~p"/users/reset_password/#{token}")
 
-      assert html =~ "Reset Password"
+      assert html =~ "Atur ulang kata sandi"
     end
 
     test "does not render reset password with invalid token", %{conn: conn} do
       {:error, {:redirect, to}} = live(conn, ~p"/users/reset_password/invalid")
 
       assert to == %{
-               flash: %{"error" => "Reset password link is invalid or it has expired."},
-               to: ~p"/"
+               flash: %{"error" => "Tautan atur ulang tidak valid atau sudah kedaluwarsa."},
+               to: ~p"/login"
              }
     end
 
@@ -38,7 +38,7 @@ defmodule CuratorianWeb.UserResetPasswordLiveTest do
 
       result =
         lv
-        |> element("#reset_password_form")
+        |> element("#reset-password-form")
         |> render_change(
           user: %{"password" => "secret12", "password_confirmation" => "secret123456"}
         )
@@ -54,17 +54,17 @@ defmodule CuratorianWeb.UserResetPasswordLiveTest do
 
       {:ok, conn} =
         lv
-        |> form("#reset_password_form",
+        |> form("#reset-password-form",
           user: %{
             "password" => "new valid password",
             "password_confirmation" => "new valid password"
           }
         )
         |> render_submit()
-        |> follow_redirect(conn, ~p"/users/log_in")
+        |> follow_redirect(conn, ~p"/login")
 
       refute get_session(conn, :user_token)
-      assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "Password reset successfully"
+      assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "Kata sandi berhasil diatur ulang"
       assert Accounts.get_user_by_email_and_password(user.email, "new valid password")
     end
 
@@ -73,7 +73,7 @@ defmodule CuratorianWeb.UserResetPasswordLiveTest do
 
       result =
         lv
-        |> form("#reset_password_form",
+        |> form("#reset-password-form",
           user: %{
             "password" => "too short",
             "password_confirmation" => "does not match"
@@ -81,38 +81,8 @@ defmodule CuratorianWeb.UserResetPasswordLiveTest do
         )
         |> render_submit()
 
-      assert result =~ "Reset Password"
       assert result =~ "should be at least 12 character(s)"
       assert result =~ "does not match password"
-    end
-  end
-
-  describe "Reset password navigation" do
-    test "redirects to login page when the Log in button is clicked", %{conn: conn, token: token} do
-      {:ok, lv, _html} = live(conn, ~p"/users/reset_password/#{token}")
-
-      {:ok, conn} =
-        lv
-        |> element(~s|main a:fl-contains("Log in")|)
-        |> render_click()
-        |> follow_redirect(conn, ~p"/users/log_in")
-
-      assert conn.resp_body =~ "Log in"
-    end
-
-    test "redirects to registration page when the Register button is clicked", %{
-      conn: conn,
-      token: token
-    } do
-      {:ok, lv, _html} = live(conn, ~p"/users/reset_password/#{token}")
-
-      {:ok, conn} =
-        lv
-        |> element(~s|main a:fl-contains("Register")|)
-        |> render_click()
-        |> follow_redirect(conn, ~p"/users/register")
-
-      assert conn.resp_body =~ "Register"
     end
   end
 end

@@ -28,6 +28,7 @@ defmodule CuratorianWeb.Public.BlogShowLive do
             %{user: user} when not is_nil(user) -> user.id
             _ -> nil
           end
+
         # Prepare Open Graph metadata
         og_title = "#{post.title} — #{(author && author.display_name) || username}"
 
@@ -111,8 +112,7 @@ defmodule CuratorianWeb.Public.BlogShowLive do
           {:noreply, put_flash(socket, :error, "Komentar terlalu panjang (maks. 5000 karakter).")}
 
         RateLimiter.check(:comment, user.id, 10, 60) == {:error, :rate_limited} ->
-          {:noreply,
-           put_flash(socket, :error, "Terlalu banyak komentar. Tunggu sebentar lagi.")}
+          {:noreply, put_flash(socket, :error, "Terlalu banyak komentar. Tunggu sebentar lagi.")}
 
         true ->
           case Public.create_blog_comment(post.id, user, body) do
@@ -148,7 +148,10 @@ defmodule CuratorianWeb.Public.BlogShowLive do
 
     cond do
       is_nil(user) ->
-        {:noreply, socket |> put_flash(:error, "Anda harus masuk untuk melaporkan.") |> redirect(to: ~p"/login")}
+        {:noreply,
+         socket
+         |> put_flash(:error, "Anda harus masuk untuk melaporkan.")
+         |> redirect(to: ~p"/login")}
 
       is_nil(user.confirmed_at) ->
         {:noreply,
@@ -162,7 +165,8 @@ defmodule CuratorianWeb.Public.BlogShowLive do
       true ->
         case Public.create_content_report(content_type, content_id, user.id, :spam) do
           {:ok, _} ->
-            {:noreply, put_flash(socket, :info, "Terima kasih! Laporan telah dikirim ke moderator.")}
+            {:noreply,
+             put_flash(socket, :info, "Terima kasih! Laporan telah dikirim ke moderator.")}
 
           {:error, _} ->
             {:noreply, put_flash(socket, :error, "Gagal mengirim laporan.")}

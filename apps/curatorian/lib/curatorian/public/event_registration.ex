@@ -39,16 +39,61 @@ defmodule Curatorian.Public.EventRegistration do
     |> cast(attrs, [
       :event_id,
       :voile_user_id,
+      :guest_name,
+      :guest_email,
       :registration_data,
       :status,
       :registered_at,
       :registration_code,
-      :amount_paid_idr
+      :amount_paid_idr,
+      # Server-set in register_for_event (never client params): the /r/:token
+      # page and the consent timestamp. Without casting these the generated
+      # token was silently dropped and participants could never reach their
+      # participant page.
+      :token,
+      :consented_at
     ])
-    |> validate_required([:event_id, :voile_user_id, :registration_code, :registered_at])
+    |> validate_required([:event_id, :registration_code, :registered_at])
+    |> validate_identity()
+    |> validate_format(:guest_email, ~r/^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+      message: "must be a valid email address"
+    )
     |> unique_constraint(:event_id,
       name: :event_registrations_active_user_unique,
       message: "already registered for this event"
     )
+    |> unique_constraint(:event_id,
+      name: :event_registrations_active_guest_unique,
+      message: "already registered for this event"
+    )
+    |> unique_constraint(:token)
+  end
+
+  # Mirrors the DB check constraint `event_registrant_identity`: exactly one
+  # of an account id or a guest (name + email) — never both, never neither.
+  defp validate_identity(changeset) do
+    user_id = get_field(changeset, :voile_user_id)
+    guest_name = get_field(changeset, :guest_name)
+    guest_email = get_field(changeset, :guest_email)
+
+    cond do
+      user_id && (guest_name || guest_email) ->
+        add_error(changeset, :voile_user_id, "cannot be set together with a guest identity")
+
+      user_id ->
+        changeset
+
+      guest_name && guest_email ->
+        changeset
+
+      guest_email ->
+        add_error(changeset, :guest_name, "guest name is required with a guest email")
+
+      guest_name ->
+        add_error(changeset, :guest_email, "guest email is required with a guest name")
+
+      true ->
+        add_error(changeset, :voile_user_id, "must provide an account or a guest identity")
+    end
   end
 end

@@ -34,10 +34,18 @@ defmodule Curatorian.DataCase do
 
   @doc """
   Sets up the sandbox based on the test tags.
+
+  Both repos share one database (`curatorian_test`): `Curatorian.Repo` for
+  atrium/curatorian tables and `Voile.Repo` for the voile identity tables the
+  Accounts context delegates to. Both are sandboxed so auth tests are hermetic
+  and voile writes roll back between tests.
   """
   def setup_sandbox(tags) do
     pid = Ecto.Adapters.SQL.Sandbox.start_owner!(Curatorian.Repo, shared: not tags[:async])
     on_exit(fn -> Ecto.Adapters.SQL.Sandbox.stop_owner(pid) end)
+
+    vpid = Ecto.Adapters.SQL.Sandbox.start_owner!(Voile.Repo, shared: not tags[:async])
+    on_exit(fn -> Ecto.Adapters.SQL.Sandbox.stop_owner(vpid) end)
   end
 
   @doc """

@@ -78,6 +78,7 @@ defmodule CuratorianWeb.UserLoginLive do
                   action={~p"/login"}
                   class="flex flex-col gap-5"
                 >
+                  <input type="hidden" name="return_to" value={@user_return_to || ""} />
                   <.input
                     field={@form[:email]}
                     type="text"
@@ -185,7 +186,15 @@ defmodule CuratorianWeb.UserLoginLive do
     """
   end
 
-  def mount(_params, _session, socket) do
+  # Login initiated from another app (Atrium) carries ?return_to=... . We keep
+  # it so that after sign-in the user is sent back there — this is what makes
+  # guest/member logins started in Atrium round-trip correctly.
+  def mount(%{"return_to" => return_to}, _session, socket),
+    do: mount_common(socket, return_to)
+
+  def mount(_params, _session, socket), do: mount_common(socket, nil)
+
+  defp mount_common(socket, return_to) do
     remote_ip =
       socket
       |> get_connect_info(:peer_data)
@@ -207,6 +216,7 @@ defmodule CuratorianWeb.UserLoginLive do
         |> assign(captcha_valid: false)
         |> assign(turnstile_theme: "light")
         |> assign(remote_ip: remote_ip)
+        |> assign(:user_return_to, return_to)
         |> assign(:noindex, true)
 
       {:ok, socket, temporary_assigns: [form: nil]}

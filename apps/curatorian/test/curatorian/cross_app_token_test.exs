@@ -41,7 +41,8 @@ defmodule Curatorian.CrossAppTokenTest do
       assert claims.user_id == auth_info.user_id
       assert claims.node_id == auth_info.node_id
       assert claims.node_name == auth_info.node_name
-      assert claims.node_abbr == auth_info.node_abbr
+      # The payload key is node_slug (populated from the auth_info's node_abbr)
+      assert claims.node_slug == auth_info.node_abbr
       assert "admin" in claims.roles
       assert "manager" in claims.roles
     end
@@ -69,7 +70,7 @@ defmodule Curatorian.CrossAppTokenTest do
       token = CrossAppToken.sign(auth_info)
       {:ok, claims} = CrossAppToken.verify(token)
       assert claims.node_name == ""
-      assert claims.node_abbr == ""
+      assert claims.node_slug == ""
     end
 
     test "handles nil node_id" do
@@ -87,8 +88,8 @@ defmodule Curatorian.CrossAppTokenTest do
   end
 
   describe "max_age/0" do
-    test "returns the configured max age in seconds" do
-      assert CrossAppToken.max_age() == 86_400
+    test "returns the configured max age in seconds (14 days)" do
+      assert CrossAppToken.max_age() == 14 * 24 * 60 * 60
     end
   end
 end

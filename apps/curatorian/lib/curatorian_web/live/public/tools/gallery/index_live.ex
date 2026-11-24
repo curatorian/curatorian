@@ -16,7 +16,8 @@ defmodule CuratorianWeb.Public.Tools.Gallery.IndexLive do
     {:ok,
      socket
      |> assign(:page_title, "Tools Galeri")
-     |> assign(:og_description,
+     |> assign(
+       :og_description,
        "Tools galeri: referensi pengelolaan koleksi visual dan pameran galeri seni Indonesia."
      )
      |> assign(:tools, @tools)}

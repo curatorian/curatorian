@@ -1,0 +1,29 @@
+{
+  "responseHeader": {"status": 0},
+  "response": {
+    "numFound": 42,
+    "start": 0,
+    "docs": [
+      {
+        "identifier": "rainbowtroops0000hira",
+        "title": "The Rainbow Troops",
+        "creator": "Hirata, Andrea",
+        "year": "2005",
+        "description": "<p>A novel about <b>ten</b> children &amp; their dreams.</p>",
+        "mediatype": "texts",
+        "language": ["ind", "Indonesian"]
+      },
+      {
+        "identifier": "someaudioitem",
+        "title": ["An Audio Item With A List Title"],
+        "creator": ["One", "Two"],
+        "year": ["1999", "2000"],
+        "mediatype": "audio",
+        "language": "eng"
+      },
+      {
+        "identifier": "brokenitem"
+      }
+    ]
+  }
+}

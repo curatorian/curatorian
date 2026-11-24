@@ -27,6 +27,14 @@ defmodule CuratorianWeb.Router do
     plug :accepts, ["json"]
   end
 
+  # CSP violation reports: browsers POST these without any CSRF token by
+  # design, so this endpoint must bypass protect_from_forgery. The body is
+  # only logged, and the report-uri is set by our own CSP plug.
+  pipeline :csp_report do
+    plug :accepts, ["json", "csp-report"]
+    plug :fetch_session
+  end
+
   pipeline :internal_api do
     plug :accepts, ["json"]
     plug Curatorian.Plugs.InternalApiAuth
@@ -45,6 +53,13 @@ defmodule CuratorianWeb.Router do
     get "/privacy-policy", PageController, :privacy_policy
     get "/library/classification", PageController, :library_classification
     get "/sitemap.xml", SitemapController, :show
+  end
+
+  # CSP violation reports — outside the :browser pipeline so :protect_from_forgery
+  # does not reject the browser's tokenless POSTs (the 403 noise in the logs).
+  scope "/", CuratorianWeb do
+    pipe_through :csp_report
+
     post "/csp-report", CspReportController, :report
   end
 
@@ -105,10 +120,21 @@ defmodule CuratorianWeb.Router do
       live "/orgs/:slug", Public.OrganizationShowLive, :show
       live "/collections", Public.CollectionsLive, :index
       live "/collections/:id", Public.CollectionShowLive, :show
+      live "/collections/:id/read/:attachment_id", Public.EbookReaderLive, :show
+
+      # Session-gated byte streaming for the reader (no direct file URL).
+      # GET + Accept header checks in the controller; :browser pipeline is
+      # needed so the session cookie identifies the user.
+      get "/ebooks/:id/stream", EbookStreamController, :stream
+
       live "/jobs", Public.Jobs.IndexLive, :index
       live "/jobs/:slug", Public.Jobs.ShowLive, :show
       live "/events", Public.Events.IndexLive, :index
       live "/events/:slug", Public.Events.ShowLive, :show
+      # Guest registration lives in :public — the wizard collects a guest
+      # identity (name/email) instead of requiring an account, and login is
+      # only offered as an option. scope is still mounted, so logged-in
+      # users get the account-prefilled path.
       live "/events/:slug/register", Public.Events.RegisterLive, :new
       live "/certificates/:id", Public.Events.CertificateLive, :show
       live "/certificates/verify/:token", Public.Events.CertificateLive, :verify

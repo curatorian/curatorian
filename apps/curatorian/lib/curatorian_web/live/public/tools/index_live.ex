@@ -37,7 +37,8 @@ defmodule CuratorianWeb.Public.Tools.IndexLive do
     {:ok,
      socket
      |> assign(:page_title, "Alat Curatorian")
-     |> assign(:og_description,
+     |> assign(
+       :og_description,
        "Pusat tools Curatorian: alat bantu katalogisasi dan pengelolaan koleksi " <>
          "perpustakaan, museum, galeri, dan arsip berbasis GLAM."
      )

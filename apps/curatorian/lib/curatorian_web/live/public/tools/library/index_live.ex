@@ -23,7 +23,8 @@ defmodule CuratorianWeb.Public.Tools.Library.IndexLive do
     {:ok,
      socket
      |> assign(:page_title, "Tools Perpustakaan")
-     |> assign(:og_description,
+     |> assign(
+       :og_description,
        "Tools perpustakaan: referensi klasifikasi DDC/UDC/LCC dan sumber digital untuk " <>
          "pengelolaan perpustakaan sekolah, desa, dan komunitas."
      )

@@ -33,9 +33,11 @@
       content={absolute_url(assigns[:og_url] || assigns[:current_uri] || "/")}
     />
     <link rel="canonical" href={absolute_url(assigns[:og_url] || assigns[:current_uri] || "/")} />
-    <meta :if={assigns[:noindex]} name="robots" content="noindex, nofollow" />
+    <meta :if={assigns[:noindex]} name="robots" content={assigns[:robots] || "noindex, nofollow"} />
     <%= for data <- assigns[:json_ld] || [] do %>
-      <script nonce={@script_nonce} type="application/ld+json"><%= raw(json_script(data)) %></script>
+      <script nonce={@script_nonce} type="application/ld+json">
+        <%= raw(json_script(data)) %>
+      </script>
     <% end %>
 
     <meta

@@ -525,6 +525,120 @@ h6 {
   @apply max-w-7xl mx-auto flex flex-col items-center justify-center min-h-screen text-center;
 }
 
+/* Map Tailwind's `font-serif` utility onto the site's serif identity so
+   collection titles render in Literata (spec §6A.3: reuse existing fonts). */
+@theme {
+  --font-serif: "Literata", Georgia, "Times New Roman", serif;
+}
+
+/* Typographic placeholder cover for records without a thumbnail
+   (spec §6A.5.8): deterministic muted hue per record id via --h. */
+.cover-placeholder {
+  aspect-ratio: 3 / 4;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 9%;
+  overflow: hidden;
+  border-radius: 0.25rem;
+  background: hsl(var(--h, 178) 28% 32%);
+  color: #fff;
+  font-family: "Literata", Georgia, serif;
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.cover-placeholder span {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+.cover-placeholder small {
+  font-family: "Parkinsans", system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 0.72rem;
+  line-height: 1.2;
+  opacity: 0.85;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+[data-theme="dark"] .cover-placeholder {
+  background: hsl(var(--h, 178) 26% 24%);
+}
+
+/* External-sources section (spec §6A.7): the one place with a distinct
+   visual identity. Scoped additions only — the daisyUI brand palette is
+   untouched. */
+:root {
+  --ext-surface: #eef2f8;
+  --ext-accent: #3d5a8a;
+  --access-open: #2b7a4b;
+  --access-borrow: #8f5a0e;
+}
+
+[data-theme="dark"] {
+  --ext-surface: #152033;
+  --ext-accent: #86a5d6;
+  --access-open: #6cc38a;
+  --access-borrow: #e0a94f;
+}
+
+.ext-panel {
+  background: var(--ext-surface);
+  border-left: 3px solid var(--ext-accent);
+  border-radius: 0 0.625rem 0.625rem 0;
+}
+
+.ext-accent {
+  color: var(--ext-accent);
+}
+
+.ext-shelf {
+  display: flex;
+  gap: 0.875rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+  padding: 0.125rem 0.125rem 0.75rem;
+  list-style: none;
+  margin: 0;
+}
+
+.ext-card {
+  flex: 0 0 9rem;
+  scroll-snap-align: start;
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .ext-card {
+    flex-basis: 10.5rem;
+  }
+}
+
+.access-open {
+  color: var(--access-open);
+}
+
+.access-borrow {
+  color: var(--access-borrow);
+}
+
+.status-block {
+  border: 1px solid var(--ext-accent);
+  border-radius: 0.375rem;
+  padding: 0.75rem 0.875rem;
+  background: var(--ext-surface);
+  max-width: 34rem;
+}
+
+
 /* This file is for your main application CSS */
 .btn {
   @apply px-4 py-2 rounded-md cursor-pointer;

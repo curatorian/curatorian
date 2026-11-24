@@ -16,7 +16,8 @@ defmodule CuratorianWeb.Public.Tools.Library.Classification.IndexLive do
     {:ok,
      socket
      |> assign(:page_title, "Klasifikasi Perpustakaan")
-     |> assign(:og_description,
+     |> assign(
+       :og_description,
        "Referensi sistem klasifikasi perpustakaan (DDC, UDC, LCC) untuk membantu " <>
          "katalogisasi dan pengelolaan koleksi."
      )

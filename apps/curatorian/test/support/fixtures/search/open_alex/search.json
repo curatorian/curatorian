@@ -1,0 +1,38 @@
+{
+  "meta": {"count": 91, "page": 1, "per_page": 8},
+  "results": [
+    {
+      "id": "https://openalex.org/W2741809807",
+      "doi": "https://doi.org/10.1234/ABC.2023",
+      "display_name": "Open Access and the Commons",
+      "publication_year": 2023,
+      "type": "article",
+      "authorships": [
+        {"author": {"display_name": "Jane Doe"}},
+        {"author": {"display_name": "Budi Santoso"}},
+        {"author": {"display_name": null}}
+      ],
+      "primary_location": {
+        "landing_page_url": "https://journal.example.org/article/1",
+        "source": {"display_name": "Journal of Open Knowledge"}
+      },
+      "open_access": {"is_oa": true, "oa_url": "https://journal.example.org/article/1.pdf"},
+      "language": "en"
+    },
+    {
+      "id": "https://openalex.org/W999",
+      "display_name": "A Paywalled Work",
+      "publication_year": 2019,
+      "type": "book-chapter",
+      "authorships": [],
+      "primary_location": {"landing_page_url": null, "source": null},
+      "open_access": {"is_oa": false, "oa_url": null},
+      "language": "id"
+    },
+    {
+      "id": "https://openalex.org/W000",
+      "open_access": {},
+      "primary_location": {}
+    }
+  ]
+}

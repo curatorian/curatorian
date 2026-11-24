@@ -32,7 +32,11 @@ defmodule Curatorian.MixProject do
       # ===== VOILE DEPENDENCY =====
       {:voile, "~> 0.1.54"},
       {:mdex, "~> 0.8"},
-      {:html_sanitize_ex, "~> 1.4"}
+      {:html_sanitize_ex, "~> 1.4"},
+
+      # Testing (Phoenix.LiveViewTest requires lazy_html for DOM assertions;
+      # umbrella children don't inherit the root's env-scoped deps here)
+      {:lazy_html, ">= 0.1.0", only: :test}
       # ALL OTHER DEPENDENCIES ARE NOW IN UMBRELLA ROOT!
       # No need to duplicate Phoenix, Ecto, etc.
       # They're inherited from the parent umbrella app

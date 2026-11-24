@@ -14,6 +14,8 @@ defmodule Curatorian.Public do
 
   alias Curatorian.Repo
 
+  alias Curatorian.RateLimiter
+
   alias Curatorian.Public.{
     UserProfile,
     UserFollow,
@@ -30,7 +32,10 @@ defmodule Curatorian.Public do
     EventRegistration,
     EventPayment,
     EventCertificate,
+    EventCertificateTemplate,
     EventAttendance,
+    EventCheckpoint,
+    EventCheckpointRecord,
     ContentReport,
     OrgPageFollower,
     CrowdfundingCampaign,
@@ -460,6 +465,7 @@ defmodule Curatorian.Public do
 
   @search_page_size 12
 
+  @doc "Default page size for the collections search (list view)."
   def search_page_size, do: @search_page_size
 
   @doc """
@@ -508,6 +514,7 @@ defmodule Curatorian.Public do
   def collection_search_facets(opts \\ []) do
     %{
       glam_types: facet_glam_types(Keyword.delete(opts, :glam_type)),
+      units: facet_units(Keyword.delete(opts, :node_id)),
       collection_types: facet_collection_types(Keyword.delete(opts, :collection_type)),
       institution_types: facet_institution_types(Keyword.delete(opts, :institution_type)),
       subjects: facet_dc_values(Keyword.delete(opts, :subject), :subject),
@@ -608,7 +615,34 @@ defmodule Curatorian.Public do
     |> filter_dc_field(:subject, opts[:subject])
     |> filter_dc_field(:language, opts[:language])
     |> filter_dc_field(:creator, opts[:creator])
+    |> filter_has_ebook(opts[:has_ebook])
   end
+
+  # "has_ebook" narrows to collections whose attachments include a readable
+  # e-book (PDF or EPUB). "false" narrows to collections without one.
+  defp filter_has_ebook(query, "true") do
+    where(
+      query,
+      [collection: c],
+      fragment(
+        "EXISTS (SELECT 1 FROM voile.attachments a WHERE a.attachable_id = ? AND a.attachable_type = 'collection' AND a.mime_type IN ('application/pdf', 'application/epub+zip'))",
+        c.id
+      )
+    )
+  end
+
+  defp filter_has_ebook(query, "false") do
+    where(
+      query,
+      [collection: c],
+      fragment(
+        "NOT EXISTS (SELECT 1 FROM voile.attachments a WHERE a.attachable_id = ? AND a.attachable_type = 'collection' AND a.mime_type IN ('application/pdf', 'application/epub+zip'))",
+        c.id
+      )
+    )
+  end
+
+  defp filter_has_ebook(query, _), do: query
 
   defp filter_search(query, search) when is_binary(search) do
     term = String.trim(search)
@@ -737,6 +771,17 @@ defmodule Curatorian.Public do
     |> group_by([resource_class: rc], rc.glam_type)
     |> order_by([resource_class: rc], desc: count(rc.id))
     |> select([resource_class: rc], %{value: rc.glam_type, count: count(rc.id)})
+    |> Repo.all()
+  end
+
+  defp facet_units(opts) do
+    collection_search_base()
+    |> apply_search_filters(opts)
+    |> where([node: n], not is_nil(n.name))
+    |> group_by([node: n], [n.id, n.name])
+    |> order_by([node: n, collection: c], desc: count(c.id), asc: n.name)
+    |> select([node: n, collection: c], %{value: n.id, label: n.name, count: count(c.id)})
+    |> limit(50)
     |> Repo.all()
   end
 
@@ -1332,6 +1377,15 @@ defmodule Curatorian.Public do
 
   @active_registration_statuses [:pending, :approved, :waitlisted]
 
+  # Rate limits for public event surfaces (spec §Security: rate limit
+  # registration, session code entry, and verification lookups).
+  @session_code_attempts 10
+  @session_code_window 60
+  @event_registration_attempts 10
+  @event_registration_window 3_600
+  @cert_verify_attempts 30
+  @cert_verify_window 60
+
   def list_events(search \\ "", opts \\ []) do
     page = Keyword.get(opts, :page, 1)
     offset = (page - 1) * @page_size
@@ -1426,6 +1480,73 @@ defmodule Curatorian.Public do
     |> Repo.one()
   end
 
+  @doc """
+  Attaches guest registrations to an account, by email match.
+
+  Guests who registered without an account (Google-Form style) and then log
+  in — directly or via Google — get their existing registrations claimed so
+  they appear in their account. Only claims rows that:
+
+    * have no `voile_user_id` (they are genuinely guest registrations)
+    * match `email` exactly (case-insensitive) on `guest_email`
+    * are still active (pending/approved/waitlisted — canceled/rejected rows
+      stay guests; the participant page token still shows them)
+    * the user does not already hold an active registration for the same
+      event (the identity check constraint and the active-registration
+      unique index would reject a double seat)
+
+  Returns `{:ok, claimed}` with the rows it attached. Idempotent — safe to
+  call on every login.
+  """
+  def claim_guest_registrations(user_id, email) when is_binary(user_id) and is_binary(email) do
+    email = String.trim(email) |> String.downcase()
+
+    Repo.transaction(fn ->
+      guest_registrations =
+        from(r in EventRegistration,
+          where:
+            is_nil(r.voile_user_id) and
+              fragment("lower(?)", r.guest_email) == ^email and
+              r.status in ^@active_registration_statuses,
+          lock: "FOR UPDATE"
+        )
+        |> Repo.all()
+
+      Enum.reduce(guest_registrations, [], fn registration, claimed ->
+        double_seat? =
+          from(r in EventRegistration,
+            where:
+              r.voile_user_id == ^user_id and r.event_id == ^registration.event_id and
+                r.status in ^@active_registration_statuses
+          )
+          |> Repo.exists?()
+
+        if double_seat? do
+          claimed
+        else
+          registration
+          |> Ecto.Changeset.change(
+            voile_user_id: user_id,
+            guest_name: nil,
+            guest_email: nil
+          )
+          |> Repo.update()
+          |> case do
+            {:ok, updated} -> [updated | claimed]
+            {:error, reason} -> Repo.rollback({:claim_failed, registration.id, reason})
+          end
+        end
+      end)
+      |> Enum.reverse()
+    end)
+    |> case do
+      {:ok, claimed} -> {:ok, claimed}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  def claim_guest_registrations(_user_id, _email), do: {:error, :invalid_claim}
+
   def get_registration_by_token(token) when is_binary(token) do
     from(r in EventRegistration,
       where: r.token == ^token,
@@ -1437,28 +1558,69 @@ defmodule Curatorian.Public do
     |> Repo.one()
   end
 
-  @doc "Lists checkpoint records for a registration."
+  @doc "Lists checkpoint records for a registration, oldest first."
   def list_checkpoint_records(registration_id) do
-    from(r in "event_checkpoint_records",
+    from(r in EventCheckpointRecord,
       where: r.registration_id == ^registration_id,
+      order_by: [asc: r.recorded_at],
       select: %{checkpoint_id: r.checkpoint_id, recorded_at: r.recorded_at}
     )
     |> Repo.all()
   end
 
-  @doc "Validates a session code and records a checkpoint attendance."
-  def record_checkpoint_attendance(registration_id, code) do
+  @doc """
+  Validates a session code and records a checkpoint attendance.
+
+  The code is resolved against the registration's own event — session codes
+  are unique per event (`(event_id, code)`), so a code belonging to another
+  event, or an unknown one, is rejected instead of matching globally (a
+  global match could also raise on duplicate codes across events).
+
+  Returns:
+
+  * `{:ok, :recorded}` — attendance recorded
+  * `{:error, :invalid_code}` — unknown code, another event's code, or the
+    checkpoint is outside its open window
+  * `{:error, :already_recorded}` — the registration already recorded this checkpoint
+  * `{:error, :rate_limited}` — too many attempts for this registration; try
+    again later
+
+  Session-code entry is rate limited per registration (spec §Security): codes
+  are short and brute-forceable, and every attempt counts — invalid codes
+  included.
+  """
+
+  def record_checkpoint_attendance(registration_id, code)
+      when is_binary(registration_id) and is_binary(code) do
+    with :ok <-
+           RateLimiter.check(
+             :session_code,
+             registration_id,
+             @session_code_attempts,
+             @session_code_window
+           ) do
+      do_record_checkpoint_attendance(registration_id, code)
+    end
+  end
+
+  defp do_record_checkpoint_attendance(registration_id, code) do
+    registration = Repo.get(EventRegistration, registration_id)
+
     checkpoint =
-      from(c in "event_checkpoints",
-        where: fragment("upper(?)", c.code) == ^String.upcase(code),
-        select: %{id: c.id, opens_at: c.opens_at, closes_at: c.closes_at}
-      )
-      |> Repo.one()
+      if registration do
+        from(c in EventCheckpoint,
+          where:
+            c.event_id == ^registration.event_id and
+              fragment("upper(?)", c.code) == ^String.upcase(code),
+          select: %{id: c.id, opens_at: c.opens_at, closes_at: c.closes_at}
+        )
+        |> Repo.one()
+      end
 
     now = DateTime.utc_now() |> DateTime.truncate(:second)
 
     cond do
-      is_nil(checkpoint) ->
+      is_nil(registration) or is_nil(checkpoint) ->
         {:error, :invalid_code}
 
       checkpoint.opens_at && DateTime.compare(now, checkpoint.opens_at) == :lt ->
@@ -1468,17 +1630,29 @@ defmodule Curatorian.Public do
         {:error, :invalid_code}
 
       true ->
-        %{"registration_id" => registration_id, "checkpoint_id" => checkpoint.id, "recorded_at" => now}
-        |> Ecto.Changeset.change()
-        |> Ecto.Changeset.unique_constraint([:registration_id, :checkpoint_id])
-        |> Repo.insert(
-          on_conflict: :nothing,
-          conflict_target: [:registration_id, :checkpoint_id]
-        )
-        |> case do
-          {:ok, _} -> {:ok, :recorded}
-          # on_conflict: :nothing returns {nil, nil} when the row already exists
-          {nil, _} -> {:error, :already_recorded}
+        # insert_all (with a schema source) returns the real affected-row
+        # count, so a conflicted insert is detectable. Repo.insert +
+        # on_conflict: :nothing is NOT — it returns {:ok, struct} with a
+        # never-persisted id on conflict.
+        {count, _} =
+          Repo.insert_all(
+            EventCheckpointRecord,
+            [
+              %{
+                id: Ecto.UUID.generate(),
+                registration_id: registration.id,
+                checkpoint_id: checkpoint.id,
+                recorded_at: now
+              }
+            ],
+            on_conflict: :nothing,
+            conflict_target: [:registration_id, :checkpoint_id]
+          )
+
+        if count == 1 do
+          {:ok, :recorded}
+        else
+          {:error, :already_recorded}
         end
     end
   end
@@ -1497,11 +1671,22 @@ defmodule Curatorian.Public do
     |> Repo.one()
   end
 
+  @doc """
+  Looks up a valid certificate by its public verification token.
+
+  Used by the public verification page. Rate limited per token (spec
+  §Security: rate limit verification lookups) — on limit, returns nil, which
+  the page presents with the same neutral "not found" message.
+  """
   def get_certificate_by_token(token) do
-    from(c in EventCertificate,
-      where: c.verification_token == ^token and c.is_valid == true
-    )
-    |> Repo.one()
+    if RateLimiter.check(:cert_verify, token, @cert_verify_attempts, @cert_verify_window) == :ok do
+      from(c in EventCertificate,
+        where: c.verification_token == ^token and c.is_valid == true
+      )
+      |> Repo.one()
+    else
+      nil
+    end
   end
 
   @doc "Returns the valid certificate for a registration, or nil."
@@ -1509,6 +1694,21 @@ defmodule Curatorian.Public do
     from(c in EventCertificate,
       where: c.registration_id == ^registration_id and c.is_valid == true,
       limit: 1
+    )
+    |> Repo.one()
+  end
+
+  @doc """
+  Returns a certificate template by id, or nil.
+
+  Soft-deleted templates are treated as absent so a deleted design never
+  appears on a certificate; the page falls back to its built-in layout.
+  """
+  def get_certificate_template(nil), do: nil
+
+  def get_certificate_template(template_id) do
+    from(t in EventCertificateTemplate,
+      where: t.id == ^template_id and is_nil(t.deleted_at)
     )
     |> Repo.one()
   end
@@ -1540,32 +1740,120 @@ defmodule Curatorian.Public do
     - `:already_registered` — user already holds an active registration
       (pending/approved/waitlisted); canceled or rejected registrations
       don't block re-registering
+    - `:rate_limited` — too many registrations for this user in the current
+      window (spec §4.2/§Security)
 
   Options:
     - `:requires_approval` (default true) — `:pending` when true, `:approved` otherwise
     - `:amount_paid_idr` (default 0)
     - `:registration_data` (default %{}) — answers to the event's registration questions
+    - `:guest` (default nil) — `%{"name" => ..., "email" => ...}`; required when
+      `user_id` is nil. Guest registrations have no account: the confirmation
+      email and the /r/:token participant page (via the registration token)
+      are their touchpoints, and they can later be claimed by an account
+      with a matching email (see `claim_guest_registrations/2`).
   """
   def register_for_event(user_id, event_id, opts \\ []) do
     requires_approval = Keyword.get(opts, :requires_approval, true)
     amount_paid_idr = Keyword.get(opts, :amount_paid_idr, 0)
     registration_data = Keyword.get(opts, :registration_data, %{})
-    status = if requires_approval, do: :pending, else: :approved
+    guest = normalize_guest(Keyword.get(opts, :guest))
 
-    with {:ok, event} <- get_registerable_event(event_id),
+    cond do
+      is_nil(user_id) && is_nil(guest) ->
+        {:error, :no_identity}
+
+      is_nil(user_id) ->
+        do_register_for_event(
+          nil,
+          event_id,
+          guest,
+          registration_data,
+          requires_approval,
+          amount_paid_idr
+        )
+
+      true ->
+        do_register_for_event(
+          user_id,
+          event_id,
+          nil,
+          registration_data,
+          requires_approval,
+          amount_paid_idr
+        )
+    end
+  end
+
+  defp normalize_guest(nil), do: nil
+
+  defp normalize_guest(%{name: name, email: email}),
+    do: normalize_guest(%{"name" => name, "email" => email})
+
+  defp normalize_guest(%{"name" => name, "email" => email}) do
+    name = name |> to_string() |> String.trim()
+    email = email |> to_string() |> String.trim() |> String.downcase()
+
+    if name == "" or email == "", do: nil, else: %{"name" => name, "email" => email}
+  end
+
+  defp normalize_guest(_), do: nil
+
+  defp do_register_for_event(
+         user_id,
+         event_id,
+         guest,
+         registration_data,
+         requires_approval,
+         amount_paid_idr
+       ) do
+    # Spec §4.2/§Security: rate limit the public registration — per account
+    # for logged-in users, per email for guests (the form is public).
+    rate_limit_key =
+      if guest, do: "guest:" <> guest["email"], else: user_id
+
+    with :ok <-
+           RateLimiter.check(
+             :event_registration,
+             rate_limit_key,
+             @event_registration_attempts,
+             @event_registration_window
+           ),
+         {:ok, event} <- get_registerable_event(event_id),
          :ok <- check_registration_window(event),
          :ok <- check_event_capacity(event) do
-      attrs = %{
-        event_id: event_id,
-        voile_user_id: to_string(user_id),
-        registration_code: generate_registration_code(),
-        token: generate_registration_token(),
-        registered_at: DateTime.utc_now(),
-        status: status,
-        amount_paid_idr: amount_paid_idr,
-        registration_data: registration_data,
-        consented_at: DateTime.utc_now() |> DateTime.truncate(:second)
-      }
+      # On paid events, payment is the approval gate: the registration starts
+      # :pending and Atrium's payment webhook approves it (or the organizer,
+      # for manual-approval events). Approving before payment let non-payers
+      # hold seats and receive reminders and join links.
+      status =
+        cond do
+          event.is_paid -> :pending
+          requires_approval -> :pending
+          true -> :approved
+        end
+
+      identity_attrs =
+        if guest do
+          %{guest_name: guest["name"], guest_email: guest["email"]}
+        else
+          %{voile_user_id: to_string(user_id)}
+        end
+
+      attrs =
+        Map.merge(
+          %{
+            event_id: event_id,
+            registration_code: generate_registration_code(),
+            token: generate_registration_token(),
+            registered_at: DateTime.utc_now(),
+            status: status,
+            amount_paid_idr: amount_paid_idr,
+            registration_data: registration_data,
+            consented_at: DateTime.utc_now() |> DateTime.truncate(:second)
+          },
+          identity_attrs
+        )
 
       %EventRegistration{}
       |> EventRegistration.changeset(attrs)
@@ -1589,16 +1877,21 @@ defmodule Curatorian.Public do
   # profile so every later page shows their real identity instead of a UUID
   # slice. Failures are logged and silently ignored.
   defp sync_profile_to_atrium(registration, registration_data) do
-    name = registration_data["name"] || ""
-    phone = registration_data["phone"] || ""
+    # Guests have no account to sync a profile to.
+    if is_nil(registration.voile_user_id) do
+      :ok
+    else
+      name = registration_data["name"] || ""
+      phone = registration_data["phone"] || ""
 
-    if name != "" or phone != "" do
-      case Curatorian.EventPayments.sync_profile(registration.voile_user_id, name, phone) do
-        {:ok, _} ->
-          :ok
+      if name != "" or phone != "" do
+        case Curatorian.EventPayments.sync_profile(registration.voile_user_id, name, phone) do
+          {:ok, _} ->
+            :ok
 
-        {:error, reason} ->
-          Logger.warning("[Events] profile sync skipped: #{inspect(reason)}")
+          {:error, reason} ->
+            Logger.warning("[Events] profile sync skipped: #{inspect(reason)}")
+        end
       end
     end
   rescue
@@ -1810,6 +2103,47 @@ defmodule Curatorian.Public do
         atrium_url = Application.get_env(:curatorian, :atrium_url, "http://localhost:4001")
         atrium_url <> path
     end
+  end
+
+  @doc """
+  Returns true when the voile user has a user_profile row in atrium
+  (i.e. their account is connected to a profile).
+  """
+  def profile_connected?(voile_user_id) when is_binary(voile_user_id) do
+    from(p in UserProfile, where: p.voile_user_id == ^voile_user_id, select: 1)
+    |> Repo.one()
+    |> Kernel.!=(nil)
+  end
+
+  @doc """
+  Returns a readable attachment (PDF or EPUB) of a published public collection
+  by attachment id, or nil. Used by the public e-book reader.
+  """
+  def get_public_attachment(attachment_id) when is_binary(attachment_id) do
+    from(a in Voile.Schema.Catalog.Attachment,
+      join: c in Collection,
+      on: c.id == a.attachable_id and a.attachable_type == "collection",
+      where:
+        a.id == ^attachment_id and c.status == "published" and c.access_level == "public" and
+          a.mime_type in ["application/pdf", "application/epub+zip"],
+      limit: 1
+    )
+    |> Repo.one()
+  end
+
+  @doc """
+  Returns the first readable attachment (PDF or EPUB) of a published public
+  collection, or nil. Used to decide whether the "Read e-book" button shows.
+  """
+  def get_readable_ebook_for_collection(collection_id) when is_binary(collection_id) do
+    from(a in Voile.Schema.Catalog.Attachment,
+      where:
+        a.attachable_id == ^collection_id and a.attachable_type == "collection" and
+          a.mime_type in ["application/pdf", "application/epub+zip"],
+      order_by: [asc: a.sort_order, asc: a.inserted_at],
+      limit: 1
+    )
+    |> Repo.one()
   end
 
   # ---------------------------------------------------------------------------

@@ -243,6 +243,10 @@ defmodule CuratorianWeb.UserRegistrationLive do
 
         case Accounts.register_user(attrs) do
           {:ok, user} ->
+            # Provision the Atrium profile immediately — the user is fully
+            # recognised there as soon as they first sign in.
+            Curatorian.AtriumProfileSync.enqueue(user.id)
+
             confirmation_result =
               Accounts.deliver_user_confirmation_instructions(
                 user,
@@ -303,10 +307,16 @@ defmodule CuratorianWeb.UserRegistrationLive do
   # Guard against a missing token raising inside the Turnstile library —
   # a request without the field is just a failed verification.
   defp verify_turnstile(params, remote_ip) do
-    if Map.has_key?(params, "cf-turnstile-response") do
-      Turnstile.verify(params, remote_ip)
+    # Test seam: no captcha in tests (config/test.exs disables it) — the real
+    # check needs Cloudflare Turnstile tokens the browser supplies.
+    if Application.get_env(:curatorian, :disable_turnstile, false) do
+      {:ok, %{"success" => true}}
     else
-      {:error, :missing_turnstile_token}
+      if Map.has_key?(params, "cf-turnstile-response") do
+        Turnstile.verify(params, remote_ip)
+      else
+        {:error, :missing_turnstile_token}
+      end
     end
   end
 

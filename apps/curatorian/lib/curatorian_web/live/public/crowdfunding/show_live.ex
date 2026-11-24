@@ -31,9 +31,11 @@ defmodule CuratorianWeb.Public.Crowdfunding.ShowLive do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <div class="max-w-5xl mx-auto py-8 px-4 space-y-6">
-        <.breadcrumbs
-          trail={[{"Beranda", "/"}, {"Crowdfunding", "/crowdfunding"}, {@campaign.title, nil}]}
-        />
+        <.breadcrumbs trail={[
+          {"Beranda", "/"},
+          {"Crowdfunding", "/crowdfunding"},
+          {@campaign.title, nil}
+        ]} />
 
         <%!-- Header --%>
         <header class="bg-base-100 border border-base-300 rounded-2xl overflow-hidden">

@@ -16,7 +16,9 @@ defmodule CuratorianWeb.Plugs.CSP do
 
   def call(conn, _opts) do
     nonce = :crypto.strong_rand_bytes(16) |> Base.url_encode64(padding: false)
-    header_name = if enforcing?(), do: "content-security-policy", else: "content-security-policy-report-only"
+
+    header_name =
+      if enforcing?(), do: "content-security-policy", else: "content-security-policy-report-only"
 
     conn
     |> assign(:script_nonce, nonce)
@@ -28,9 +30,10 @@ defmodule CuratorianWeb.Plugs.CSP do
   defp policy(nonce) do
     [
       "default-src 'self'",
-      "script-src 'self' 'nonce-#{nonce}' https://challenges.cloudflare.com",
+      "script-src 'self' 'nonce-#{nonce}' https://challenges.cloudflare.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net",
+      "worker-src 'self' blob:",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: https:",
+      "img-src 'self' data: blob: https:",
       "connect-src 'self' https://challenges.cloudflare.com",
       "frame-src https://challenges.cloudflare.com",
       "font-src 'self'",

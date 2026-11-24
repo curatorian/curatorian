@@ -1,0 +1,31 @@
+{
+  "count": 2,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": 1342,
+      "title": "Pride and Prejudice",
+      "authors": [{"name": "Austen, Jane", "birth_year": 1775, "death_year": 1817}],
+      "languages": ["en"],
+      "subjects": ["Courtship -- Fiction"],
+      "formats": {
+        "image/jpeg": "https://www.gutenberg.org/cache/epub/1342/pg1342.cover.jpg",
+        "text/html": "https://www.gutenberg.org/ebooks/1342.html.images",
+        "application/epub+zip": "https://www.gutenberg.org/ebooks/1342.epub3.images"
+      },
+      "download_count": 72000
+    },
+    {
+      "id": 84,
+      "title": "Frankenstein; Or, The Modern Prometheus",
+      "authors": [{"name": "Shelley, Mary Wollstonecraft"}],
+      "languages": ["en"],
+      "formats": {},
+      "download_count": 51000
+    },
+    {
+      "title": "No id — unusable"
+    }
+  ]
+}

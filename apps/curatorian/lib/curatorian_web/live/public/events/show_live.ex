@@ -6,6 +6,7 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
   alias Curatorian.EventPayments
   alias Curatorian.Public
   alias CuratorianWeb.Markdown
+  alias CuratorianWeb.Public.Events.TimeFormat
 
   @impl true
   def mount(%{"slug" => slug}, _session, socket) do
@@ -43,6 +44,7 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
          |> assign(:show_registration_form, false)
          |> assign_registration_form_prefill(current_scope)
          |> assign(:registration_open, registration_open?(event))
+         |> assign(:registration_state, registration_state(event))
          |> assign(:og_title, event.title)
          |> assign(:og_description, event.description)
          |> assign(:og_image, cover)
@@ -146,6 +148,10 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
       {:error, :already_registered} ->
         {:noreply, put_flash(socket, :error, "Anda sudah terdaftar untuk event ini.")}
 
+      {:error, :rate_limited} ->
+        {:noreply,
+         put_flash(socket, :error, "Terlalu banyak permintaan. Silakan coba lagi nanti.")}
+
       {:error, :event_full} ->
         {:noreply, put_flash(socket, :error, "Kuota event sudah penuh.")}
 
@@ -167,299 +173,469 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <div class="max-w-5xl mx-auto py-8 px-4 space-y-6">
-        <.breadcrumbs trail={[{"Beranda", "/"}, {"Event", "/events"}, {@event.title, nil}]} />
+      <div class="relative min-h-screen">
+        <div class="pointer-events-none absolute inset-x-0 top-0 h-[30rem] bg-gradient-to-b from-primary/10 via-secondary/5 to-transparent" />
 
-        <header class="bg-base-100 border border-base-300 rounded-2xl p-6 space-y-2">
-          <div class="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <p class="text-xs uppercase tracking-widest text-base-content/60">
-                {event_badge(@event)}
-              </p>
-              <h1 class="text-3xl font-semibold text-base-content">{@event.title}</h1>
-              <p class="text-sm text-base-content/70">
-                <%= if @host_org do %>
-                  Diselenggarakan oleh
-                  <.link
-                    navigate={"/orgs/#{@host_org.slug}"}
-                    class="font-medium hover:text-primary transition"
-                  >
-                    {@host_org.name}
-                  </.link>
-                <% else %>
-                  {host_name(@event)}
-                <% end %>
-              </p>
-            </div>
-            <div class="text-right">
-              <p class="text-sm text-base-content/60">{date_range(@event)}</p>
-              <p class="text-sm text-base-content/60">{venue_text(@event)}</p>
-            </div>
-          </div>
+        <div class="relative mx-auto w-full max-w-6xl px-4 pb-16 pt-6 sm:px-6 lg:px-8">
+          <.breadcrumbs trail={[{"Beranda", "/"}, {"Event", "/events"}, {@event.title, nil}]} />
 
-          <div class="text-sm text-base-content/75 space-y-1">
-            <p>📅 Mulai: {format_datetime(@event.starts_at)}</p>
-            <p>⏰ Selesai: {format_datetime(@event.ends_at)}</p>
-            <p>👥 Terdaftar: {@event.registration_count || 0} {slot_text(@event)}</p>
-          </div>
-        </header>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <section class="lg:col-span-2 space-y-5">
-            <article class="bg-base-100 border border-base-300 rounded-2xl p-6">
-              <p class="text-sm text-base-content font-semibold mb-2">Deskripsi</p>
-              <div class="whitespace-pre-line text-base-content/85 text-sm">
-                {@event.description || "-"}
-              </div>
-            </article>
-
-            <article class="bg-base-100 border border-base-300 rounded-2xl p-6">
-              <p class="text-sm text-base-content font-semibold mb-2">Detail</p>
-              <div class="text-base-content/80 text-sm space-y-1">
-                <p><strong>Mode:</strong> {to_label(@event.mode)}</p>
-                <p><strong>Kategori:</strong> {to_label(@event.category)}</p>
-                <p><strong>Status:</strong> {to_label(@event.status)}</p>
-                <p><strong>Jenis:</strong> {to_label(@event.event_type)}</p>
-              </div>
-            </article>
-
-            <%= if @broadcasts != [] do %>
-              <article class="bg-base-100 border border-base-300 rounded-2xl p-6 space-y-4">
-                <p class="text-sm text-base-content font-semibold flex items-center gap-2">
-                  <.icon name="hero-megaphone" class="size-4 text-primary" /> Pengumuman
-                </p>
-                <%= for broadcast <- @broadcasts do %>
-                  <div class="border border-base-200 rounded-xl p-4 bg-base-200/30">
-                    <%= if broadcast.title && broadcast.title != "" do %>
-                      <p class="text-sm font-semibold text-base-content">{broadcast.title}</p>
-                    <% end %>
-                    <div class="prose prose-sm max-w-none text-base-content/85 text-sm mt-1">
-                      {Markdown.to_html(broadcast.body)}
-                    </div>
-                    <p class="text-[10px] text-base-content/40 mt-2">
-                      {format_optional_datetime(broadcast.inserted_at)}
-                    </p>
-                  </div>
-                <% end %>
-              </article>
-            <% end %>
-          </section>
-
-          <aside class="space-y-4">
-            <div class="bg-base-100 border border-base-300 rounded-2xl p-4 space-y-2 text-sm text-base-content/80">
-              <p>
-                <strong>Pendaftaran dibuka:</strong> {format_optional_datetime(
-                  @event.registration_opens_at
-                )}
-              </p>
-              <p>
-                <strong>Pendaftaran ditutup:</strong> {format_optional_datetime(
-                  @event.registration_closes_at
-                )}
-              </p>
-              <p><strong>Kuota:</strong> {slot_text(@event)}</p>
-              <%= if @event.is_paid do %>
-                <p>
-                  <strong>Biaya:</strong>
-                  <span class="font-semibold text-primary">
-                    Rp {format_idr(@event.price_idr || 0)}
-                  </span>
-                </p>
-              <% else %>
-                <p><strong>Biaya:</strong> <span class="text-success font-semibold">Gratis</span></p>
-              <% end %>
-            </div>
-
-            <%!-- Registration form overlay --%>
-            <%= if @show_registration_form do %>
-              <div
-                id="registration-form-panel"
-                class="bg-base-100 border-2 border-primary rounded-2xl p-5 space-y-4"
-              >
-                <p class="font-semibold text-base-content">Formulir Pendaftaran</p>
-                <div class="bg-base-200 rounded-xl px-4 py-3 text-sm space-y-1">
-                  <p class="font-medium text-base-content">{@event.title}</p>
-                  <%= if @event.is_paid do %>
-                    <p class="text-base-content/60">
-                      Rp {format_idr(@event.price_idr || 0)}
-                    </p>
-                  <% end %>
-                </div>
-
-                <.form for={%{}} phx-submit="submit_registration" class="space-y-3">
-                  <label class="block">
-                    <span class="block text-xs font-medium text-base-content/70 mb-1">
-                      Nama lengkap
-                    </span>
-                    <input
-                      type="text"
-                      name="registration[name]"
-                      value={@prefill_name}
-                      class="input input-bordered w-full"
-                      placeholder="Nama lengkap Anda"
-                      required
-                    />
-                  </label>
-                  <label class="block">
-                    <span class="block text-xs font-medium text-base-content/70 mb-1">Email</span>
-                    <input
-                      type="email"
-                      name="registration[email]"
-                      value={@prefill_email}
-                      class="input input-bordered w-full"
-                      placeholder="email@contoh.com"
-                      required
-                    />
-                  </label>
-                  <label class="block">
-                    <span class="block text-xs font-medium text-base-content/70 mb-1">
-                      No. HP / WhatsApp
-                    </span>
-                    <input
-                      type="text"
-                      name="registration[phone]"
-                      value={@prefill_phone}
-                      class="input input-bordered w-full"
-                      placeholder="Opsional"
-                    />
-                  </label>
-                  <label class="flex items-start gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      name="registration[consent]"
-                      value="true"
-                      class="checkbox checkbox-sm checkbox-primary mt-0.5"
-                      required
-                    />
-                    <span class="text-xs text-base-content/70">
-                      Saya menyetujui pemrosesan data pribadi untuk keperluan event ini.
-                    </span>
-                  </label>
-
-                  <%= if @event.is_paid do %>
-                    <p class="text-sm text-base-content/70">
-                      Pendaftaran Anda akan dicatat tanpa pembayaran terlebih dahulu —
-                      pembayaran online menyusul, dan penyelenggara akan menghubungi Anda.
-                    </p>
-                  <% end %>
-
-                  <div class="flex gap-2">
-                    <button
-                      type="submit"
-                      class="flex-1 px-4 py-2 rounded-xl bg-primary text-primary-content font-semibold text-sm hover:brightness-90 transition"
-                    >
-                      Kirim Pendaftaran
-                    </button>
-                    <button
-                      type="button"
-                      phx-click="cancel_registration_form"
-                      class="flex-1 px-4 py-2 rounded-xl bg-base-200 text-base-content font-semibold text-sm hover:bg-base-300 transition"
-                    >
-                      Batal
-                    </button>
-                  </div>
-                </.form>
+          <%!-- Hero --%>
+          <section class="mt-4 overflow-hidden rounded-3xl border border-base-300/60 bg-base-100 shadow-[0_24px_60px_-32px_rgba(15,23,42,0.35)]">
+            <%= if @event.cover_image_url do %>
+              <div id="event-cover" class="flex items-center justify-center bg-base-200/50">
+                <img
+                  src={asset_url(@event.cover_image_url)}
+                  alt={@event.title}
+                  class="max-h-[26rem] w-full object-contain"
+                />
               </div>
             <% else %>
-              <div id="registration-cta" class="bg-base-100 border border-base-300 rounded-2xl p-4">
-                <%= if @event.status in [:canceled, :registration_closed] do %>
-                  <span class="inline-flex items-center justify-center w-full px-4 py-2 rounded-xl bg-base-200 text-base-content font-semibold">
-                    Pendaftaran Ditutup
-                  </span>
-                <% else %>
-                  <%= cond do %>
-                    <% @registration != nil and @registration.status == :approved -> %>
-                      <div class="text-center space-y-1">
-                        <span class="inline-flex items-center justify-center gap-1 w-full px-4 py-2 rounded-xl bg-success/15 text-success font-semibold">
-                          <.icon name="hero-check-circle" class="size-4" /> Disetujui
-                        </span>
-                        <p class="text-xs text-base-content/50">
-                          Kode: {@registration.registration_code}
-                        </p>
-                      </div>
-                    <% @registration != nil and @registration.status == :pending -> %>
-                      <div class="text-center space-y-1">
-                        <span class="inline-flex items-center justify-center gap-1 w-full px-4 py-2 rounded-xl bg-warning/15 text-warning font-semibold">
-                          <.icon name="hero-clock" class="size-4" /> Menunggu Konfirmasi
-                        </span>
-                        <p class="text-xs text-base-content/50">
-                          Pendaftaran Anda sedang ditinjau oleh penyelenggara.
-                        </p>
-                      </div>
-                    <% @registration != nil and @registration.status == :waitlisted -> %>
-                      <div class="text-center space-y-1">
-                        <span class="inline-flex items-center justify-center gap-1 w-full px-4 py-2 rounded-xl bg-info/15 text-info font-semibold">
-                          <.icon name="hero-queue-list" class="size-4" /> Dalam Daftar Tunggu
-                        </span>
-                        <p class="text-xs text-base-content/50">
-                          Anda akan dikonfirmasi jika ada slot tersedia.
-                        </p>
-                      </div>
-                    <% @registration != nil and @registration.status == :rejected -> %>
-                      <div class="text-center space-y-1">
-                        <span class="inline-flex items-center justify-center gap-1 w-full px-4 py-2 rounded-xl bg-error/15 text-error font-semibold">
-                          <.icon name="hero-x-circle" class="size-4" /> Pendaftaran Ditolak
-                        </span>
-                        <p class="text-xs text-base-content/50">
-                          Hubungi penyelenggara untuk informasi lebih lanjut.
-                        </p>
-                      </div>
-                    <% @registration != nil and @registration.status == :canceled -> %>
-                      <span class="inline-flex items-center justify-center gap-1 w-full px-4 py-2 rounded-xl bg-base-200 text-base-content/60 font-semibold">
-                        <.icon name="hero-x-mark" class="size-4" /> Dibatalkan
-                      </span>
-                    <% @registration != nil -> %>
-                      <span class="inline-flex items-center justify-center w-full px-4 py-2 rounded-xl bg-secondary/15 text-secondary font-semibold">
-                        Sudah Terdaftar
-                      </span>
-                    <% @registration_open != true -> %>
-                      <span class="inline-flex items-center justify-center w-full px-4 py-2 rounded-xl bg-base-200 text-base-content font-semibold">
-                        Pendaftaran Belum Dibuka
-                      </span>
-                    <% is_nil(@user_id) -> %>
-                      <.link
-                        navigate={"/login?return_to=/events/#{@event.slug}"}
-                        class="inline-flex items-center justify-center w-full px-4 py-2 rounded-xl bg-white font-semibold hover:brightness-90 transition"
-                      >
-                        Masuk untuk daftar
-                      </.link>
-                    <% has_registration_questions?(@event) -> %>
-                      <.link
-                        navigate={"/events/#{@event.slug}/register"}
-                        class="inline-flex items-center justify-center w-full px-4 py-2 rounded-xl bg-white font-semibold hover:brightness-90 transition"
-                      >
-                        Daftar Sekarang
-                      </.link>
-                    <% true -> %>
-                      <button
-                        phx-click="register"
-                        class="inline-flex items-center justify-center w-full px-4 py-2 rounded-xl bg-white font-semibold hover:brightness-90 transition"
-                      >
-                        Daftar Sekarang
-                      </button>
-                  <% end %>
-
-                  <%!-- Payment CTA for registered users of paid events --%>
-                  <%= if @event.is_paid and @registration != nil and is_nil(@registration.paid_at) do %>
-                    <div class="mt-3 pt-3 border-t border-base-300">
-                      <button
-                        phx-click="start_payment"
-                        class="inline-flex items-center justify-center gap-1 w-full px-4 py-2 rounded-xl bg-warning/90 text-warning-content font-semibold text-sm hover:brightness-90 transition"
-                      >
-                        <.icon name="hero-credit-card" class="size-4" /> Bayar Sekarang
-                      </button>
-                      <p class="text-xs text-base-content/50 mt-1 text-center">
-                        Selesaikan pembayaran online untuk event ini.
-                      </p>
-                    </div>
-                  <% end %>
-                <% end %>
+              <div class="relative h-36 overflow-hidden bg-gradient-to-br from-primary/25 via-secondary/20 to-accent/20 sm:h-44">
+                <div class="absolute -left-10 -top-12 size-40 rounded-full bg-white/25 blur-2xl" />
+                <div class="absolute -bottom-20 right-4 size-56 rounded-full bg-primary/25 blur-3xl" />
+                <div class="relative flex h-full items-center justify-center">
+                  <.icon name="hero-calendar-days" class="size-12 text-base-content/30" />
+                </div>
               </div>
             <% end %>
-          </aside>
+
+            <div class="space-y-5 p-5 sm:p-7 lg:p-8">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                  <.icon name="hero-sparkles" class="size-3.5" />
+                  {to_label(@event.event_type)}
+                </span>
+                <span class="inline-flex items-center rounded-full bg-base-200 px-3 py-1 text-xs font-medium text-base-content/70">
+                  {to_label(@event.mode)}
+                </span>
+                <span
+                  :if={to_label(@event.category) != ""}
+                  class="inline-flex items-center rounded-full bg-base-200 px-3 py-1 text-xs font-medium text-base-content/70"
+                >
+                  {to_label(@event.category)}
+                </span>
+                <%= if @event.is_paid do %>
+                  <span class="inline-flex items-center gap-1 rounded-full bg-warning/15 px-3 py-1 text-xs font-semibold text-warning">
+                    <.icon name="hero-ticket" class="size-3.5" /> Berbayar
+                  </span>
+                <% else %>
+                  <span class="inline-flex items-center gap-1 rounded-full bg-success/15 px-3 py-1 text-xs font-semibold text-success">
+                    <.icon name="hero-gift" class="size-3.5" /> Gratis
+                  </span>
+                <% end %>
+                <%= if @registration_state == :canceled do %>
+                  <span class="inline-flex items-center gap-1 rounded-full bg-error/15 px-3 py-1 text-xs font-semibold text-error">
+                    <.icon name="hero-x-circle" class="size-3.5" /> Event Dibatalkan
+                  </span>
+                <% end %>
+              </div>
+
+              <div class="space-y-2">
+                <h1 class="text-balance text-3xl font-bold leading-tight tracking-tight text-base-content sm:text-4xl lg:text-[2.6rem]">
+                  {@event.title}
+                </h1>
+                <p class="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-base-content/70">
+                  <.icon name="hero-building-office-2" class="size-4 text-base-content/50" />
+                  <%= if @host_org do %>
+                    <span>Diselenggarakan oleh</span>
+                    <.link
+                      navigate={"/orgs/#{@host_org.slug}"}
+                      class="font-semibold text-base-content underline-offset-4 transition hover:text-primary hover:underline"
+                    >
+                      {@host_org.name}
+                    </.link>
+                  <% else %>
+                    <span>{host_name(@event)}</span>
+                  <% end %>
+                </p>
+              </div>
+
+              <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <.meta_tile
+                  icon="hero-play-circle"
+                  label="Mulai"
+                  value={format_datetime(@event.starts_at, @event.timezone)}
+                />
+                <.meta_tile
+                  icon="hero-stop-circle"
+                  label="Selesai"
+                  value={format_datetime(@event.ends_at, @event.timezone)}
+                />
+                <.meta_tile icon="hero-map-pin" label="Lokasi" value={venue_text(@event)} />
+                <.meta_tile icon="hero-users" label="Kapasitas" value={quota_text(@event)} />
+              </div>
+            </div>
+          </section>
+
+          <div class="mt-6 grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
+            <%!-- Main content --%>
+            <section class="order-last space-y-6 lg:order-none lg:col-span-2">
+              <article class="rounded-3xl border border-base-300/60 bg-base-100 p-6 sm:p-7">
+                <h2 class="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-base-content/60">
+                  <.icon name="hero-document-text" class="size-4 text-primary" /> Tentang Event
+                </h2>
+                <div class="mt-3 whitespace-pre-line text-sm leading-relaxed text-base-content/85">
+                  {@event.description || "Penyelenggara belum menambahkan deskripsi untuk event ini."}
+                </div>
+              </article>
+
+              <article class="rounded-3xl border border-base-300/60 bg-base-100 p-6 sm:p-7">
+                <h2 class="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-base-content/60">
+                  <.icon name="hero-information-circle" class="size-4 text-primary" /> Detail Event
+                </h2>
+                <dl class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div class="flex items-center justify-between gap-3 rounded-2xl bg-base-200/50 px-4 py-3">
+                    <dt class="text-[11px] font-medium uppercase tracking-wide text-base-content/50">
+                      Jenis
+                    </dt>
+                    <dd class="text-sm font-semibold text-base-content">
+                      {to_label(@event.event_type)}
+                    </dd>
+                  </div>
+                  <div class="flex items-center justify-between gap-3 rounded-2xl bg-base-200/50 px-4 py-3">
+                    <dt class="text-[11px] font-medium uppercase tracking-wide text-base-content/50">
+                      Mode
+                    </dt>
+                    <dd class="text-sm font-semibold text-base-content">{to_label(@event.mode)}</dd>
+                  </div>
+                  <div class="flex items-center justify-between gap-3 rounded-2xl bg-base-200/50 px-4 py-3">
+                    <dt class="text-[11px] font-medium uppercase tracking-wide text-base-content/50">
+                      Kategori
+                    </dt>
+                    <dd class="text-sm font-semibold text-base-content">
+                      {to_label(@event.category)}
+                    </dd>
+                  </div>
+                  <div class="flex items-center justify-between gap-3 rounded-2xl bg-base-200/50 px-4 py-3">
+                    <dt class="text-[11px] font-medium uppercase tracking-wide text-base-content/50">
+                      Status
+                    </dt>
+                    <dd class="text-sm font-semibold text-base-content">
+                      {to_label(@event.status)}
+                    </dd>
+                  </div>
+                </dl>
+              </article>
+
+              <%= if @broadcasts != [] do %>
+                <article class="rounded-3xl border border-base-300/60 bg-base-100 p-6 sm:p-7">
+                  <h2 class="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-base-content/60">
+                    <.icon name="hero-megaphone" class="size-4 text-primary" /> Pengumuman
+                  </h2>
+                  <div class="mt-4 space-y-3">
+                    <%= for broadcast <- @broadcasts do %>
+                      <div class="rounded-2xl border border-base-200 bg-base-200/30 p-4">
+                        <%= if broadcast.title && broadcast.title != "" do %>
+                          <p class="text-sm font-semibold text-base-content">{broadcast.title}</p>
+                        <% end %>
+                        <div class="prose prose-sm mt-1 max-w-none text-sm text-base-content/85">
+                          {Markdown.to_html(broadcast.body)}
+                        </div>
+                        <p class="mt-2 text-[10px] text-base-content/40">
+                          {format_optional_datetime(broadcast.inserted_at, @event.timezone)}
+                        </p>
+                      </div>
+                    <% end %>
+                  </div>
+                </article>
+              <% end %>
+            </section>
+
+            <%!-- Registration card --%>
+            <aside class="order-first space-y-4 lg:sticky lg:top-6 lg:order-last">
+              <div class="overflow-hidden rounded-3xl border border-base-300/60 bg-base-100 shadow-[0_20px_50px_-32px_rgba(15,23,42,0.4)]">
+                <div class="bg-gradient-to-br from-primary/10 via-secondary/10 to-transparent px-5 py-5 sm:px-6">
+                  <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-base-content/50">
+                    Biaya Pendaftaran
+                  </p>
+                  <p class="mt-1 text-3xl font-bold tracking-tight">
+                    <%= if @event.is_paid do %>
+                      <span class="text-primary">Rp {format_idr(@event.price_idr || 0)}</span>
+                    <% else %>
+                      <span class="text-success">Gratis</span>
+                    <% end %>
+                  </p>
+                  <p class="mt-1 text-xs text-base-content/60">{quota_text(@event)}</p>
+                </div>
+
+                <div class="space-y-4 px-5 py-5 sm:px-6">
+                  <%= if @event.max_attendees && @event.max_attendees > 0 do %>
+                    <% pct = quota_percent(@event) %>
+                    <div class="space-y-1.5">
+                      <div class="flex items-center justify-between text-xs text-base-content/60">
+                        <span class="font-medium text-base-content/80">Kuota terisi</span>
+                        <span>{@event.registration_count || 0} / {@event.max_attendees}</span>
+                      </div>
+                      <div class="h-2 overflow-hidden rounded-full bg-base-200">
+                        <div
+                          class={[
+                            "h-full rounded-full transition-all duration-500",
+                            pct >= 90 && "bg-error",
+                            pct < 90 && "bg-gradient-to-r from-primary to-secondary"
+                          ]}
+                          style={"width: #{pct}%"}
+                        />
+                      </div>
+                    </div>
+                  <% end %>
+
+                  <dl class="space-y-2 rounded-2xl bg-base-200/40 p-4 text-xs">
+                    <div class="flex items-start justify-between gap-3">
+                      <dt class="text-base-content/50">Pendaftaran dibuka</dt>
+                      <dd class="text-right font-medium text-base-content/80">
+                        {format_optional_datetime(@event.registration_opens_at, @event.timezone)}
+                      </dd>
+                    </div>
+                    <div class="flex items-start justify-between gap-3">
+                      <dt class="text-base-content/50">Pendaftaran ditutup</dt>
+                      <dd class="text-right font-medium text-base-content/80">
+                        {format_optional_datetime(@event.registration_closes_at, @event.timezone)}
+                      </dd>
+                    </div>
+                  </dl>
+
+                  <%!-- Registration form --%>
+                  <%= if @show_registration_form do %>
+                    <div
+                      id="registration-form-panel"
+                      class="space-y-4 rounded-2xl border border-primary/30 bg-primary/5 p-4"
+                    >
+                      <p class="flex items-center gap-2 text-sm font-semibold text-base-content">
+                        <.icon name="hero-pencil-square" class="size-4 text-primary" />
+                        Formulir Pendaftaran
+                      </p>
+                      <div class="rounded-xl bg-base-100/80 px-4 py-3 text-sm">
+                        <p class="font-medium text-base-content">{@event.title}</p>
+                        <%= if @event.is_paid do %>
+                          <p class="text-base-content/60">
+                            Rp {format_idr(@event.price_idr || 0)}
+                          </p>
+                        <% end %>
+                      </div>
+
+                      <.form for={%{}} phx-submit="submit_registration" class="space-y-3">
+                        <label class="block">
+                          <span class="mb-1 block text-xs font-medium text-base-content/70">
+                            Nama lengkap
+                          </span>
+                          <input
+                            type="text"
+                            name="registration[name]"
+                            value={@prefill_name}
+                            class="input input-bordered w-full rounded-xl"
+                            placeholder="Nama lengkap Anda"
+                            required
+                          />
+                        </label>
+                        <label class="block">
+                          <span class="mb-1 block text-xs font-medium text-base-content/70">
+                            Email
+                          </span>
+                          <input
+                            type="email"
+                            name="registration[email]"
+                            value={@prefill_email}
+                            class="input input-bordered w-full rounded-xl"
+                            placeholder="email@contoh.com"
+                            required
+                          />
+                        </label>
+                        <label class="block">
+                          <span class="mb-1 block text-xs font-medium text-base-content/70">
+                            No. HP / WhatsApp
+                          </span>
+                          <input
+                            type="text"
+                            name="registration[phone]"
+                            value={@prefill_phone}
+                            class="input input-bordered w-full rounded-xl"
+                            placeholder="Opsional"
+                          />
+                        </label>
+                        <label class="flex cursor-pointer items-start gap-2">
+                          <input
+                            type="checkbox"
+                            name="registration[consent]"
+                            value="true"
+                            class="checkbox checkbox-primary checkbox-sm mt-0.5"
+                            required
+                          />
+                          <span class="text-xs text-base-content/70">
+                            Saya menyetujui pemrosesan data pribadi untuk keperluan event ini.
+                          </span>
+                        </label>
+
+                        <%= if @event.is_paid do %>
+                          <p class="text-sm text-base-content/70">
+                            Pendaftaran Anda tercatat menunggu pembayaran — selesaikan
+                            pembayaran online setelah ini untuk mengamankan slot Anda.
+                          </p>
+                        <% end %>
+
+                        <div class="flex gap-2">
+                          <button
+                            type="submit"
+                            class="flex-1 rounded-xl bg-gradient-to-r from-primary to-secondary px-4 py-2 text-sm font-semibold text-primary-content shadow-lg shadow-primary/20 transition hover:brightness-105"
+                          >
+                            Kirim Pendaftaran
+                          </button>
+                          <button
+                            type="button"
+                            phx-click="cancel_registration_form"
+                            class="flex-1 rounded-xl bg-base-200 px-4 py-2 text-sm font-semibold text-base-content transition hover:bg-base-300"
+                          >
+                            Batal
+                          </button>
+                        </div>
+                      </.form>
+                    </div>
+                  <% else %>
+                    <div id="registration-cta" class="space-y-3">
+                      <%= if @event.status in [:canceled, :registration_closed] do %>
+                        <span class="inline-flex w-full items-center justify-center rounded-xl bg-base-200 px-4 py-3 text-sm font-semibold text-base-content">
+                          Pendaftaran Ditutup
+                        </span>
+                      <% else %>
+                        <%= cond do %>
+                          <% @registration != nil and @registration.status == :approved -> %>
+                            <div class="space-y-1 text-center">
+                              <span class="inline-flex w-full items-center justify-center gap-1 rounded-xl bg-success/15 px-4 py-3 text-sm font-semibold text-success">
+                                <.icon name="hero-check-circle" class="size-4" /> Disetujui
+                              </span>
+                              <p class="text-xs text-base-content/50">
+                                Kode: {@registration.registration_code}
+                              </p>
+                            </div>
+                          <% @registration != nil and @registration.status == :pending and
+                               @event.is_paid and is_nil(@registration.paid_at) -> %>
+                            <div class="space-y-1 text-center">
+                              <span class="inline-flex w-full items-center justify-center gap-1 rounded-xl bg-warning/15 px-4 py-3 text-sm font-semibold text-warning">
+                                <.icon name="hero-clock" class="size-4" /> Menunggu Pembayaran
+                              </span>
+                              <p class="text-xs text-base-content/50">
+                                Selesaikan pembayaran untuk mengamankan slot Anda.
+                              </p>
+                            </div>
+                          <% @registration != nil and @registration.status == :pending -> %>
+                            <div class="space-y-1 text-center">
+                              <span class="inline-flex w-full items-center justify-center gap-1 rounded-xl bg-warning/15 px-4 py-3 text-sm font-semibold text-warning">
+                                <.icon name="hero-clock" class="size-4" /> Menunggu Konfirmasi
+                              </span>
+                              <p class="text-xs text-base-content/50">
+                                Pendaftaran Anda sedang ditinjau oleh penyelenggara.
+                              </p>
+                            </div>
+                          <% @registration != nil and @registration.status == :waitlisted -> %>
+                            <div class="space-y-1 text-center">
+                              <span class="inline-flex w-full items-center justify-center gap-1 rounded-xl bg-info/15 px-4 py-3 text-sm font-semibold text-info">
+                                <.icon name="hero-queue-list" class="size-4" /> Dalam Daftar Tunggu
+                              </span>
+                              <p class="text-xs text-base-content/50">
+                                Anda akan dikonfirmasi jika ada slot tersedia.
+                              </p>
+                            </div>
+                          <% @registration != nil and @registration.status == :rejected -> %>
+                            <div class="space-y-1 text-center">
+                              <span class="inline-flex w-full items-center justify-center gap-1 rounded-xl bg-error/15 px-4 py-3 text-sm font-semibold text-error">
+                                <.icon name="hero-x-circle" class="size-4" /> Pendaftaran Ditolak
+                              </span>
+                              <p class="text-xs text-base-content/50">
+                                Hubungi penyelenggara untuk informasi lebih lanjut.
+                              </p>
+                            </div>
+                          <% @registration != nil and @registration.status == :canceled -> %>
+                            <span class="inline-flex w-full items-center justify-center gap-1 rounded-xl bg-base-200 px-4 py-3 text-sm font-semibold text-base-content/60">
+                              <.icon name="hero-x-mark" class="size-4" /> Dibatalkan
+                            </span>
+                          <% @registration != nil -> %>
+                            <span class="inline-flex w-full items-center justify-center rounded-xl bg-secondary/15 px-4 py-3 text-sm font-semibold text-secondary">
+                              Sudah Terdaftar
+                            </span>
+                          <% @registration_open != true -> %>
+                            <span class="inline-flex w-full items-center justify-center rounded-xl bg-base-200 px-4 py-3 text-sm font-semibold text-base-content">
+                              <%= case @registration_state do %>
+                                <% :full -> %>
+                                  Kuota Penuh
+                                <% :closed -> %>
+                                  Pendaftaran Ditutup
+                                <% :canceled -> %>
+                                  Event Dibatalkan
+                                <% _ -> %>
+                                  Pendaftaran Belum Dibuka
+                              <% end %>
+                            </span>
+                          <% is_nil(@user_id) -> %>
+                            <%!-- Guest-friendly: register without an account; login is a quiet option. --%>
+                            <.link
+                              navigate={"/events/#{@event.slug}/register"}
+                              class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary to-secondary px-4 py-3 text-sm font-semibold text-primary-content shadow-lg shadow-primary/25 transition hover:brightness-105"
+                            >
+                              Daftar Sekarang <.icon name="hero-arrow-right" class="size-4" />
+                            </.link>
+                            <.link
+                              navigate={"/login?return_to=/events/#{@event.slug}/register"}
+                              class="block text-center text-xs text-base-content/50 link link-hover"
+                            >
+                              Punya akun Curatorian? Masuk agar pendaftaran tersimpan di akun Anda
+                            </.link>
+                          <% has_registration_questions?(@event) -> %>
+                            <.link
+                              navigate={"/events/#{@event.slug}/register"}
+                              class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary to-secondary px-4 py-3 text-sm font-semibold text-primary-content shadow-lg shadow-primary/25 transition hover:brightness-105"
+                            >
+                              Daftar Sekarang <.icon name="hero-arrow-right" class="size-4" />
+                            </.link>
+                          <% true -> %>
+                            <button
+                              phx-click="register"
+                              class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary to-secondary px-4 py-3 text-sm font-semibold text-primary-content shadow-lg shadow-primary/25 transition hover:brightness-105"
+                            >
+                              Daftar Sekarang <.icon name="hero-arrow-right" class="size-4" />
+                            </button>
+                        <% end %>
+
+                        <%!-- Payment CTA for registered users of paid events --%>
+                        <%= if @event.is_paid and @registration != nil and is_nil(@registration.paid_at) do %>
+                          <div class="border-t border-base-200 pt-3">
+                            <button
+                              phx-click="start_payment"
+                              class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-warning/90 px-4 py-3 text-sm font-semibold text-warning-content transition hover:brightness-95"
+                            >
+                              <.icon name="hero-credit-card" class="size-4" /> Bayar Sekarang
+                            </button>
+                            <p class="mt-1 text-center text-xs text-base-content/50">
+                              Selesaikan pembayaran online untuk event ini.
+                            </p>
+                          </div>
+                        <% end %>
+                      <% end %>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+            </aside>
+          </div>
         </div>
       </div>
     </Layouts.app>
+    """
+  end
+
+  attr :icon, :string, required: true
+  attr :label, :string, required: true
+  attr :value, :string, required: true
+
+  defp meta_tile(assigns) do
+    ~H"""
+    <div class="flex items-start gap-3 rounded-2xl border border-base-300/50 bg-base-200/30 p-3.5">
+      <span class="flex size-9 shrink-0 items-center justify-center rounded-xl bg-base-100 text-primary shadow-sm">
+        <.icon name={@icon} class="size-4" />
+      </span>
+      <div class="min-w-0">
+        <p class="text-[11px] font-medium uppercase tracking-wide text-base-content/50">{@label}</p>
+        <p class="text-sm font-semibold leading-snug text-base-content">{@value}</p>
+      </div>
+    </div>
     """
   end
 
@@ -472,7 +648,9 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
       "startDate" => iso_datetime(event.starts_at),
       "endDate" => iso_datetime(event.ends_at),
       "eventAttendanceMode" => attendance_mode_url(event.mode),
-      "eventStatus" => "https://schema.org/EventScheduled",
+      # schema.org statuses: EventScheduled | EventMovedOnline | EventPostponed |
+      # EventRescheduled | EventCancelled | EventOffline
+      "eventStatus" => event_status_url(event.status),
       # meeting_url is gated to approved registrants — not exposed in public JSON-LD
       "location" => event_location(event),
       "image" => cover && Layouts.meta_image_url(cover),
@@ -504,6 +682,11 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
   defp attendance_mode_url(:hybrid), do: "https://schema.org/MixedEventAttendanceMode"
   defp attendance_mode_url(_), do: "https://schema.org/OfflineEventAttendanceMode"
 
+  # Search engines must not advertise a canceled event as upcoming.
+  # Public for testability; also reusable if JSON-LD moves to a shared module.
+  def event_status_url(:canceled), do: "https://schema.org/EventCancelled"
+  def event_status_url(_), do: "https://schema.org/EventScheduled"
+
   defp event_location(%{mode: :online}) do
     %{"@type" => "VirtualLocation"}
   end
@@ -532,24 +715,34 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
   end
 
   defp registration_open?(event) do
+    registration_state(event) == :open
+  end
+
+  # Why registration is (not) possible — drives the show-page badge copy.
+  # "Pendaftaran Belum Dibuka" is only accurate before the window opens;
+  # a full or closed event needs its own message.
+  defp registration_state(event) do
     now = DateTime.utc_now()
 
     cond do
-      event.status in [:canceled, :draft, :completed] ->
-        false
+      event.status == :canceled ->
+        :canceled
+
+      event.status in [:draft, :completed] ->
+        :unavailable
 
       event.registration_opens_at && DateTime.compare(now, event.registration_opens_at) == :lt ->
-        false
+        :not_yet_open
 
       event.registration_closes_at && DateTime.compare(now, event.registration_closes_at) != :lt ->
-        false
+        :closed
 
       event.max_attendees && event.max_attendees > 0 &&
           event.registration_count >= event.max_attendees ->
-        false
+        :full
 
       true ->
-        true
+        :open
     end
   end
 
@@ -557,10 +750,20 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
     is_list(event.registration_questions) and event.registration_questions != []
   end
 
-  defp event_badge(event) do
-    [to_label(event.event_type), to_label(event.mode), to_label(event.category)]
-    |> Enum.reject(&is_nil/1)
-    |> Enum.join(" • ")
+  defp quota_text(event) do
+    if event.max_attendees && event.max_attendees > 0 do
+      "#{event.registration_count || 0} dari #{event.max_attendees} peserta"
+    else
+      "Kuota tidak dibatasi"
+    end
+  end
+
+  defp quota_percent(event) do
+    if event.max_attendees && event.max_attendees > 0 do
+      min(100, round((event.registration_count || 0) / event.max_attendees * 100))
+    else
+      0
+    end
   end
 
   defp host_name(event) do
@@ -580,23 +783,11 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
     end
   end
 
-  defp date_range(event) do
-    starts = event.starts_at && DateTime.to_date(event.starts_at) |> Date.to_string()
-    ends = event.ends_at && DateTime.to_date(event.ends_at) |> Date.to_string()
-    if starts && ends, do: "#{starts} – #{ends}", else: "Tanggal tidak tersedia"
-  end
+  defp format_datetime(nil, _tz), do: "-"
+  defp format_datetime(dt, tz), do: TimeFormat.datetime(dt, tz)
 
-  defp slot_text(event) do
-    if event.max_attendees && event.max_attendees > 0,
-      do: "dari #{event.max_attendees}",
-      else: "Tanpa batas"
-  end
-
-  defp format_datetime(nil), do: "-"
-  defp format_datetime(dt), do: DateTime.to_string(dt)
-
-  defp format_optional_datetime(nil), do: "Tidak ditentukan"
-  defp format_optional_datetime(dt), do: DateTime.to_string(dt)
+  defp format_optional_datetime(nil, _tz), do: "Tidak ditentukan"
+  defp format_optional_datetime(dt, tz), do: TimeFormat.datetime_short(dt, tz)
 
   defp to_label(:online), do: "Online"
   defp to_label(:offline), do: "Offline"

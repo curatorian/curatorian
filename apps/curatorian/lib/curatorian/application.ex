@@ -15,6 +15,8 @@ defmodule Curatorian.Application do
       # Start the Finch HTTP client for sending emails
       {Finch, name: Curatorian.Finch},
       Curatorian.RateLimiter,
+      Curatorian.Search.Federation.Tables,
+      Curatorian.Search.Federation.Budget,
       Curatorian.SEO.SitemapCache,
       # Start to serve requests, typically the last entry
       CuratorianWeb.Endpoint

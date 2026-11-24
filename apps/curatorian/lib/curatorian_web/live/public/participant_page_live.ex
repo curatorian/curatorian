@@ -15,16 +15,39 @@ defmodule CuratorianWeb.Public.ParticipantPageLive do
   def mount(%{"token" => token}, _session, socket) do
     case Public.get_registration_by_token(token) do
       {registration, event} ->
+        # A logged-in visitor opening a guest registration's page that
+        # matches their account email claims it (Google-Form guests who
+        # later signed up). Fire and forget.
+        current_scope = socket.assigns[:current_scope]
+
+        if current_scope && current_scope.user do
+          Public.claim_guest_registrations(current_scope.user.id, current_scope.user.email)
+        end
+
         checkpoint_records = Public.list_checkpoint_records(registration.id)
 
         certificate =
           Public.get_certificate_for_registration(registration.id)
+
+        # #12: the join link was previously only in the 1h reminder email.
+        # Approved participants of online/hybrid events get it on their
+        # participant page.
+        join_url =
+          if registration.status == :approved and event.mode in [:online, :hybrid] and
+               is_binary(event.meeting_url) and event.meeting_url != "" do
+            event.meeting_url
+          end
 
         {:ok,
          socket
          |> assign(:page_title, "#{event.title} — Peserta")
          |> assign(:registration, registration)
          |> assign(:event, event)
+         |> assign(:join_url, join_url)
+         |> assign(
+           :awaiting_payment,
+           event.is_paid and is_nil(registration.paid_at)
+         )
          |> assign(:checkpoint_records, checkpoint_records)
          |> assign(:certificate, certificate)
          |> assign(:code_input, "")
@@ -36,6 +59,29 @@ defmodule CuratorianWeb.Public.ParticipantPageLive do
          socket
          |> put_flash(:error, "Tautan peserta tidak valid atau sudah kedaluwarsa.")
          |> push_navigate(to: "/events")}
+    end
+  end
+
+  @impl true
+  def handle_event("start_payment", _params, socket) do
+    %{event: event, registration: registration} = socket.assigns
+
+    # Guests pay with their registration token; account registrations are
+    # authorized by the logged-in user (nil here is fine — the token is the
+    # credential on this page).
+    identity_opts = [registration_token: registration.token]
+
+    case Curatorian.EventPayments.start_payment(event.id, registration.id, nil, identity_opts) do
+      {:ok, %{redirect_url: redirect_url}} ->
+        {:noreply, redirect(socket, external: redirect_url)}
+
+      {:error, _reason} ->
+        {:noreply,
+         put_flash(
+           socket,
+           :warning,
+           "Pembayaran online sedang tidak tersedia. Penyelenggara akan menghubungi Anda untuk penyelesaian pembayaran."
+         )}
     end
   end
 
@@ -62,6 +108,10 @@ defmodule CuratorianWeb.Public.ParticipantPageLive do
 
         {:error, :already_recorded} ->
           {:noreply, assign(socket, :code_error, "Kehadiran sudah tercatat untuk sesi ini.")}
+
+        {:error, :rate_limited} ->
+          {:noreply,
+           assign(socket, :code_error, "Terlalu banyak percobaan. Silakan coba lagi nanti.")}
       end
     end
   end
@@ -88,10 +138,27 @@ defmodule CuratorianWeb.Public.ParticipantPageLive do
                 <.icon name="hero-check-circle" class="size-4" /> Pendaftaran Disetujui
               </span>
             <% :pending -> %>
-              <span class="inline-flex items-center gap-1 px-4 py-2 rounded-xl bg-warning/15 text-warning font-semibold text-sm">
-                <.icon name="hero-clock" class="size-4" /> Menunggu Konfirmasi
-              </span>
-              <p class="text-xs text-base-content/50 mt-1">Penyelenggara akan mengkonfirmasi pendaftaran Anda.</p>
+              <%= if @awaiting_payment do %>
+                <span class="inline-flex items-center gap-1 px-4 py-2 rounded-xl bg-warning/15 text-warning font-semibold text-sm">
+                  <.icon name="hero-clock" class="size-4" /> Menunggu Pembayaran
+                </span>
+                <p class="text-xs text-base-content/50 mt-1">
+                  Selesaikan pembayaran untuk mengamankan slot Anda.
+                </p>
+                <button
+                  phx-click="start_payment"
+                  class="btn btn-warning btn-sm w-full mt-3 gap-1"
+                >
+                  <.icon name="hero-credit-card" class="size-4" /> Bayar Sekarang
+                </button>
+              <% else %>
+                <span class="inline-flex items-center gap-1 px-4 py-2 rounded-xl bg-warning/15 text-warning font-semibold text-sm">
+                  <.icon name="hero-clock" class="size-4" /> Menunggu Konfirmasi
+                </span>
+                <p class="text-xs text-base-content/50 mt-1">
+                  Penyelenggara akan mengkonfirmasi pendaftaran Anda.
+                </p>
+              <% end %>
             <% :waitlisted -> %>
               <span class="inline-flex items-center gap-1 px-4 py-2 rounded-xl bg-info/15 text-info font-semibold text-sm">
                 <.icon name="hero-queue-list" class="size-4" /> Daftar Tunggu
@@ -105,12 +172,35 @@ defmodule CuratorianWeb.Public.ParticipantPageLive do
           </p>
         </div>
 
+        <%!-- Join link (approved + online/hybrid only) --%>
+        <%= if @join_url do %>
+          <div class="bg-base-100 border border-primary/30 rounded-2xl p-5 text-center">
+            <p class="text-sm font-semibold text-base-content mb-2">Bergabung ke Sesi</p>
+            <a
+              href={@join_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn btn-primary w-full gap-2"
+            >
+              <.icon name="hero-video-camera" class="size-4" /> Buka Tautan Bergabung
+            </a>
+            <p class="text-xs text-base-content/50 mt-2 break-all">
+              {@join_url}
+            </p>
+          </div>
+        <% end %>
+
         <%!-- QR Code --%>
         <div class="bg-base-100 border border-base-300 rounded-2xl p-6 text-center">
           <p class="text-sm font-medium text-base-content mb-3">
             QR Check-in
           </p>
-          <div id="participant-qr" class="flex justify-center" phx-hook=".ParticipantQr" data-url={url(~p"/r/#{@registration.token}")}>
+          <div
+            id="participant-qr"
+            class="flex justify-center"
+            phx-hook=".ParticipantQr"
+            data-url={url(~p"/r/#{@registration.token}")}
+          >
           </div>
           <p class="text-xs text-base-content/50 mt-3">
             Tunjukkan QR ini kepada penyelenggara untuk check-in.

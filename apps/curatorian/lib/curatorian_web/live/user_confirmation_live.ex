@@ -92,6 +92,7 @@ defmodule CuratorianWeb.UserConfirmationLive do
   def mount(%{"token" => token}, _session, socket) do
     user = Accounts.get_user_by_confirmation_token(token)
     form = to_form(%{"token" => token}, as: "user")
+
     {:ok, socket |> assign(form: form, user: user) |> assign(:noindex, true),
      temporary_assigns: [form: nil]}
   end

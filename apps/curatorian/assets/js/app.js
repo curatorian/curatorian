@@ -25,6 +25,7 @@ import { LiveSocket } from "phoenix_live_view";
 import topbar from "../vendor/topbar";
 import Slugify from "./slugify";
 import Trix from "./trix";
+import EBookReaderHooks from "./ebook_reader";
 // import { hooks as colocatedHooks } from "phoenix-colocated/curatorian";
 const colocatedHooks = {};
 
@@ -258,13 +259,134 @@ Hooks.PersistLocation = {
   },
 };
 
+// Collections page: Escape clears the search box; "/" focuses it from
+// anywhere on the page (unless the user is already typing in a field).
+Hooks.SearchInput = {
+  mounted() {
+    this._onDocumentKeydown = (event) => {
+      const tag = document.activeElement?.tagName;
+      if (
+        event.key === "/" &&
+        !["INPUT", "TEXTAREA", "SELECT"].includes(tag) &&
+        !document.activeElement?.isContentEditable
+      ) {
+        event.preventDefault();
+        this.el.focus();
+        this.el.select?.();
+      }
+    };
+
+    this._onInputKeydown = (event) => {
+      if (event.key === "Escape") {
+        this.el.value = "";
+        this.pushEvent("search", { value: "" });
+      }
+    };
+
+    document.addEventListener("keydown", this._onDocumentKeydown);
+    this.el.addEventListener("keydown", this._onInputKeydown);
+  },
+
+  destroyed() {
+    document.removeEventListener("keydown", this._onDocumentKeydown);
+    this.el.removeEventListener("keydown", this._onInputKeydown);
+  },
+};
+
+// Collections page: swap a broken cover image for the typographic placeholder.
+Hooks.CoverFallback = {
+  mounted() {
+    const img = this.el.querySelector("img");
+    if (!img) return;
+
+    img.addEventListener("error", () => {
+      if (this.el.querySelector(".cover-placeholder")) return;
+
+      const placeholder = document.createElement("div");
+      placeholder.className = "cover-placeholder";
+      placeholder.style.setProperty("--h", this.el.dataset.hue || "178");
+
+      const type = document.createElement("small");
+      type.textContent = this.el.dataset.type || "";
+      const title = document.createElement("span");
+      title.textContent = this.el.dataset.title || "";
+      const org = document.createElement("small");
+      org.textContent = this.el.dataset.org || "";
+
+      placeholder.append(type, title, org);
+      img.replaceWith(placeholder);
+    });
+  },
+};
+
+// Collections page: native <dialog> filter drawer (focus trap + Esc).
+Hooks.FilterDrawer = {
+  mounted() {
+    this.handleEvent("open-filter-drawer", () => {
+      if (!this.el.open) this.el.showModal();
+    });
+
+    this.handleEvent("close-filter-drawer", () => {
+      if (this.el.open) this.el.close();
+    });
+  },
+};
+
+// Collections page: client-side filter for long facet lists ("cari di daftar").
+Hooks.FacetFilter = {
+  mounted() {
+    const target = document.getElementById(this.el.dataset.target);
+
+    this._onInput = () => {
+      if (!target) return;
+      const query = this.el.value.trim().toLowerCase();
+
+      target.querySelectorAll("[data-facet-option]").forEach((el) => {
+        const label = el.dataset.label || "";
+        el.hidden = query !== "" && !label.includes(query);
+      });
+    };
+
+    this.el.addEventListener("input", this._onInput);
+  },
+
+  destroyed() {
+    this.el.removeEventListener("input", this._onInput);
+  },
+};
+
+// Collections page: scroll back to the results and move focus when the page
+// number or the query changes (spec §6A.5.10); facet toggles keep the
+// scroll position.
+Hooks.ResultsScroller = {
+  mounted() {
+    this._page = this.el.dataset.page;
+    this._q = this.el.dataset.q;
+  },
+
+  updated() {
+    const pageChanged = this.el.dataset.page !== this._page;
+    const qChanged = this.el.dataset.q !== this._q;
+    this._page = this.el.dataset.page;
+    this._q = this.el.dataset.q;
+
+    if ((pageChanged || qChanged) && window.scrollY > this.el.offsetTop) {
+      this.el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    if (pageChanged || qChanged) {
+      this.el.focus({ preventScroll: true });
+    }
+  },
+};
+
 const csrfToken = document
   .querySelector("meta[name='csrf-token']")
   .getAttribute("content");
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: { _csrf_token: csrfToken },
-  hooks: { ...Hooks, ...colocatedHooks },
+  hooks: { ...Hooks, ...EBookReaderHooks, ...colocatedHooks },
 });
 
 // Show progress bar on live navigation and form submits

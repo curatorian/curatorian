@@ -103,6 +103,7 @@ defmodule CuratorianWeb do
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS
       alias CuratorianWeb.Layouts
+      alias CuratorianWeb.EbookStreamController
 
       # Authorization helpers
       import VoileWeb.Auth.Authorization,

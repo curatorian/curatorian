@@ -1,0 +1,27 @@
+{
+  "api_key": "bJA...73I",
+  "is_grandfathered": false,
+  "rate_limit": {
+    "daily_budget_usd": 1,
+    "daily_used_usd": 0.001,
+    "daily_remaining_usd": 0.999,
+    "prepaid_balance_usd": 0,
+    "prepaid_remaining_usd": 0,
+    "prepaid_expires_at": null,
+    "resets_at": "2026-11-25T00:00:00.000Z",
+    "resets_in_seconds": 40652,
+    "per_second_limits": {
+      "all_requests": 30,
+      "searches_with_more_than_5_boolean_operators": 2,
+      "filters_with_more_than_10_topic_or_concept_ids": 1,
+      "semantic_search": 1
+    },
+    "endpoint_costs_usd": {
+      "list": 0.0001,
+      "search": 0.001
+    },
+    "credits_limit": 10000,
+    "credits_used": 10,
+    "credits_remaining": 9990
+  }
+}

@@ -120,10 +120,10 @@ config :curatorian,
 
 # Curatorian Repo searches voile schema first (Voile tables), then atrium (Atrium tables).
 # Curatorian has no migrations of its own — atrium owns and migrates its schema.
-# Most atrium tables are read-only from Curatorian. Three approved exceptions are
+# Most atrium tables are read-only from Curatorian. Four approved exceptions are
 # written directly (single shared database): event_registrations (public
-# registration), event_certificates (download counters), and content_reports
-# (moderation reports).
+# registration), event_checkpoint_records (public session-code check-in),
+# event_certificates (download counters), and content_reports (moderation reports).
 config :curatorian, Curatorian.Repo,
   after_connect: {Postgrex, :query!, ["SET search_path TO voile,atrium,public", []]}
 
