@@ -14,7 +14,10 @@ shared_test_db_config = [
   hostname: "localhost",
   database: "curatorian_test#{System.get_env("MIX_TEST_PARTITION")}",
   pool: Ecto.Adapters.SQL.Sandbox,
-  pool_size: System.schedulers_online() * 2,
+  # Two repos share this config, so the real ceiling is 2x this number. Cap it
+  # to stay well clear of Postgres max_connections when dev servers are also
+  # running (schedulers*2 on a many-core box exhausted the pool).
+  pool_size: min(System.schedulers_online() * 2, 8),
   parameters: [timezone: "Asia/Jakarta"]
 ]
 

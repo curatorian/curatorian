@@ -184,6 +184,7 @@ defmodule CuratorianWeb.Public.CollectionsLive do
      |> assign(:external_notice, nil)
      |> assign(:last_submitted_q, nil)
      |> assign(:last_external_q, nil)
+     |> assign(:nav_initialized, false)
      |> assign(:visitor_key, visitor_key(socket))}
   end
 
@@ -323,17 +324,16 @@ defmodule CuratorianWeb.Public.CollectionsLive do
     apply_filters(socket, %{q: value}, page: 1)
   end
 
-  # Explicit submit (Enter / "Cari" button) — this is the only external
-  # fan-out trigger (spec D4, §8.1). Debounced typing must NOT trigger it.
+  # Local submit only (Enter / "Cari"). External sources are searched from
+  # the explicit "Cari dari sumber lain" button below the results (D4).
   def handle_event("submit_search", %{"q" => q}, socket) do
-    trimmed = String.trim(q)
-
-    socket =
-      socket
-      |> assign(:last_submitted_q, trimmed)
-      |> maybe_fan_out(trimmed)
-
     apply_filters(socket, %{q: q}, page: 1)
+  end
+
+  # The one and only external fan-out trigger (spec D4, §8.1): an explicit
+  # click after the local results are on screen.
+  def handle_event("search_external", _params, socket) do
+    {:noreply, maybe_fan_out(socket, socket.assigns.filters.q, force: true)}
   end
 
   def handle_event("clear_search", _params, socket) do
@@ -370,27 +370,16 @@ defmodule CuratorianWeb.Public.CollectionsLive do
   def handle_event("set_kind", %{"kind" => kind}, socket) when is_binary(kind) do
     kind_atom = parse_kind(%{"kind" => kind})
 
+    # A different kind means different sources: drop the previous external
+    # results and offer the explicit search again for the new kind.
     socket =
-      if socket.assigns[:last_external_q] && socket.assigns.ext == "1" do
-        maybe_fan_out(socket, socket.assigns.filters.q, force: true, kind: kind_atom)
-      else
-        socket
-      end
+      socket
+      |> assign(:external, %{})
+      |> assign(:external_display, [])
+      |> assign(:external_notice, nil)
+      |> assign(:last_external_q, nil)
 
     apply_filters(socket, %{}, kind: kind_atom)
-  end
-
-  def handle_event("toggle_ext", _params, socket) do
-    new_ext = if socket.assigns.ext == "1", do: "0", else: "1"
-
-    socket =
-      if new_ext == "1" and String.trim(socket.assigns.filters.q) != "" do
-        maybe_fan_out(socket, socket.assigns.filters.q, force: true)
-      else
-        socket
-      end
-
-    apply_filters(socket, %{}, ext: new_ext)
   end
 
   def handle_event("retry_provider", %{"provider" => provider_id}, socket) do
@@ -483,7 +472,7 @@ defmodule CuratorianWeb.Public.CollectionsLive do
 
   # External fan-out trigger rules (spec D4, §8.1) — all must hold: socket
   # connected, human-submitted, `q` >= 3 chars, `ext=1`, not visitor-limited.
-  defp maybe_fan_out(socket, q, opts \\ []) do
+  defp maybe_fan_out(socket, q, opts) do
     force? = Keyword.get(opts, :force, false)
     trimmed = String.trim(q)
     kind = Keyword.get(opts, :kind, socket.assigns.kind)
@@ -528,9 +517,24 @@ defmodule CuratorianWeb.Public.CollectionsLive do
 
     external = Map.new(provider_ids, fn id -> {id, %{state: :loading}} end)
 
+    # Seed the display with loading blocks so skeletons (with reserved height)
+    # render immediately instead of an empty gap.
+    loading_display =
+      Enum.map(provider_ids, fn id ->
+        %{
+          id: id,
+          label: Router.provider_label(id),
+          state: :loading,
+          results: [],
+          total: nil,
+          more_url: nil,
+          more_from_url: nil
+        }
+      end)
+
     socket
     |> assign(:external, external)
-    |> assign(:external_display, [])
+    |> assign(:external_display, loading_display)
     |> then(fn socket ->
       Enum.reduce(provider_ids, socket, fn id, acc ->
         provider = Router.provider(id)
@@ -1038,6 +1042,7 @@ defmodule CuratorianWeb.Public.CollectionsLive do
       assigns
       |> assign(:active, active_filters(assigns))
       |> assign(:external_visible, external_visible?(assigns))
+      |> assign(:external_offer, external_offer?(assigns))
 
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
@@ -1093,29 +1098,6 @@ defmodule CuratorianWeb.Public.CollectionsLive do
             {kind_label(kind)}
           </.link>
         </nav>
-
-        <%!-- External toggle + privacy note (§10) --%>
-        <div class="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-sm">
-          <label for="ext-toggle" class="inline-flex items-center gap-2 cursor-pointer">
-            <input
-              id="ext-toggle"
-              type="checkbox"
-              class="toggle toggle-sm"
-              checked={@ext == "1"}
-              phx-click="toggle_ext"
-            />
-            <span>Sertakan sumber luar</span>
-          </label>
-          <span class="text-xs text-base-content/50">
-            Kata kunci pencarian Anda akan dikirim ke layanan pihak ketiga yang dipilih.
-            <.link
-              navigate={~p"/privacy-policy"}
-              class="underline underline-offset-2 hover:text-primary"
-            >
-              Kebijakan privasi
-            </.link>
-          </span>
-        </div>
 
         <%!-- Active filter chips (§6A.5.3) --%>
         <div
@@ -1334,6 +1316,37 @@ defmodule CuratorianWeb.Public.CollectionsLive do
               class="mt-10"
             />
 
+            <%!-- Explicit external search (spec D4): nothing is sent to
+                 third-party sources until this button is pressed. --%>
+            <div :if={@external_offer} id="external-search-invite" class="mt-8">
+              <button
+                type="button"
+                id="external-search-button"
+                phx-click="search_external"
+                class="btn btn-outline gap-2"
+              >
+                <.icon name="hero-globe-alt" class="size-4" /> Cari dari sumber lain
+              </button>
+
+              <p :if={@external_notice == :visitor_limited} class="mt-2 text-sm" role="status">
+                Anda mencari terlalu cepat. Coba lagi sebentar lagi.
+              </p>
+
+              <p :if={@external_notice == :no_providers} class="mt-2 text-sm text-base-content/60">
+                Sumber luar untuk jenis hasil ini belum tersedia.
+              </p>
+
+              <p class="mt-2 text-xs text-base-content/50">
+                Kata kunci pencarian Anda akan dikirim ke layanan pihak ketiga yang dipilih.
+                <.link
+                  navigate={~p"/privacy-policy"}
+                  class="underline underline-offset-2 hover:text-primary"
+                >
+                  Kebijakan privasi
+                </.link>
+              </p>
+            </div>
+
             <%!-- External results below local ones otherwise (§6A.7) --%>
             <CollectionsExternal.section
               :if={@external_visible and (@loading or @load_error or @total > 0)}
@@ -1389,8 +1402,23 @@ defmodule CuratorianWeb.Public.CollectionsLive do
   defp empty_state_title(q) when q != "", do: "Tidak ada koleksi untuk “#{q}”"
   defp empty_state_title(_q), do: "Tidak ada koleksi ditemukan"
 
+  # The external shelf is shown only for the query/kind it was searched for.
   defp external_visible?(assigns) do
-    assigns.filters.q != "" and assigns.ext == "1" and assigns.external_display != []
+    assigns.filters.q != "" and assigns.ext == "1" and external_current?(assigns) and
+      assigns.external_display != []
+  end
+
+  # Invite to run the external search: an explicit, human-initiated action
+  # (spec D4). Hidden once the current query/kind has been searched.
+  defp external_offer?(assigns) do
+    q = String.trim(assigns.filters.q)
+
+    q != "" and String.length(q) >= 3 and assigns.ext == "1" and
+      not external_current?(assigns)
+  end
+
+  defp external_current?(assigns) do
+    assigns[:last_external_q] == {String.trim(assigns.filters.q), assigns.kind}
   end
 
   defp active_filters(assigns) do

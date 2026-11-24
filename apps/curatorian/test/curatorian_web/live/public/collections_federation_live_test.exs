@@ -14,11 +14,16 @@ defmodule CuratorianWeb.Public.CollectionsFederationLiveTest do
   alias Curatorian.Search.Federation.Budget
 
   alias Curatorian.Search.Federation.Providers.{
+    Artic,
+    Cleveland,
+    Commons,
     Doab,
+    Europeana,
     Gutendex,
     InternetArchive,
     OpenAlex,
-    OpenLibrary
+    OpenLibrary,
+    Wikisource
   }
 
   @ol_fixture Path.expand("../../../support/fixtures/search/open_library/search.json", __DIR__)
@@ -28,6 +33,9 @@ defmodule CuratorianWeb.Public.CollectionsFederationLiveTest do
               )
 
   setup do
+    if :ets.whereis(:ext_hits) != :undefined, do: :ets.delete(:ext_hits)
+    :ets.new(:ext_hits, [:named_table, :public, :duplicate_bag])
+
     for table <- [
           :curatorian_search_cache,
           :curatorian_search_breaker,
@@ -47,6 +55,8 @@ defmodule CuratorianWeb.Public.CollectionsFederationLiveTest do
       |> Jason.decode!()
 
     Req.Test.stub(:collections_ext, fn conn ->
+      :ets.insert(:ext_hits, {System.unique_integer([:positive]), conn.request_path})
+
       case conn.request_path do
         "/search.json" ->
           Req.Test.json(conn, ol)
@@ -133,17 +143,35 @@ defmodule CuratorianWeb.Public.CollectionsFederationLiveTest do
       refute html =~ "Open Library"
     end
 
-    test "facet-only patches do not fan out" do
+    test "a page load with a query shows the invite but sends nothing upstream" do
+      collection_fixture(title: "Rainbow Lokal #{System.unique_integer([:positive])}")
+
+      {:ok, view, _html} = live(build_conn(), ~p"/collections?q=rainbow")
+      wait_for_content(view, "Rainbow Lokal")
+
+      # The explicit button is offered; no provider was called yet.
+      assert has_element?(view, "#external-search-button")
+      assert :ets.tab2list(:ext_hits) == []
+      refute render(view) =~ "Dari sumber terbuka lain"
+    end
+
+    test "facet-only patches do not re-query providers" do
       token = "ZebraFacetOnly#{System.unique_integer([:positive])}"
       collection_fixture(title: token)
 
       {:ok, view, _html} = live(build_conn(), ~p"/collections?q=#{token}")
       wait_for_content(view, token)
 
+      render_click(view, "search_external", %{})
+      wait_for_content(view, "Open Library")
+      Process.sleep(200)
+      calls_before = :ets.tab2list(:ext_hits) |> length()
+
       render_click(view, "filter", %{"field" => "type", "val" => "book"})
       wait_for_content(view, "type=book")
+      Process.sleep(200)
 
-      refute render(view) =~ "Dari sumber terbuka lain"
+      assert :ets.tab2list(:ext_hits) |> length() == calls_before
     end
 
     test "ext=0 disables external sources entirely" do
@@ -156,6 +184,7 @@ defmodule CuratorianWeb.Public.CollectionsFederationLiveTest do
       view |> form("#collections-search-form", q: token) |> render_submit()
       wait_for_content(view, token)
 
+      refute has_element?(view, "#external-search-button")
       refute render(view) =~ "Dari sumber terbuka lain"
     end
 
@@ -167,7 +196,14 @@ defmodule CuratorianWeb.Public.CollectionsFederationLiveTest do
       wait_for_content(view, "koleksi")
 
       view |> form("#collections-search-form", q: "rainbow") |> render_submit()
+      wait_for_content(view, "Rainbow Lokal")
 
+      # Local submit never contacts third parties (D4).
+      assert :ets.tab2list(:ext_hits) == []
+      refute render(view) =~ "Dari sumber terbuka lain"
+
+      # The explicit button is the only trigger.
+      render_click(view, "search_external", %{})
       html = wait_for_content(view, "Dari sumber terbuka lain")
 
       # Provider blocks, external note and third-party results are rendered.
@@ -191,6 +227,7 @@ defmodule CuratorianWeb.Public.CollectionsFederationLiveTest do
       wait_for_content(view, "koleksi")
 
       view |> form("#collections-search-form", q: "rainbow") |> render_submit()
+      render_click(view, "search_external", %{})
       html = wait_for_content(view, "hasil ganda antar-sumber disembunyikan")
 
       assert html =~ "1 hasil ganda"
@@ -201,6 +238,7 @@ defmodule CuratorianWeb.Public.CollectionsFederationLiveTest do
       wait_for_content(view, "Tidak ada koleksi untuk")
 
       view |> form("#collections-search-form", q: "zzzznothinglocal") |> render_submit()
+      render_click(view, "search_external", %{})
 
       html = wait_for_content(view, "Tidak ditemukan di Curatorian")
       # Promoted placement: the heading itself becomes the explanation (§6A.7).
@@ -216,6 +254,7 @@ defmodule CuratorianWeb.Public.CollectionsFederationLiveTest do
       wait_for_content(view, "koleksi")
 
       view |> form("#collections-search-form", q: "commons") |> render_submit()
+      render_click(view, "search_external", %{})
 
       html = wait_for_content(view, "Open Access and the Commons")
       assert html =~ "OpenAlex"
@@ -231,6 +270,7 @@ defmodule CuratorianWeb.Public.CollectionsFederationLiveTest do
       wait_for_content(view, "koleksi")
 
       view |> form("#collections-search-form", q: "commons") |> render_submit()
+      render_click(view, "search_external", %{})
 
       html = wait_for_content(view, "dibatasi sampai")
       assert html =~ "WIB"
@@ -264,6 +304,7 @@ defmodule CuratorianWeb.Public.CollectionsFederationLiveTest do
       wait_for_content(view, "koleksi")
 
       view |> form("#collections-search-form", q: "top") |> render_submit()
+      render_click(view, "search_external", %{})
 
       html = wait_for_content(view, "Lihat lebih banyak dari Open Library")
       assert html =~ "Top Result 1"
@@ -278,6 +319,7 @@ defmodule CuratorianWeb.Public.CollectionsFederationLiveTest do
       wait_for_content(view, "koleksi")
 
       view |> form("#collections-search-form", q: "rainbow") |> render_submit()
+      render_click(view, "search_external", %{})
 
       html = wait_for_content(view, "Pencarian artikel ilmiah dibatasi sementara")
       assert html =~ "Cari artikel ilmiah"
@@ -352,6 +394,7 @@ defmodule CuratorianWeb.Public.CollectionsFederationLiveTest do
       wait_for_content(view, "koleksi")
 
       view |> form("#collections-search-form", q: "indonesia") |> render_submit()
+      render_click(view, "search_external", %{})
 
       # Providers resolve progressively — wait for the last one before
       # asserting across all of them.
@@ -367,19 +410,26 @@ defmodule CuratorianWeb.Public.CollectionsFederationLiveTest do
       assert html =~ ~s(rel="noopener noreferrer")
     end
 
-    test "the image tab does not query book-only providers" do
-      Req.Test.stub(:collections_ext, fn conn ->
-        send(self(), {:hit, conn.request_path})
-        Req.Test.json(conn, %{"response" => %{"numFound" => 0, "docs" => []}})
-      end)
-
+    test "the image tab queries art/photo sources and not book-only providers" do
       {:ok, view, _html} = live(build_conn(), ~p"/collections?kind=image")
       wait_for_content(view, "koleksi")
 
+      :ets.delete_all_objects(:ext_hits)
       view |> form("#collections-search-form", q: "borobudur") |> render_submit()
-      wait_for_content(view, "Dari sumber terbuka lain")
+      render_click(view, "search_external", %{})
 
-      paths = collect_hits([])
+      # The stub returns no results, so each provider block ends in its empty
+      # state. Waiting for those avoids matching the loading skeletons (which
+      # already carry the provider labels).
+      wait_for_content(view, "Tidak ada hasil di Wikimedia Commons")
+      wait_for_content(view, "Tidak ada hasil di Art Institute of Chicago")
+      wait_for_content(view, "Tidak ada hasil di Cleveland Museum of Art")
+
+      paths = :ets.tab2list(:ext_hits) |> Enum.map(&elem(&1, 1))
+
+      assert "/api/v1/artworks/search" in paths
+      assert "/api/artworks/" in paths
+      assert "/w/api.php" in paths
       refute "/search.json" in paths
       refute "/works" in paths
     end
@@ -401,6 +451,7 @@ defmodule CuratorianWeb.Public.CollectionsFederationLiveTest do
       wait_for_content(view, "koleksi")
 
       view |> form("#collections-search-form", q: "rainbow") |> render_submit()
+      render_click(view, "search_external", %{})
 
       html = wait_for_content(view, "belum merespons")
       assert html =~ "Open Library belum merespons"
@@ -426,18 +477,11 @@ defmodule CuratorianWeb.Public.CollectionsFederationLiveTest do
       wait_for_content(view, "koleksi")
 
       view |> form("#collections-search-form", q: "rainbow") |> render_submit()
+      render_click(view, "search_external", %{})
 
       html = wait_for_content(view, "sedang dibatasi sementara")
       assert html =~ "Coba lagi dalam"
       assert html =~ "Cari langsung di Open Library"
-    end
-  end
-
-  defp collect_hits(acc) do
-    receive do
-      {:hit, path} -> collect_hits([path | acc])
-    after
-      0 -> acc
     end
   end
 
