@@ -50,6 +50,9 @@ defmodule Curatorian.Public do
 
   @page_size 12
 
+  # Retries for the (very unlikely) registration_code unique collision.
+  @registration_code_attempts 3
+
   def page_size, do: @page_size
 
   # ---------------------------------------------------------------------------
@@ -326,6 +329,18 @@ defmodule Curatorian.Public do
   end
 
   def get_public_org_page_brief(_), do: nil
+
+  @doc "Brief identity of an event host (display name/username from atrium)."
+  def get_public_user_brief(voile_user_id) when is_binary(voile_user_id) do
+    from(p in UserProfile,
+      where: p.voile_user_id == ^voile_user_id and is_nil(p.deleted_at),
+      select: %{username: p.username, display_name: p.display_name},
+      limit: 1
+    )
+    |> Repo.one()
+  end
+
+  def get_public_user_brief(_), do: nil
 
   # ---------------------------------------------------------------------------
   # Content reports (writes atrium.content_reports — see approved write list
@@ -1439,15 +1454,25 @@ defmodule Curatorian.Public do
     |> Repo.aggregate(:count, :id)
   end
 
-  def get_event_by_slug(slug) do
-    now = DateTime.utc_now()
+  @doc """
+  Public event by slug.
 
+  Visibility is status-based, not time-based: once an organizer publishes an
+  event it stays reachable (participants come back for join links, materials
+  and certificates). Previously a `published` event disappeared at its start
+  time unless the organizer flipped the status to `ongoing`, which produced a
+  404 on the event's own page.
+
+  Drafts and canceled events are still hidden.
+  """
+  @public_event_statuses [:published, :registration_closed, :ongoing, :completed]
+
+  def get_event_by_slug(slug) do
     from(e in Event,
       where:
         e.slug == ^slug and
           is_nil(e.deleted_at) and
-          e.status in [:published, :ongoing] and
-          (e.starts_at >= ^now or e.status == :ongoing)
+          e.status in ^@public_event_statuses
     )
     |> Repo.one()
   end
@@ -1618,10 +1643,19 @@ defmodule Curatorian.Public do
       end
 
     now = DateTime.utc_now() |> DateTime.truncate(:second)
+    event = registration && Repo.get(Event, registration.event_id)
 
     cond do
       is_nil(registration) or is_nil(checkpoint) ->
         {:error, :invalid_code}
+
+      # Only approved participants may record attendance — a pending payment,
+      # a waitlisted seat, or a rejected registration is not actual attendance.
+      registration.status != :approved ->
+        {:error, :not_approved}
+
+      outside_event_window?(event, now) ->
+        {:error, :outside_event_window}
 
       checkpoint.opens_at && DateTime.compare(now, checkpoint.opens_at) == :lt ->
         {:error, :invalid_code}
@@ -1655,6 +1689,82 @@ defmodule Curatorian.Public do
           {:error, :already_recorded}
         end
     end
+  end
+
+  @doc """
+  One-click self check-in for approved participants.
+
+  Available only when the event's attendance mode is `"self_checkin"` and the
+  event is currently inside its start/end window — this is what the
+  "Check-in Sekarang" button calls, no organizer and no code needed.
+  """
+  def self_check_in(registration_id) when is_binary(registration_id) do
+    registration = Repo.get(EventRegistration, registration_id)
+    event = registration && Repo.get(Event, registration.event_id)
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    cond do
+      is_nil(registration) or is_nil(event) ->
+        {:error, :not_found}
+
+      registration.status != :approved ->
+        {:error, :not_approved}
+
+      event.status == :canceled ->
+        {:error, :not_available}
+
+      event.attendance_mode != "self_checkin" ->
+        {:error, :self_checkin_disabled}
+
+      outside_event_window?(event, now) ->
+        {:error, :outside_event_window}
+
+      get_attendance_for_registration(registration.id) != nil ->
+        {:error, :already_checked_in}
+
+      true ->
+        %EventAttendance{
+          id: Ecto.UUID.generate(),
+          event_id: event.id,
+          registration_id: registration.id,
+          voile_user_id: registration.voile_user_id,
+          check_in_method: :self_checkin,
+          checked_in_at: now,
+          is_eligible_for_cert: true
+        }
+        |> Repo.insert()
+        |> case do
+          {:ok, attendance} ->
+            {:ok, attendance}
+
+          {:error, _changeset} ->
+            if get_attendance_for_registration(registration.id),
+              do: {:error, :already_checked_in},
+              else: {:error, :failed}
+        end
+    end
+  rescue
+    Ecto.ConstraintError -> {:error, :already_checked_in}
+  end
+
+  @doc "The attendance row for a registration, or nil (checkpoint-only is nil)."
+  def get_attendance_for_registration(registration_id) do
+    from(a in EventAttendance,
+      where: a.registration_id == ^registration_id,
+      limit: 1
+    )
+    |> Repo.one()
+  end
+
+  # Self check-in is only valid while the event is actually running, based on
+  # the organizer-entered start/end times (stored in UTC).
+  defp outside_event_window?(nil, _now), do: true
+
+  defp outside_event_window?(%Event{} = event, now) do
+    after_start? = is_nil(event.starts_at) or DateTime.compare(now, event.starts_at) != :lt
+    before_end? = is_nil(event.ends_at) or DateTime.compare(now, event.ends_at) != :gt
+
+    not (after_start? and before_end?)
   end
 
   def get_event(event_id) do
@@ -1709,6 +1819,19 @@ defmodule Curatorian.Public do
   def get_certificate_template(template_id) do
     from(t in EventCertificateTemplate,
       where: t.id == ^template_id and is_nil(t.deleted_at)
+    )
+    |> Repo.one()
+  end
+
+  @doc """
+  Platform-wide default certificate template (managed by Atrium super admins).
+  Used when a certificate and its event have no template of their own.
+  """
+  def get_global_certificate_template do
+    from(t in EventCertificateTemplate,
+      where: is_nil(t.org_page_id) and t.is_default == true and is_nil(t.deleted_at),
+      order_by: [desc: t.updated_at],
+      limit: 1
     )
     |> Repo.one()
   end
@@ -1855,9 +1978,8 @@ defmodule Curatorian.Public do
           identity_attrs
         )
 
-      %EventRegistration{}
-      |> EventRegistration.changeset(attrs)
-      |> Repo.insert()
+      attrs
+      |> insert_registration()
       |> map_registration_insert_error()
       |> tap(fn
         {:ok, registration} ->
@@ -1937,6 +2059,17 @@ defmodule Curatorian.Public do
       Logger.error(
         "[Events] confirmation email crashed for #{registration.id}: #{inspect(error)}"
       )
+  catch
+    # Swoosh adapters call out to other processes (e.g. the Local adapter's
+    # storage GenServer); a dead/misconfigured adapter exits instead of
+    # raising. That must not take the LiveView down with it — the
+    # registration already succeeded.
+    :exit, reason ->
+      require Logger
+
+      Logger.error(
+        "[Events] confirmation email exited for #{registration.id}: #{inspect(reason)}"
+      )
   end
 
   defp get_registerable_event(event_id) do
@@ -1980,6 +2113,38 @@ defmodule Curatorian.Public do
     if active_count >= event.max_attendees, do: {:error, :event_full}, else: :ok
   end
 
+  # Inserts a registration, retrying with a fresh code on the (very unlikely)
+  # `registration_code` unique-constraint collision.
+  #
+  # The first attempt uses `attrs[:registration_code]` when present (used by
+  # tests and imports); retries always generate a new code. Existing 8-char
+  # codes are untouched — nothing validates the format.
+  @doc false
+  def insert_registration(attrs, attempts \\ @registration_code_attempts) do
+    attrs = Map.put_new_lazy(attrs, :registration_code, &generate_registration_code/0)
+
+    case Repo.insert(EventRegistration.changeset(%EventRegistration{}, attrs)) do
+      {:error, %Ecto.Changeset{} = changeset} = error ->
+        if registration_code_collision?(changeset) and attempts > 1 do
+          attrs
+          |> Map.put(:registration_code, generate_registration_code())
+          |> insert_registration(attempts - 1)
+        else
+          error
+        end
+
+      other ->
+        other
+    end
+  end
+
+  defp registration_code_collision?(%Ecto.Changeset{errors: errors}) do
+    Enum.any?(errors, fn
+      {:registration_code, {_message, opts}} -> opts[:constraint] == :unique
+      _ -> false
+    end)
+  end
+
   defp map_registration_insert_error({:ok, registration}), do: {:ok, registration}
 
   defp map_registration_insert_error({:error, %Ecto.Changeset{} = changeset}) do
@@ -1990,8 +2155,11 @@ defmodule Curatorian.Public do
     end
   end
 
+  # 5 random bytes = 40 bits = 10 hex chars. The old 8-char (32-bit) codes
+  # remain valid: lookups compare the stored string, and the column is wide
+  # enough for both lengths.
   defp generate_registration_code do
-    "REG-" <> (:crypto.strong_rand_bytes(4) |> Base.encode16())
+    "REG-" <> (:crypto.strong_rand_bytes(5) |> Base.encode16())
   end
 
   defp generate_registration_token do

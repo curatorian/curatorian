@@ -63,6 +63,66 @@ defmodule Curatorian.Public.EventRegistrationTest do
 
   # --- Fixtures ---
 
+  describe "registration codes" do
+    test "new codes are 40-bit (REG- plus 10 hex chars)" do
+      event = event_fixture()
+
+      assert {:ok, registration} =
+               Public.register_for_event(Ecto.UUID.generate(), event.id, requires_approval: false)
+
+      assert registration.registration_code =~ ~r/^REG-[0-9A-F]{10}$/
+    end
+
+    test "retries with a fresh code when the generated code collides" do
+      event = event_fixture()
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
+      colliding_code = "REG-AAAAAAAAAA"
+
+      attrs = fn user_id ->
+        %{
+          event_id: event.id,
+          voile_user_id: user_id,
+          registration_code: colliding_code,
+          token: :crypto.strong_rand_bytes(16) |> Base.encode16(case: :lower),
+          registered_at: now,
+          status: :approved
+        }
+      end
+
+      assert {:ok, first} = Public.insert_registration(attrs.(Ecto.UUID.generate()))
+      assert first.registration_code == colliding_code
+
+      assert {:ok, second} = Public.insert_registration(attrs.(Ecto.UUID.generate()))
+      assert second.registration_code != colliding_code
+      assert second.registration_code =~ ~r/^REG-[0-9A-F]{10}$/
+    end
+
+    test "reports the collision when the retry budget is exhausted" do
+      event = event_fixture()
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
+      colliding_code = "REG-BBBBBBBBBB"
+
+      base = %{
+        event_id: event.id,
+        registration_code: colliding_code,
+        token: :crypto.strong_rand_bytes(16) |> Base.encode16(case: :lower),
+        registered_at: now,
+        status: :approved
+      }
+
+      assert {:ok, _first} =
+               Public.insert_registration(Map.put(base, :voile_user_id, Ecto.UUID.generate()))
+
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               Public.insert_registration(
+                 Map.put(base, :voile_user_id, Ecto.UUID.generate()),
+                 1
+               )
+
+      assert Keyword.has_key?(changeset.errors, :registration_code)
+    end
+  end
+
   defp event_fixture(attrs \\ %{}) do
     now = DateTime.utc_now() |> DateTime.truncate(:second)
 

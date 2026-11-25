@@ -8,6 +8,9 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
   alias CuratorianWeb.Markdown
   alias CuratorianWeb.Public.Events.TimeFormat
 
+  alias QRCode
+  alias QRCode.Render.PngSettings
+
   @impl true
   def mount(%{"slug" => slug}, _session, socket) do
     case Public.get_event_by_slug(slug) do
@@ -28,10 +31,17 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
         host_org =
           event.host_org_page_id && Public.get_public_org_page_brief(event.host_org_page_id)
 
+        host_user = event.host_user_id && Public.get_public_user_brief(event.host_user_id)
+
         broadcasts = Public.list_broadcasts_for_event(event.id)
 
         base = Layouts.meta_base_url()
         cover = Map.get(event, :cover_image_url)
+        # Uploaded covers live on the Atrium host: OG images must be absolute
+        # and point there, otherwise crawlers fetch a 404 from Curatorian.
+        og_cover = cover && Public.asset_url(cover)
+
+        participant = participant_assigns(registration, event)
 
         {:ok,
          socket
@@ -39,15 +49,20 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
          |> assign(:event, event)
          |> assign(:user_id, user_id)
          |> assign(:registration, registration)
+         |> assign(:participant, participant)
          |> assign(:host_org, host_org)
+         |> assign(:host_user, host_user)
          |> assign(:broadcasts, broadcasts)
          |> assign(:show_registration_form, false)
+         |> assign(:cover_modal_open, false)
+         |> assign(:code_input, "")
+         |> assign(:code_error, nil)
          |> assign_registration_form_prefill(current_scope)
          |> assign(:registration_open, registration_open?(event))
          |> assign(:registration_state, registration_state(event))
          |> assign(:og_title, event.title)
          |> assign(:og_description, event.description)
-         |> assign(:og_image, cover)
+         |> assign(:og_image, og_cover)
          |> assign(:og_url, "/events/#{event.slug}")
          |> assign(:og_type, "website")
          |> assign(:json_ld, [event_json(event, base, cover)])
@@ -91,6 +106,14 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
     {:noreply, assign(socket, :show_registration_form, false)}
   end
 
+  def handle_event("open_cover_modal", _params, socket) do
+    {:noreply, assign(socket, :cover_modal_open, true)}
+  end
+
+  def handle_event("close_cover_modal", _params, socket) do
+    {:noreply, assign(socket, :cover_modal_open, false)}
+  end
+
   def handle_event("submit_registration", %{"registration" => params}, socket) do
     if params["consent"] != "true" do
       {:noreply, put_flash(socket, :error, "Anda harus menyetujui pemrosesan data.")}
@@ -125,6 +148,92 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
                "Pembayaran online sedang tidak tersedia. Penyelenggara akan menghubungi Anda untuk penyelesaian pembayaran."
              )}
         end
+    end
+  end
+
+  def handle_event("self_check_in", _params, socket) do
+    case socket.assigns.registration do
+      nil ->
+        {:noreply, socket}
+
+      registration ->
+        case Public.self_check_in(registration.id) do
+          {:ok, attendance} ->
+            {:noreply,
+             socket
+             |> update(
+               :participant,
+               &Map.merge(&1, %{
+                 self_checkin_active?: false,
+                 checked_in_at: attendance.checked_in_at
+               })
+             )
+             |> put_flash(:info, "Kehadiran tercatat!")}
+
+          {:error, :already_checked_in} ->
+            {:noreply, put_flash(socket, :info, "Anda sudah check-in untuk event ini.")}
+
+          {:error, :outside_event_window} ->
+            {:noreply,
+             put_flash(socket, :error, "Check-in hanya tersedia selama event berlangsung.")}
+
+          {:error, reason} ->
+            {:noreply,
+             put_flash(
+               socket,
+               :error,
+               "Check-in mandiri belum aktif: #{reason}. Gunakan kode sesi atau hubungi penyelenggara."
+             )}
+        end
+    end
+  end
+
+  # Self check-in from the event page: same server path as the participant
+  # page, so attendance lands in `atrium.event_checkpoint_records`.
+  def handle_event("submit_code", %{"code" => code}, socket) do
+    case socket.assigns.registration do
+      nil ->
+        {:noreply, socket}
+
+      registration ->
+        code = String.upcase(String.trim(code || ""))
+
+        if code == "" do
+          {:noreply, assign(socket, :code_error, "Masukkan kode sesi.")}
+        else
+          handle_check_in(socket, registration, code)
+        end
+    end
+  end
+
+  defp handle_check_in(socket, registration, code) do
+    case Public.record_checkpoint_attendance(registration.id, code) do
+      {:ok, _record} ->
+        count = length(Public.list_checkpoint_records(registration.id))
+
+        {:noreply,
+         socket
+         |> update(:participant, &Map.put(&1, :checkpoint_count, count))
+         |> assign(:code_input, "")
+         |> assign(:code_error, nil)
+         |> put_flash(:info, "Kehadiran tercatat!")}
+
+      {:error, :invalid_code} ->
+        {:noreply, assign(socket, :code_error, "Kode tidak valid atau sudah kedaluwarsa.")}
+
+      {:error, :already_recorded} ->
+        {:noreply, assign(socket, :code_error, "Kehadiran sudah tercatat untuk sesi ini.")}
+
+      {:error, :rate_limited} ->
+        {:noreply, assign(socket, :code_error, "Terlalu banyak percobaan. Coba lagi nanti.")}
+
+      {:error, :not_approved} ->
+        {:noreply,
+         assign(
+           socket,
+           :code_error,
+           "Kehadiran hanya bisa dicatat setelah pendaftaran disetujui."
+         )}
     end
   end
 
@@ -183,11 +292,22 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
           <section class="mt-4 overflow-hidden rounded-3xl border border-base-300/60 bg-base-100 shadow-[0_24px_60px_-32px_rgba(15,23,42,0.35)]">
             <%= if @event.cover_image_url do %>
               <div id="event-cover" class="flex items-center justify-center bg-base-200/50">
-                <img
-                  src={asset_url(@event.cover_image_url)}
-                  alt={@event.title}
-                  class="max-h-[26rem] w-full object-contain"
-                />
+                <button
+                  type="button"
+                  id="cover-image-button"
+                  phx-click="open_cover_modal"
+                  class="group relative w-full cursor-zoom-in focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  aria-label="Perbesar gambar sampul"
+                >
+                  <img
+                    src={asset_url(@event.cover_image_url)}
+                    alt={@event.title}
+                    class="max-h-[26rem] w-full object-contain"
+                  />
+                  <span class="pointer-events-none absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-black/55 px-3 py-1.5 text-xs font-medium text-white opacity-0 backdrop-blur-sm transition group-hover:opacity-100">
+                    <.icon name="hero-arrows-pointing-out" class="size-3.5" /> Perbesar
+                  </span>
+                </button>
               </div>
             <% else %>
               <div class="relative h-36 overflow-hidden bg-gradient-to-br from-primary/25 via-secondary/20 to-accent/20 sm:h-44">
@@ -236,16 +356,41 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
                 </h1>
                 <p class="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-base-content/70">
                   <.icon name="hero-building-office-2" class="size-4 text-base-content/50" />
+                  <span>Diselenggarakan oleh</span>
                   <%= if @host_org do %>
-                    <span>Diselenggarakan oleh</span>
                     <.link
                       navigate={"/orgs/#{@host_org.slug}"}
                       class="font-semibold text-base-content underline-offset-4 transition hover:text-primary hover:underline"
                     >
                       {@host_org.name}
                     </.link>
+                    <%= if @host_user do %>
+                      <span class="text-base-content/40">·</span>
+                      <%= if @host_user.username do %>
+                        <.link
+                          navigate={"/u/#{@host_user.username}"}
+                          class="text-base-content/80 underline-offset-4 transition hover:text-primary hover:underline"
+                        >
+                          {host_person_name(@host_user)}
+                        </.link>
+                      <% else %>
+                        <span class="text-base-content/80">{host_person_name(@host_user)}</span>
+                      <% end %>
+                    <% end %>
                   <% else %>
-                    <span>{host_name(@event)}</span>
+                    <%= cond do %>
+                      <% @host_user && @host_user.username -> %>
+                        <.link
+                          navigate={"/u/#{@host_user.username}"}
+                          class="font-semibold text-base-content underline-offset-4 transition hover:text-primary hover:underline"
+                        >
+                          {host_person_name(@host_user)}
+                        </.link>
+                      <% @host_user -> %>
+                        <span class="font-semibold text-base-content">{host_person_name(@host_user)}</span>
+                      <% true -> %>
+                        <span>Penyelenggara</span>
+                    <% end %>
                   <% end %>
                 </p>
               </div>
@@ -560,6 +705,8 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
                                   Pendaftaran Ditutup
                                 <% :canceled -> %>
                                   Event Dibatalkan
+                                <% :finished -> %>
+                                  Event Telah Selesai
                                 <% _ -> %>
                                   Pendaftaran Belum Dibuka
                               <% end %>
@@ -608,6 +755,144 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
                             </p>
                           </div>
                         <% end %>
+
+                        <%!-- Everything an approved participant needs, right here --%>
+                        <%= if @registration != nil and @registration.status == :approved do %>
+                          <div
+                            id="participant-access"
+                            class="space-y-3 border-t border-base-200 pt-4"
+                          >
+                            <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-base-content/50">
+                              Akses Peserta
+                            </p>
+
+                            <%= if @participant.join_url do %>
+                              <a
+                                href={@participant.join_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-content shadow-lg shadow-primary/20 transition hover:brightness-105"
+                              >
+                                <.icon name="hero-video-camera" class="size-4" /> Gabung Sekarang
+                              </a>
+                            <% end %>
+
+                            <%= if @participant.venue do %>
+                              <p class="flex items-start gap-1.5 text-xs text-base-content/70">
+                                <.icon
+                                  name="hero-map-pin"
+                                  class="mt-0.5 size-3.5 shrink-0 text-base-content/50"
+                                />
+                                <span>
+                                  {@participant.venue}
+                                  <%= if @participant.venue_maps_url do %>
+                                    ·
+                                    <a
+                                      href={@participant.venue_maps_url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      class="text-primary hover:underline"
+                                    >
+                                      Peta
+                                    </a>
+                                  <% end %>
+                                </span>
+                              </p>
+                            <% end %>
+
+                            <%= if @participant.self_checkin_active? or @participant.checked_in_at do %>
+                              <div class="space-y-1 rounded-2xl border border-base-200 bg-base-200/30 p-3 text-center">
+                                <%= if @participant.checked_in_at do %>
+                                  <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-success">
+                                    <.icon name="hero-check-circle" class="size-4" />
+                                    Anda sudah check-in
+                                  </span>
+                                <% else %>
+                                  <button
+                                    type="button"
+                                    phx-click="self_check_in"
+                                    class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-success px-4 py-2.5 text-sm font-semibold text-success-content transition hover:brightness-105"
+                                  >
+                                    <.icon name="hero-hand-raised" class="size-4" /> Check-in Sekarang
+                                  </button>
+                                  <p class="text-[11px] text-base-content/50">
+                                    Tanpa menunggu penyelenggara — selama event berlangsung.
+                                  </p>
+                                <% end %>
+                              </div>
+                            <% end %>
+
+                            <%= if @participant.qr_data_uri do %>
+                              <div class="rounded-2xl border border-base-200 bg-base-200/30 p-3 text-center">
+                                <img
+                                  id="participant-qr"
+                                  src={@participant.qr_data_uri}
+                                  alt="QR check-in"
+                                  class="mx-auto size-36"
+                                />
+                                <p class="mt-1 text-[11px] text-base-content/50">
+                                  Tunjukkan QR ini ke penyelenggara untuk check-in.
+                                </p>
+                              </div>
+                            <% end %>
+
+                            <%= if @participant.session_code_active? do %>
+                              <div class="space-y-2 rounded-2xl border border-primary/30 bg-primary/5 p-3">
+                                <p class="text-xs font-semibold text-base-content">Kode Sesi</p>
+                                <.form for={%{}} phx-submit="submit_code" class="flex gap-2">
+                                  <input
+                                    type="text"
+                                    name="code"
+                                    value={@code_input}
+                                    class="input input-bordered input-sm flex-1 font-mono uppercase"
+                                    placeholder="ABC123"
+                                    maxlength="12"
+                                    required
+                                  />
+                                  <button type="submit" class="btn btn-primary btn-sm">
+                                    Kirim
+                                  </button>
+                                </.form>
+                                <p :if={@code_error} class="text-xs text-error">{@code_error}</p>
+                                <p
+                                  :if={@participant.checkpoint_count > 0}
+                                  class="text-[11px] text-base-content/50"
+                                >
+                                  Sesi tercatat: {@participant.checkpoint_count}
+                                </p>
+                              </div>
+                            <% end %>
+
+                            <%= if @participant.certificate do %>
+                              <.link
+                                navigate={~p"/certificates/#{@participant.certificate.id}"}
+                                class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-success/40 bg-success/10 px-4 py-3 text-sm font-semibold text-success transition hover:bg-success/15"
+                              >
+                                <.icon name="hero-academic-cap" class="size-4" /> Lihat Sertifikat
+                              </.link>
+                            <% end %>
+
+                            <%= if @participant.materials_url do %>
+                              <a
+                                href={@participant.materials_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-base-300 bg-base-100 px-4 py-3 text-sm font-semibold text-base-content transition hover:bg-base-200"
+                              >
+                                <.icon name="hero-folder-open" class="size-4" /> Materi Pembelajaran
+                              </a>
+                            <% end %>
+
+                            <%= if @participant.participant_url do %>
+                              <.link
+                                navigate={@participant.participant_url}
+                                class="block text-center text-xs text-base-content/50 link link-hover"
+                              >
+                                Buka halaman peserta (QR, kode sesi, sertifikat)
+                              </.link>
+                            <% end %>
+                          </div>
+                        <% end %>
                       <% end %>
                     </div>
                   <% end %>
@@ -617,6 +902,33 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
           </div>
         </div>
       </div>
+
+      <%!-- Cover lightbox --%>
+      <%= if @cover_modal_open and @event.cover_image_url do %>
+        <div
+          id="cover-modal"
+          class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+          phx-click="close_cover_modal"
+          phx-click-away="close_cover_modal"
+          role="dialog"
+          aria-modal="true"
+          aria-label={@event.title}
+        >
+          <button
+            type="button"
+            phx-click="close_cover_modal"
+            class="absolute right-4 top-4 inline-flex size-10 items-center justify-center rounded-full bg-white/15 text-white transition hover:bg-white/25"
+            aria-label="Tutup gambar"
+          >
+            <.icon name="hero-x-mark" class="size-5" />
+          </button>
+          <img
+            src={asset_url(@event.cover_image_url)}
+            alt={@event.title}
+            class="max-h-[90vh] max-w-[95vw] rounded-lg object-contain shadow-2xl"
+          />
+        </div>
+      <% end %>
     </Layouts.app>
     """
   end
@@ -639,6 +951,98 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
     """
   end
 
+  # Everything the event page needs to serve a registered participant:
+  # join link, venue, personal QR, session-code state, certificate, materials.
+  defp participant_assigns(nil, _event) do
+    %{
+      participant_url: nil,
+      qr_data_uri: nil,
+      join_url: nil,
+      certificate: nil,
+      checked_in_at: nil,
+      self_checkin_active?: false,
+      checkpoint_count: 0,
+      session_code_active?: false,
+      materials_url: nil,
+      venue: nil,
+      venue_maps_url: nil
+    }
+  end
+
+  defp participant_assigns(registration, event) do
+    approved? = registration.status == :approved
+    attendance = if approved?, do: Public.get_attendance_for_registration(registration.id)
+
+    participant_url =
+      if is_binary(registration.token) and registration.token != "" do
+        "/r/#{registration.token}"
+      end
+
+    %{
+      participant_url: participant_url,
+      qr_data_uri:
+        if(approved? and participant_url, do: qr_data_uri(url(~p"/r/#{registration.token}"))),
+      join_url:
+        if(
+          approved? and event.mode in [:online, :hybrid] and
+            is_binary(event.meeting_url) and event.meeting_url != "",
+          do: event.meeting_url
+        ),
+      certificate: Public.get_certificate_for_registration(registration.id),
+      checked_in_at: attendance && attendance.checked_in_at,
+      self_checkin_active?:
+        approved? and event.attendance_mode == "self_checkin" and event.status != :canceled and
+          is_nil(attendance) and event_window_open?(event),
+      checkpoint_count: length(Public.list_checkpoint_records(registration.id)),
+      session_code_active?:
+        approved? and event.status != :canceled and
+          event.attendance_mode in ["session_code", "both"] and
+          event_window_open?(event),
+      materials_url:
+        if(approved? and is_binary(event.material_url) and event.material_url != "",
+          do: event.material_url
+        ),
+      venue: venue_label(event),
+      venue_maps_url: event.venue_maps_url
+    }
+  end
+
+  defp event_window_open?(event) do
+    now = DateTime.utc_now()
+    after_start? = is_nil(event.starts_at) or DateTime.compare(now, event.starts_at) != :lt
+    before_end? = is_nil(event.ends_at) or DateTime.compare(now, event.ends_at) != :gt
+    after_start? and before_end?
+  end
+
+  defp venue_label(event) do
+    if event.mode in [:offline, :hybrid] do
+      city = [event.venue_city, event.venue_province] |> Enum.reject(&is_nil/1) |> Enum.join(", ")
+
+      [event.venue_name, event.venue_address, city]
+      |> Enum.reject(&(&1 in [nil, ""]))
+      |> Enum.join(" · ")
+      |> case do
+        "" -> nil
+        label -> label
+      end
+    end
+  end
+
+  # Server-side QR (PNG data URI). PNG avoids the invalid-SVG markup some
+  # browsers refuse to render, and needs no JS hook at all.
+  defp qr_data_uri(value) do
+    settings = %PngSettings{scale: 8, background_color: "#ffffff", qrcode_color: "#1f2937"}
+
+    value
+    |> QRCode.create(:high)
+    |> QRCode.render(:png, settings)
+    |> QRCode.to_base64()
+    |> case do
+      {:ok, base64} -> "data:image/png;base64,#{base64}"
+      _ -> nil
+    end
+  end
+
   defp event_json(event, base, cover) do
     %{
       "@context" => "https://schema.org",
@@ -653,7 +1057,7 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
       "eventStatus" => event_status_url(event.status),
       # meeting_url is gated to approved registrants — not exposed in public JSON-LD
       "location" => event_location(event),
-      "image" => cover && Layouts.meta_image_url(cover),
+      "image" => cover && Public.asset_url(cover),
       "url" => "#{base}/events/#{event.slug}",
       "isAccessibleForFree" => !event.is_paid
     }
@@ -728,7 +1132,10 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
       event.status == :canceled ->
         :canceled
 
-      event.status in [:draft, :completed] ->
+      event.status == :completed ->
+        :finished
+
+      event.status == :draft ->
         :unavailable
 
       event.registration_opens_at && DateTime.compare(now, event.registration_opens_at) == :lt ->
@@ -766,13 +1173,9 @@ defmodule CuratorianWeb.Public.Events.ShowLive do
     end
   end
 
-  defp host_name(event) do
-    cond do
-      event.host_org_page_id -> "Diselenggarakan oleh organisasi"
-      event.host_user_id -> "Diselenggarakan oleh pengguna"
-      true -> "Tidak diketahui"
-    end
-  end
+  defp host_person_name(%{display_name: name}) when is_binary(name) and name != "", do: name
+  defp host_person_name(%{username: username}) when is_binary(username), do: username
+  defp host_person_name(_), do: "Penyelenggara"
 
   defp venue_text(event) do
     cond do

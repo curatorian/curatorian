@@ -11,6 +11,8 @@ defmodule Curatorian.MixProject do
       lockfile: "../../mix.lock",
       elixir: "~> 1.18",
       elixirc_paths: elixirc_paths(Mix.env()),
+      # Generates phoenix-colocated hooks (e.g. .CertificateActions) for esbuild.
+      compilers: [:phoenix_live_view] ++ Mix.compilers(),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps()

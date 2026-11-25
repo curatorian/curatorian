@@ -14,6 +14,7 @@ defmodule Curatorian.Public.Event do
     field :slug, :string
     field :description, :string
     field :cover_image_url, :string
+    field :material_url, :string
 
     field :event_type, Ecto.Enum,
       values: [

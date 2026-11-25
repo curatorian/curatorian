@@ -176,8 +176,12 @@ defmodule CuratorianWeb.Public.Events.RegisterLiveTest do
 
       assert html =~ "Pendaftaran Berhasil!"
       assert html =~ "Kode pendaftaran di bawah dapat digunakan untuk check-in saat event"
+      # The participant page must be reachable immediately — most users never
+      # open the confirmation email.
+      assert html =~ "Buka Halaman Peserta"
 
       registration = registration_by_email("siti.rahma@example.com")
+      assert has_element?(lv, ~s(a[href="/r/#{registration.token}"]))
       assert registration.guest_name == "Siti Rahma"
       assert is_nil(registration.voile_user_id)
       assert registration.registration_data["email"] == "siti.rahma@example.com"

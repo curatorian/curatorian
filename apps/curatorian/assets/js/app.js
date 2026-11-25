@@ -26,8 +26,7 @@ import topbar from "../vendor/topbar";
 import Slugify from "./slugify";
 import Trix from "./trix";
 import EBookReaderHooks from "./ebook_reader";
-// import { hooks as colocatedHooks } from "phoenix-colocated/curatorian";
-const colocatedHooks = {};
+import { hooks as colocatedHooks } from "phoenix-colocated/curatorian";
 
 function callbackEvent(self, name, eventName) {
   return (payload) => {

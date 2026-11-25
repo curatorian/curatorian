@@ -10,6 +10,7 @@ defmodule CuratorianWeb.Public.Events.CertificateLive do
   use CuratorianWeb, :live_view
 
   alias Curatorian.Public
+  alias CuratorianWeb.Public.Events.TimeFormat
 
   # Mirrors Atrium's certificate designer defaults
   # (`AtriumWeb.Community.Events.CertificateTemplateLive`). The apps deploy
@@ -505,7 +506,8 @@ defmodule CuratorianWeb.Public.Events.CertificateLive do
   # still pick up the organizer's template.
   defp certificate_template(certificate, event) do
     Public.get_certificate_template(certificate.template_id) ||
-      (event && Public.get_certificate_template(event.certificate_template_id))
+      (event && Public.get_certificate_template(event.certificate_template_id)) ||
+      Public.get_global_certificate_template()
   end
 
   # Values come from the certificate snapshot (recipient/event at issuance),
@@ -543,14 +545,10 @@ defmodule CuratorianWeb.Public.Events.CertificateLive do
     Map.merge(defaults, Map.get(stored, field) || %{})
   end
 
-  defp format_date(date) when is_struct(date, Date) do
-    Calendar.strftime(date, "%d %B %Y")
-  end
-
-  defp format_date(_), do: "-"
+  defp format_date(date), do: TimeFormat.date(date)
 
   defp format_datetime(datetime) when is_struct(datetime, DateTime) do
-    Calendar.strftime(datetime, "%d %B %Y, %H:%M WIB")
+    TimeFormat.datetime_short(datetime, "Asia/Jakarta")
   end
 
   defp format_datetime(_), do: "-"

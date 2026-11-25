@@ -109,6 +109,23 @@ defmodule CuratorianWeb.Public.Events.CertificateLiveTest do
       assert has_element?(lv, "#templated-certificate", certificate.recipient_name)
     end
 
+    test "falls back to the platform default when neither certificate nor event has a template",
+         %{conn: conn} do
+      %{certificate: certificate} = certificate_fixture()
+
+      _template =
+        template_fixture(%{
+          org_page_id: nil,
+          is_default: true,
+          name: "Platform Default",
+          signature_name: "Platform Signer"
+        })
+
+      {:ok, lv, _html} = live(conn, ~p"/certificates/#{certificate.id}")
+
+      assert has_element?(lv, "#templated-certificate", "Platform Signer")
+    end
+
     test "falls back to the event's template when the certificate has no snapshot", %{conn: conn} do
       %{certificate: certificate, event: event} = certificate_fixture()
       template = template_fixture(%{signature_name: "Event Template Signer"})

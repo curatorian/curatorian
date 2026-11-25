@@ -115,45 +115,57 @@ if config_env() == :prod do
   #   VOILE_SMTP_USERNAME=your@gmail.com
   #   VOILE_SMTP_PASSWORD=your_app_password
 
-  case System.get_env("VOILE_MAILER_ADAPTER") || "smtp" do
-    "gmail_api" ->
-      config :voile, Voile.Mailer,
-        adapter: Voile.Mailer.GmailApiAdapter,
-        access_token: System.get_env("VOILE_GMAIL_ACCESS_TOKEN"),
-        refresh_token: System.get_env("VOILE_GMAIL_REFRESH_TOKEN"),
-        client_id: System.get_env("VOILE_GMAIL_CLIENT_ID"),
-        client_secret: System.get_env("VOILE_GMAIL_CLIENT_SECRET"),
-        redirect_uri: System.get_env("VOILE_GMAIL_REDIRECT_URI")
+  # Both apps send mail (Voile: account emails; Curatorian: event
+  # notifications), so the adapter must be configured for BOTH mailers. A
+  # Curatorian mailer left on Swoosh.Adapters.Local in prod crashes at
+  # delivery time because the local storage process is not started.
+  mail_config =
+    case System.get_env("VOILE_MAILER_ADAPTER") || "smtp" do
+      "gmail_api" ->
+        [
+          adapter: Voile.Mailer.GmailApiAdapter,
+          access_token: System.get_env("VOILE_GMAIL_ACCESS_TOKEN"),
+          refresh_token: System.get_env("VOILE_GMAIL_REFRESH_TOKEN"),
+          client_id: System.get_env("VOILE_GMAIL_CLIENT_ID"),
+          client_secret: System.get_env("VOILE_GMAIL_CLIENT_SECRET"),
+          redirect_uri: System.get_env("VOILE_GMAIL_REDIRECT_URI")
+        ]
 
-    "mailgun" ->
-      config :voile, Voile.Mailer,
-        adapter: Swoosh.Adapters.Mailgun,
-        api_key: System.get_env("VOILE_MAILGUN_API_KEY"),
-        domain: System.get_env("VOILE_MAILGUN_DOMAIN")
+      "mailgun" ->
+        config :swoosh, :api_client, Swoosh.ApiClient.Finch
 
-      config :swoosh, :api_client, Swoosh.ApiClient.Finch
+        [
+          adapter: Swoosh.Adapters.Mailgun,
+          api_key: System.get_env("VOILE_MAILGUN_API_KEY"),
+          domain: System.get_env("VOILE_MAILGUN_DOMAIN")
+        ]
 
-    "sendgrid" ->
-      config :voile, Voile.Mailer,
-        adapter: Swoosh.Adapters.Sendgrid,
-        api_key: System.get_env("VOILE_SENDGRID_API_KEY")
+      "sendgrid" ->
+        config :swoosh, :api_client, Swoosh.ApiClient.Finch
 
-      config :swoosh, :api_client, Swoosh.ApiClient.Finch
+        [
+          adapter: Swoosh.Adapters.Sendgrid,
+          api_key: System.get_env("VOILE_SENDGRID_API_KEY")
+        ]
 
-    _ ->
-      # Default: SMTP
-      config :voile, Voile.Mailer,
-        adapter: Swoosh.Adapters.SMTP,
-        relay: System.get_env("VOILE_SMTP_RELAY") || "smtp.gmail.com",
-        port: String.to_integer(System.get_env("VOILE_SMTP_PORT") || "587"),
-        username: System.get_env("VOILE_SMTP_USERNAME"),
-        password: System.get_env("VOILE_SMTP_PASSWORD"),
-        ssl: System.get_env("VOILE_SMTP_SSL") == "true",
-        tls: :if_available,
-        auth: :always,
-        retries: 3,
-        no_mx_lookups: false
-  end
+      _ ->
+        # Default: SMTP
+        [
+          adapter: Swoosh.Adapters.SMTP,
+          relay: System.get_env("VOILE_SMTP_RELAY") || "smtp.gmail.com",
+          port: String.to_integer(System.get_env("VOILE_SMTP_PORT") || "587"),
+          username: System.get_env("VOILE_SMTP_USERNAME"),
+          password: System.get_env("VOILE_SMTP_PASSWORD"),
+          ssl: System.get_env("VOILE_SMTP_SSL") == "true",
+          tls: :if_available,
+          auth: :always,
+          retries: 3,
+          no_mx_lookups: false
+        ]
+    end
+
+  config :voile, Voile.Mailer, mail_config
+  config :curatorian, Curatorian.Mailer, mail_config
 
   # ===== S3 STORAGE =====
   # Optional — only activated if S3 credentials are present.

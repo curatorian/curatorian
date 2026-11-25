@@ -142,17 +142,14 @@ defmodule Curatorian.SEO.Sitemap do
     end)
   end
 
-  # /events/:slug — only events the show page actually serves
-  # (published/ongoing and not in the past), mirroring get_event_by_slug/1.
+  # /events/:slug — only events the show page actually serves, mirroring
+  # Public.get_event_by_slug/1 (status-based, so past events stay reachable).
   defp event_urls do
-    now = DateTime.utc_now()
-
     fetch_all(fn offset ->
       from(e in Event,
         where:
           is_nil(e.deleted_at) and
-            e.status in [:published, :ongoing] and
-            (e.starts_at >= ^now or e.status == :ongoing),
+            e.status in [:published, :registration_closed, :ongoing, :completed],
         order_by: [asc: e.id],
         limit: @per_page,
         offset: ^offset,

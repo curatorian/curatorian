@@ -10,7 +10,7 @@ defmodule CuratorianWeb.Public.Events.TimeFormatTest do
       # 03:00 UTC == 10:00 WIB.
       dt = ~U[2026-03-10 03:00:00Z]
 
-      assert TimeFormat.datetime(dt, "Asia/Jakarta") == "Tuesday, 10 March 2026 10:00 WIB"
+      assert TimeFormat.datetime(dt, "Asia/Jakarta") == "Selasa, 10 Maret 2026 10:00 WIB"
     end
 
     test "uses Asia/Jakarta when no timezone is set" do
@@ -39,6 +39,17 @@ defmodule CuratorianWeb.Public.Events.TimeFormatTest do
 
     test "handles NaiveDateTime columns (UTC) such as inserted_at" do
       assert TimeFormat.datetime(~N[2026-03-10 03:00:00], nil) =~ "10:00 WIB"
+    end
+  end
+
+  describe "Indonesian names" do
+    test "weekdays and months are Indonesian" do
+      dt = ~U[2026-10-08 03:00:00Z]
+
+      assert TimeFormat.datetime(dt, "Asia/Jakarta") == "Kamis, 08 Oktober 2026 10:00 WIB"
+      assert TimeFormat.datetime_short(dt, "Asia/Jakarta") == "08 Okt 2026, 10:00 WIB"
+      assert TimeFormat.date(~D[2026-05-17]) == "17 Mei 2026"
+      assert TimeFormat.date(~D[2026-08-01]) == "01 Agustus 2026"
     end
   end
 

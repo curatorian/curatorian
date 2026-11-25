@@ -284,14 +284,7 @@ defmodule CuratorianWeb.Layouts do
                     />
                   <% end %>
                 </.link>
-                <.link
-                  href={
-                    System.get_env("ATRIUM_URL") ||
-                      Application.get_env(:curatorian, :atrium_url, "http://localhost:4001") <>
-                        "/dashboard"
-                  }
-                  class="btn-primary no-underline text-xs"
-                >
+                <.link href="/dashboard" class="btn-primary no-underline text-xs">
                   Dashboard
                 </.link>
                 <.link href="/logout" method="delete" class="no-underline btn-cancel text-xs">
@@ -406,14 +399,7 @@ defmodule CuratorianWeb.Layouts do
                 <div class="flex gap-3 w-full"><.theme_toggle /></div>
 
                 <div class="flex flex-col gap-3 w-full">
-                  <.link
-                    href={
-                      System.get_env("ATRIUM_URL") ||
-                        Application.get_env(:curatorian, :atrium_url, "http://localhost:4001") <>
-                          "/dashboard"
-                    }
-                    class="btn-primary no-underline text-sm text-center w-full"
-                  >
+                  <.link href="/dashboard" class="btn-primary no-underline text-sm text-center w-full">
                     Dashboard
                   </.link>
                   <.link

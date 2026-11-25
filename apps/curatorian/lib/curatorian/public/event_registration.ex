@@ -25,6 +25,7 @@ defmodule Curatorian.Public.EventRegistration do
     field :registration_code, :string
     field :token, :string
     field :consented_at, :utc_datetime
+    field :confirmation_sent_at, :utc_datetime
     field :amount_paid_idr, :integer, default: 0
     field :paid_at, :utc_datetime
     field :payment_id, :binary_id
@@ -67,6 +68,7 @@ defmodule Curatorian.Public.EventRegistration do
       message: "already registered for this event"
     )
     |> unique_constraint(:token)
+    |> unique_constraint(:registration_code)
   end
 
   # Mirrors the DB check constraint `event_registrant_identity`: exactly one

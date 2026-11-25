@@ -6,6 +6,7 @@ defmodule CuratorianWeb.Public.CertificateWalletLive do
   import Ecto.Query
 
   alias Curatorian.Repo
+  alias CuratorianWeb.Public.Events.TimeFormat
 
   def mount(_params, _session, socket) do
     current_scope = socket.assigns.current_scope
@@ -76,7 +77,7 @@ defmodule CuratorianWeb.Public.CertificateWalletLive do
                 <div class="flex-1 min-w-0">
                   <p class="font-semibold text-sm text-base-content">{cert.event_title}</p>
                   <p class="text-xs text-base-content/50 mt-0.5">
-                    {Calendar.strftime(cert.event_date, "%d %B %Y")}
+                    {TimeFormat.date(cert.event_date)}
                     <%= if cert.training_hours do %>
                       · {cert.training_hours} jam pelatihan
                     <% end %>

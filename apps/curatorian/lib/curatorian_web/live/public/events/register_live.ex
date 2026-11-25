@@ -618,6 +618,25 @@ defmodule CuratorianWeb.Public.Events.RegisterLive do
         </div>
       <% end %>
 
+      <%!-- Do not rely on the confirmation email: the participant page (QR,
+      session-code check-in, certificate, materials) must be reachable right
+      here, immediately after registering. --%>
+      <%= if @registration && is_binary(@registration.token) do %>
+        <div class="rounded-xl border border-primary/30 bg-primary/5 p-4 mb-6 text-left space-y-2">
+          <p class="text-sm font-semibold text-base-content">Halaman Peserta Anda</p>
+          <p class="text-xs text-base-content/60">
+            Berisi QR check-in, kode sesi, sertifikat, dan materi pembelajaran.
+            Simpan tautan ini agar mudah dibuka saat event berlangsung.
+          </p>
+          <.link
+            navigate={~p"/r/#{@registration.token}"}
+            class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-content transition hover:brightness-105"
+          >
+            <.icon name="hero-qr-code" class="size-4" /> Buka Halaman Peserta
+          </.link>
+        </div>
+      <% end %>
+
       <%= if @event.is_paid and @registration do %>
         <button
           phx-click="start_payment"
@@ -643,9 +662,7 @@ defmodule CuratorianWeb.Public.Events.RegisterLive do
   defp step_title(2, _paid), do: "Pertanyaan Pendaftaran"
   defp step_title(3, _paid), do: "Konfirmasi"
 
-  defp format_date(datetime) do
-    Calendar.strftime(datetime, "%d %B %Y")
-  end
+  defp format_date(datetime), do: TimeFormat.date(datetime)
 
   defp format_time(datetime, tz) do
     TimeFormat.time(datetime, tz)

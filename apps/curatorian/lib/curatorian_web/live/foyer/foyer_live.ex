@@ -4,6 +4,7 @@ defmodule CuratorianWeb.Foyer.FoyerLive do
   use CuratorianWeb, :live_view
 
   alias Curatorian.Public
+  alias CuratorianWeb.Public.Events.TimeFormat
 
   def mount(_params, _session, socket) do
     user = socket.assigns.current_scope.user
@@ -602,7 +603,7 @@ defmodule CuratorianWeb.Foyer.FoyerLive do
                             {event.title}
                           </h4>
                           <p class="text-xs text-slate-500 dark:text-slate-400">
-                            {Calendar.strftime(cert.event_date, "%d %B %Y")}
+                            {TimeFormat.date(cert.event_date)}
                           </p>
                         </div>
                       </div>

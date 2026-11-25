@@ -139,6 +139,73 @@ defmodule Curatorian.Public.EventCheckpointTest do
     end
   end
 
+  describe "record_checkpoint_attendance/2 approval gate" do
+    test "rejects pending, waitlisted and rejected registrations" do
+      event = event_fixture()
+      _checkpoint = checkpoint_fixture(event, "GATE01")
+
+      for status <- [:pending, :waitlisted, :rejected] do
+        registration = registration_fixture(event, %{status: status})
+
+        assert {:error, :not_approved} =
+                 Public.record_checkpoint_attendance(registration.id, "GATE01")
+      end
+    end
+  end
+
+  describe "event window" do
+    test "rejects check-in outside the event's start/end time" do
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+      event =
+        event_fixture(%{
+          starts_at: DateTime.add(now, 3_600),
+          ends_at: DateTime.add(now, 7_200)
+        })
+
+      _checkpoint = checkpoint_fixture(event, "LATER1")
+      registration = registration_fixture(event)
+
+      assert {:error, :outside_event_window} =
+               Public.record_checkpoint_attendance(registration.id, "LATER1")
+    end
+  end
+
+  describe "self_check_in/1" do
+    test "records attendance for an approved participant inside the window" do
+      event = event_fixture(%{attendance_mode: "self_checkin"})
+      registration = registration_fixture(event)
+
+      assert {:ok, attendance} = Public.self_check_in(registration.id)
+      assert attendance.check_in_method == :self_checkin
+      assert attendance.is_eligible_for_cert
+
+      assert {:error, :already_checked_in} = Public.self_check_in(registration.id)
+    end
+
+    test "rejects pending registrations, other modes and closed windows" do
+      pending_event = event_fixture(%{attendance_mode: "self_checkin"})
+      pending = registration_fixture(pending_event, %{status: :pending})
+      assert {:error, :not_approved} = Public.self_check_in(pending.id)
+
+      manual_event = event_fixture(%{attendance_mode: "manual"})
+      manual = registration_fixture(manual_event)
+      assert {:error, :self_checkin_disabled} = Public.self_check_in(manual.id)
+
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+      later_event =
+        event_fixture(%{
+          attendance_mode: "self_checkin",
+          starts_at: DateTime.add(now, 3_600),
+          ends_at: DateTime.add(now, 7_200)
+        })
+
+      later = registration_fixture(later_event)
+      assert {:error, :outside_event_window} = Public.self_check_in(later.id)
+    end
+  end
+
   describe "list_checkpoint_records/1" do
     test "returns the registration's records ordered oldest first" do
       event = event_fixture()
@@ -190,8 +257,9 @@ defmodule Curatorian.Public.EventCheckpointTest do
       event_type: :webinar,
       mode: :online,
       status: :published,
-      starts_at: DateTime.add(now, 3_600),
-      ends_at: DateTime.add(now, 7_200)
+      # Check-in is only valid during the event window; keep fixtures inside it.
+      starts_at: DateTime.add(now, -3_600),
+      ends_at: DateTime.add(now, 3_600)
     }
     |> Map.merge(attrs)
     |> Repo.insert!()

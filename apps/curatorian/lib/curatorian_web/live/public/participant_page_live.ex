@@ -10,6 +10,10 @@ defmodule CuratorianWeb.Public.ParticipantPageLive do
   use CuratorianWeb, :live_view
 
   alias Curatorian.Public
+  alias CuratorianWeb.Public.Events.TimeFormat
+
+  alias QRCode
+  alias QRCode.Render.PngSettings
 
   @impl true
   def mount(%{"token" => token}, _session, socket) do
@@ -25,6 +29,7 @@ defmodule CuratorianWeb.Public.ParticipantPageLive do
         end
 
         checkpoint_records = Public.list_checkpoint_records(registration.id)
+        attendance = Public.get_attendance_for_registration(registration.id)
 
         certificate =
           Public.get_certificate_for_registration(registration.id)
@@ -49,7 +54,14 @@ defmodule CuratorianWeb.Public.ParticipantPageLive do
            event.is_paid and is_nil(registration.paid_at)
          )
          |> assign(:checkpoint_records, checkpoint_records)
+         |> assign(:checked_in_at, attendance && attendance.checked_in_at)
+         |> assign(
+           :self_checkin_active?,
+           registration.status == :approved and event.attendance_mode == "self_checkin" and
+             event.status != :canceled and is_nil(attendance) and event_window_open?(event)
+         )
          |> assign(:certificate, certificate)
+         |> assign(:qr_data_uri, qr_data_uri(url(~p"/r/#{registration.token}")))
          |> assign(:code_input, "")
          |> assign(:code_error, nil)
          |> assign(:noindex, true)}
@@ -112,9 +124,53 @@ defmodule CuratorianWeb.Public.ParticipantPageLive do
         {:error, :rate_limited} ->
           {:noreply,
            assign(socket, :code_error, "Terlalu banyak percobaan. Silakan coba lagi nanti.")}
+
+        {:error, :not_approved} ->
+          {:noreply,
+           assign(
+             socket,
+             :code_error,
+             "Kehadiran hanya bisa dicatat setelah pendaftaran Anda disetujui."
+           )}
+
+        {:error, :outside_event_window} ->
+          {:noreply,
+           assign(
+             socket,
+             :code_error,
+             "Check-in hanya tersedia selama event berlangsung."
+           )}
       end
     end
   end
+
+  @impl true
+  def handle_event("self_check_in", _params, socket) do
+    case Public.self_check_in(socket.assigns.registration.id) do
+      {:ok, attendance} ->
+        {:noreply,
+         socket
+         |> assign(:checked_in_at, attendance.checked_in_at)
+         |> assign(:self_checkin_active?, false)
+         |> put_flash(:info, "Kehadiran tercatat!")}
+
+      {:error, reason} ->
+        {:noreply, put_flash(socket, :error, self_checkin_error(reason))}
+    end
+  end
+
+  defp self_checkin_error(:already_checked_in),
+    do: "Anda sudah check-in untuk event ini."
+
+  defp self_checkin_error(:outside_event_window),
+    do: "Check-in hanya tersedia selama event berlangsung."
+
+  defp self_checkin_error(:not_approved),
+    do: "Kehadiran hanya bisa dicatat setelah pendaftaran Anda disetujui."
+
+  defp self_checkin_error(_),
+    do:
+      "Check-in mandiri belum aktif untuk event ini. Silakan gunakan kode sesi atau minta penyelenggara."
 
   @impl true
   def render(assigns) do
@@ -126,7 +182,10 @@ defmodule CuratorianWeb.Public.ParticipantPageLive do
           <p class="text-xs uppercase tracking-widest text-base-content/50 mb-1">Peserta Event</p>
           <h1 class="text-2xl font-bold text-base-content">{@event.title}</h1>
           <p class="text-sm text-base-content/60 mt-1">
-            {format_dt(@event.starts_at)} — {format_dt(@event.ends_at)}
+            {format_dt(@event.starts_at, @event.timezone)} — {format_dt(
+              @event.ends_at,
+              @event.timezone
+            )}
           </p>
         </div>
 
@@ -190,17 +249,44 @@ defmodule CuratorianWeb.Public.ParticipantPageLive do
           </div>
         <% end %>
 
+        <%!-- One-click self check-in (attendance mode: self_checkin) --%>
+        <%= if @self_checkin_active? or @checked_in_at do %>
+          <div class="bg-base-100 border border-base-300 rounded-2xl p-6 text-center space-y-3">
+            <%= if @checked_in_at do %>
+              <span class="inline-flex items-center gap-2 rounded-full bg-success/15 px-4 py-2 text-sm font-semibold text-success">
+                <.icon name="hero-check-circle" class="size-4" /> Anda sudah check-in
+              </span>
+              <p class="text-xs text-base-content/50">
+                Tercatat {format_dt(@checked_in_at, @event.timezone)}
+              </p>
+            <% else %>
+              <p class="text-sm font-semibold text-base-content">Konfirmasi kehadiran Anda</p>
+              <p class="text-xs text-base-content/60">
+                Tidak perlu menunggu penyelenggara — tekan tombol di bawah selama event berlangsung.
+              </p>
+              <button
+                type="button"
+                phx-click="self_check_in"
+                class="btn btn-primary w-full gap-2"
+              >
+                <.icon name="hero-hand-raised" class="size-4" /> Check-in Sekarang
+              </button>
+            <% end %>
+          </div>
+        <% end %>
+
         <%!-- QR Code --%>
         <div class="bg-base-100 border border-base-300 rounded-2xl p-6 text-center">
           <p class="text-sm font-medium text-base-content mb-3">
             QR Check-in
           </p>
-          <div
-            id="participant-qr"
-            class="flex justify-center"
-            phx-hook=".ParticipantQr"
-            data-url={url(~p"/r/#{@registration.token}")}
-          >
+          <div id="participant-qr" class="flex justify-center">
+            <img
+              :if={@qr_data_uri}
+              src={@qr_data_uri}
+              alt="QR check-in"
+              class="size-44"
+            />
           </div>
           <p class="text-xs text-base-content/50 mt-3">
             Tunjukkan QR ini kepada penyelenggara untuk check-in.
@@ -208,7 +294,7 @@ defmodule CuratorianWeb.Public.ParticipantPageLive do
         </div>
 
         <%!-- Session code entry --%>
-        <%= if session_code_active?(@event) do %>
+        <%= if session_code_active?(@event, @registration) do %>
           <div class="bg-base-100 border border-base-300 rounded-2xl p-5 space-y-3">
             <p class="text-sm font-semibold text-base-content">Masukkan Kode Sesi</p>
             <.form for={%{}} phx-submit="submit_code" class="flex gap-2">
@@ -258,11 +344,37 @@ defmodule CuratorianWeb.Public.ParticipantPageLive do
     """
   end
 
-  defp session_code_active?(event) do
-    event.status == :ongoing and
-      event.attendance_mode in ["session_code", "both"]
+  # Self check-in only while the event is actually running (organizer-entered
+  # start/end), and only for approved participants.
+  defp session_code_active?(event, registration) do
+    event.status != :canceled and
+      event.attendance_mode in ["session_code", "both"] and
+      registration.status == :approved and
+      event_window_open?(event)
   end
 
-  defp format_dt(nil), do: "-"
-  defp format_dt(dt), do: Calendar.strftime(dt, "%A, %d %B %Y, %H:%M UTC")
+  defp event_window_open?(event) do
+    now = DateTime.utc_now()
+    after_start? = is_nil(event.starts_at) or DateTime.compare(now, event.starts_at) != :lt
+    before_end? = is_nil(event.ends_at) or DateTime.compare(now, event.ends_at) != :gt
+    after_start? and before_end?
+  end
+
+  defp format_dt(nil, _tz), do: "-"
+  defp format_dt(dt, tz), do: TimeFormat.datetime(dt, tz)
+
+  # Server-side QR (PNG data URI). PNG avoids the invalid-SVG markup some
+  # browsers refuse to render, and needs no JS hook at all.
+  defp qr_data_uri(value) do
+    settings = %PngSettings{scale: 8, background_color: "#ffffff", qrcode_color: "#1f2937"}
+
+    value
+    |> QRCode.create(:high)
+    |> QRCode.render(:png, settings)
+    |> QRCode.to_base64()
+    |> case do
+      {:ok, base64} -> "data:image/png;base64,#{base64}"
+      _ -> nil
+    end
+  end
 end

@@ -50,6 +50,81 @@ defmodule CuratorianWeb.Public.ParticipantPageTest do
     end
   end
 
+  describe "QR check-in" do
+    test "renders the QR inline without relying on a JS hook", %{conn: conn} do
+      registration = registration_fixture(%{}, %{})
+
+      {:ok, lv, _html} = live(conn, ~p"/r/#{registration.token}")
+
+      assert has_element?(lv, "#participant-qr img")
+      assert render(lv) =~ "data:image/png;base64,"
+    end
+  end
+
+  describe "session-code self check-in" do
+    test "approved participants on an ongoing session-code event see the form", %{conn: conn} do
+      registration =
+        registration_fixture(%{}, %{
+          status: :ongoing,
+          attendance_mode: "session_code",
+          starts_at: DateTime.add(DateTime.utc_now(), -3_600) |> DateTime.truncate(:second),
+          ends_at: DateTime.add(DateTime.utc_now(), 3_600) |> DateTime.truncate(:second)
+        })
+
+      {:ok, lv, _html} = live(conn, ~p"/r/#{registration.token}")
+
+      assert has_element?(lv, ~s(input[name="code"]))
+      assert lv |> render() =~ "Masukkan Kode Sesi"
+    end
+
+    test "pending participants never see the form", %{conn: conn} do
+      registration =
+        registration_fixture(%{status: :pending}, %{
+          status: :ongoing,
+          attendance_mode: "session_code",
+          starts_at: DateTime.add(DateTime.utc_now(), -3_600) |> DateTime.truncate(:second),
+          ends_at: DateTime.add(DateTime.utc_now(), 3_600) |> DateTime.truncate(:second)
+        })
+
+      {:ok, lv, _html} = live(conn, ~p"/r/#{registration.token}")
+
+      refute has_element?(lv, ~s(input[name="code"]))
+    end
+  end
+
+  describe "one-click self check-in" do
+    test "approved participants can check themselves in during the event", %{conn: conn} do
+      registration =
+        registration_fixture(%{}, %{
+          attendance_mode: "self_checkin",
+          starts_at: DateTime.add(DateTime.utc_now(), -3_600) |> DateTime.truncate(:second),
+          ends_at: DateTime.add(DateTime.utc_now(), 3_600) |> DateTime.truncate(:second)
+        })
+
+      {:ok, lv, html} = live(conn, ~p"/r/#{registration.token}")
+
+      assert html =~ "Check-in Sekarang"
+
+      html = lv |> element("button", "Check-in Sekarang") |> render_click()
+
+      assert html =~ "Anda sudah check-in"
+      assert Curatorian.Public.get_attendance_for_registration(registration.id)
+    end
+
+    test "pending participants do not see the button", %{conn: conn} do
+      registration =
+        registration_fixture(%{status: :pending}, %{
+          attendance_mode: "self_checkin",
+          starts_at: DateTime.add(DateTime.utc_now(), -3_600) |> DateTime.truncate(:second),
+          ends_at: DateTime.add(DateTime.utc_now(), 3_600) |> DateTime.truncate(:second)
+        })
+
+      {:ok, _lv, html} = live(conn, ~p"/r/#{registration.token}")
+
+      refute html =~ "Check-in Sekarang"
+    end
+  end
+
   describe "payment button" do
     test "unpaid paid events show a Bayar Sekarang button (guests pay here)", %{conn: conn} do
       registration =
